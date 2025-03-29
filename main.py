@@ -1,18 +1,32 @@
-import sys
 from pathlib import Path
+from time import sleep
 
 from PIL import Image, ImageOps
 from PIL.Image import Resampling
 from copykitten import copy_image
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame, CTkToplevel
-from easygui import msgbox
+from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
+from easygui import msgbox # Remove before release
 from filedialpy import openFile
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+import threading
 
 
-
-class Configurable():
+class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
+
+class FileChangeHandler(FileSystemEventHandler):
+        def __init__(self,lock):
+            super().__init__()
+            self.lock = lock
+            print("ran")
+
+        def on_modified(self,event):
+            with self.lock:
+                print("detected")
+                sleep(0.5) # Needed to avoid getting errors that file doesn't exist
+                app.refresh_images()
 
 class App(CTk):
     def __init__(self):
@@ -21,15 +35,21 @@ class App(CTk):
         self.geometry(self.set_window_size())
         self.resizable(False,False)
         self.image_size = (self.width * 0.83, self.height * 0.5)
+        self.lock = threading.Lock()
 
         CTkFrame(self,fg_color="transparent").grid(row=0,column=2,padx=55,pady=10, sticky="nsw")
-        self.check_for_files()
-        #Set default images for images used
-        SceneComposer.scaled_background = ImageOps.scale(Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')), (1.5)).convert('RGBA')
-        SceneComposer.jacket = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')).convert('RGBA')
-        SceneComposer.logo = Image.open((config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png')).convert('RGBA')
-        SceneComposer.thumbnail = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')).convert('RGBA')
 
+        #Set default images for images used
+        self.background_location = config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
+        self.jacket_location = config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
+        self.logo_location = config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
+        self.thumbnail_location = config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
+        SceneComposer.scaled_background = ImageOps.scale(Image.open(self.background_location), (1.5)).convert('RGBA')
+        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+
+        self.check_for_files()
         self.draw_image_grid()
 
         load_background_button = CTkButton(self, text="Load Background", command=self.load_background_button_callback)
@@ -47,16 +67,7 @@ class App(CTk):
         self.copy_to_clipboard_button = CTkButton(self, text="Copy to clipboard",command=self.copy_to_clipboard_button_callback)
         self.copy_to_clipboard_button.grid(row=0, column=2, padx=10, pady=90, sticky="wn")
 
-    def draw_image_grid(self):
-        self.mm_song_selector_preview = CTkLabel(self, image=self.get_scene("mm_song_selector"), text="")
-        self.ft_song_selector_preview = CTkLabel(self, image=self.get_scene("ft_song_selector"), text="")
-        self.mm_result_preview = CTkLabel(self, image=self.get_scene("mm_result"), text="")
-        self.ft_result_preview = CTkLabel(self, image=self.get_scene("ft_result"), text="")
 
-        self.mm_song_selector_preview.grid(row=0, column=0, padx=0, pady=0, sticky="wn")
-        self.ft_song_selector_preview.grid(row=0, column=1, padx=0, pady=0, sticky="ne")
-        self.mm_result_preview.grid(row=1, column=0, padx=0, pady=0, sticky="wn")
-        self.ft_result_preview.grid(row=1, column=1, padx=0, pady=0, sticky="wn")
 
     def check_for_files(self):
         try:
@@ -81,9 +92,38 @@ class App(CTk):
             x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Base.png').resolve(strict=True))
             x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png').resolve(strict=True))
             x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png').resolve(strict=True))
+
         except:
             msgbox("Images are missing")
             quit("Images are missing")
+
+        self.start_monitoring()
+
+    def start_monitoring(self):
+        observed_files = [self.background_location,self.jacket_location,self.logo_location,self.thumbnail_location]
+
+        self.event_handler = FileChangeHandler(self.lock)
+        self.observer = Observer()
+        for file in observed_files:
+            self.observer.schedule(self.event_handler, file, recursive=False)
+            print(file)
+
+        self.monitoring_thread = threading.Thread(target=self.run_observer, daemon=True)
+        self.monitoring_thread.start()
+    def run_observer(self):
+        self.observer.start()
+        try:
+            while self.observer.is_alive():
+                self.observer.join(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+    def stop_monitoring(self):
+        if self.observer is not None:
+            self.observer.stop()
+            self.observer.join()
+    def observer_restart(self):
+        self.observer.stop()
+        self.start_monitoring()
 
     def set_window_size(self) -> str:
         screen_width = self.winfo_screenwidth()
@@ -94,42 +134,69 @@ class App(CTk):
         self.height = (screen_height * height_percent) // 100
 
         return f"{self.width}x{self.height}+{screen_width // 2 - self.width // 2}+{screen_height // 2 - self.height // 2}"
+
+    def draw_image_grid(self):
+        self.mm_song_selector_preview = CTkLabel(self, image=self.get_scene("mm_song_selector"), text="")
+        self.ft_song_selector_preview = CTkLabel(self, image=self.get_scene("ft_song_selector"), text="")
+        self.mm_result_preview = CTkLabel(self, image=self.get_scene("mm_result"), text="")
+        self.ft_result_preview = CTkLabel(self, image=self.get_scene("ft_result"), text="")
+
+        self.mm_song_selector_preview.grid(row=0, column=0, padx=0, pady=0, sticky="wn")
+        self.ft_song_selector_preview.grid(row=0, column=1, padx=0, pady=0, sticky="ne")
+        self.mm_result_preview.grid(row=1, column=0, padx=0, pady=0, sticky="wn")
+        self.ft_result_preview.grid(row=1, column=1, padx=0, pady=0, sticky="wn")
+    def refresh_images(self):
+        background = Image.open(self.background_location).convert('RGBA')
+        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
+
+        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+
+        self.draw_image_grid()
+        self.observer_restart()
     def get_scene(self,ui_scene):
        return CTkImage(SceneComposer.compose_scene(ui_scene),size=self.image_size)
 
     def load_background_button_callback(self):
-        try:
-            background = Image.open(openFile(title="Open background image", filter="*.png *.jpg")).convert('RGBA')
-        except:
+        open_background = openFile(title="Open background image", filter="*.png *.jpg")
+
+        if open_background == '':
             print("Background image wasn't chosen")
         else:
+            self.background_location = open_background
+            background = Image.open(self.background_location).convert('RGBA')
             SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
             self.draw_image_grid()
-
+            self.observer_restart()
     def load_jacket_button_callback(self):
-        try:
-            SceneComposer.jacket = Image.open(openFile(title="Open jacket image", filter="*.png *.jpg")).convert('RGBA')
-        except:
+        open_jacket = openFile(title="Open jacket image", filter="*.png *.jpg")
+
+        if open_jacket == '':
             print("Jacket image wasn't chosen")
         else:
+            self.jacket_location = open_jacket
+            SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
             self.draw_image_grid()
-
+            self.observer_restart()
     def load_logo_button_callback(self):
-        try:
-            SceneComposer.logo = Image.open(openFile(title="Open logo image", filter="*.png *.jpg")).convert('RGBA')
-        except:
+        open_logo = openFile(title="Open logo image", filter="*.png *.jpg")
+        if open_logo == '':
             print("Logo image wasn't chosen")
         else:
+            self.logo_location = open_logo
+            SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
             self.draw_image_grid()
-
+            self.observer_restart()
     def load_thumbnail_button_callback(self):
-        try:
-            SceneComposer.thumbnail = Image.open(openFile(title="Open thumbnail image", filter="*.png *.jpg")).convert('RGBA')
-        except:
+        open_thumbnail = openFile(title="Open thumbnail image", filter="*.png *.jpg")
+        if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
+            self.thumbnail_location = open_thumbnail
+            SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
             self.draw_image_grid()
-
+            self.observer_restart()
     def copy_to_clipboard_button_callback(self):
         composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
         composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector"), (0, 0))
@@ -139,7 +206,6 @@ class App(CTk):
         pixels = composite.tobytes()
         copy_image(pixels, composite.width, composite.height)
         self.button_click_feedback(self.copy_to_clipboard_button,"green")
-
     def button_click_feedback(self,button,color_on_press):
         fg_color = button.cget("fg_color")
         hover_color = button.cget("hover_color")
