@@ -1,11 +1,11 @@
-from pathlib import Path
+from pathlib import Path, PurePath
 from time import sleep
 
 from PIL import Image, ImageOps
 from PIL.Image import Resampling
 from copykitten import copy_image
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
-from easygui import msgbox # Remove before release
+from ctkmessagebox2 import showerror
+from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame, CTkToplevel
 from filedialpy import openFile
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
@@ -67,34 +67,36 @@ class App(CTk):
         self.copy_to_clipboard_button = CTkButton(self, text="Copy to clipboard",command=self.copy_to_clipboard_button_callback)
         self.copy_to_clipboard_button.grid(row=0, column=2, padx=10, pady=90, sticky="wn")
 
-
-
     def check_for_files(self):
-        try:
-            x = Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png').resolve(strict=True))
+        missing_files = []
+        required_files = [
+            config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
+            config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
+            config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
+            config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png',
+            config.script_directory / 'Images/MM UI - Song Select/Backdrop.png',
+            config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
+            config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
+            config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
+            config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
+            config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
+            config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
+            config.script_directory / 'Images/FT UI - Song Select/Base.png',
+            config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
+            config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
+            config.script_directory / 'Images/FT UI - Results Screen/Base.png',
+            config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
+            config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'
+        ]
 
-            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Backdrop.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Song Selector.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Top Layer.png').resolve(strict=True))
-
-            x = Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png').resolve(strict=True))
-
-            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Base.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Top Layer.png').resolve(strict=True))
-
-            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Base.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png').resolve(strict=True))
-            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png').resolve(strict=True))
-
-        except:
-            msgbox("Images are missing")
+        for file_path in required_files:
+            if not file_path.is_file():
+                missing_files.append(str(PurePath(file_path.as_posix()).relative_to(config.script_directory.parent))+ "\n")
+            else:
+                pass
+        if not len(missing_files) == 0:
+            self.iconify()
+            showerror(self,"Error",f"Images are missing:\n{''.join(missing_files)}")
             quit("Images are missing")
 
         self.start_monitoring()
