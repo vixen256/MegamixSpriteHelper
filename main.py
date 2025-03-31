@@ -5,28 +5,15 @@ from PIL import Image, ImageOps
 from PIL.Image import Resampling
 from copykitten import copy_image
 from ctkmessagebox2 import showerror
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame, CTkToplevel
+from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
 from filedialpy import openFile
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
 import threading
 
 
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-
-class FileChangeHandler(FileSystemEventHandler):
-        def __init__(self,lock):
-            super().__init__()
-            self.lock = lock
-            print("ran")
-
-        def on_modified(self,event):
-            with self.lock:
-                print("detected")
-                sleep(0.5) # Needed to avoid getting errors that file doesn't exist
-                app.refresh_images()
+        self.allowed_file_types = ["*.png *.jpg"]
 
 class App(CTk):
     def __init__(self):
@@ -40,6 +27,7 @@ class App(CTk):
         CTkFrame(self,fg_color="transparent").grid(row=0,column=2,padx=55,pady=10, sticky="nsw")
 
         #Set default images for images used
+        self.check_for_files()
         self.background_location = config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
         self.jacket_location = config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
         self.logo_location = config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
@@ -49,7 +37,6 @@ class App(CTk):
         SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
         SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
 
-        self.check_for_files()
         self.draw_image_grid()
 
         load_background_button = CTkButton(self, text="Load Background", command=self.load_background_button_callback)
@@ -78,7 +65,6 @@ class App(CTk):
             config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
             config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
             config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
-            config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
             config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
             config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
             config.script_directory / 'Images/FT UI - Song Select/Base.png',
@@ -95,37 +81,9 @@ class App(CTk):
             else:
                 pass
         if not len(missing_files) == 0:
-            self.iconify()
+            #self.iconify()
             showerror(self,"Error",f"Images are missing:\n{''.join(missing_files)}")
             quit("Images are missing")
-
-        self.start_monitoring()
-
-    def start_monitoring(self):
-        observed_files = [self.background_location,self.jacket_location,self.logo_location,self.thumbnail_location]
-
-        self.event_handler = FileChangeHandler(self.lock)
-        self.observer = Observer()
-        for file in observed_files:
-            self.observer.schedule(self.event_handler, file, recursive=False)
-            print(file)
-
-        self.monitoring_thread = threading.Thread(target=self.run_observer, daemon=True)
-        self.monitoring_thread.start()
-    def run_observer(self):
-        self.observer.start()
-        try:
-            while self.observer.is_alive():
-                self.observer.join(1)
-        except KeyboardInterrupt:
-            self.observer.stop()
-    def stop_monitoring(self):
-        if self.observer is not None:
-            self.observer.stop()
-            self.observer.join()
-    def observer_restart(self):
-        self.observer.stop()
-        self.start_monitoring()
 
     def set_window_size(self) -> str:
         screen_width = self.winfo_screenwidth()
@@ -156,12 +114,11 @@ class App(CTk):
         SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
 
         self.draw_image_grid()
-        self.observer_restart()
     def get_scene(self,ui_scene):
        return CTkImage(SceneComposer.compose_scene(ui_scene),size=self.image_size)
 
     def load_background_button_callback(self):
-        open_background = openFile(title="Open background image", filter="*.png *.jpg")
+        open_background = openFile(title="Open background image", filter=config.allowed_file_types)
 
         if open_background == '':
             print("Background image wasn't chosen")
@@ -170,9 +127,8 @@ class App(CTk):
             background = Image.open(self.background_location).convert('RGBA')
             SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
             self.draw_image_grid()
-            self.observer_restart()
     def load_jacket_button_callback(self):
-        open_jacket = openFile(title="Open jacket image", filter="*.png *.jpg")
+        open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
@@ -180,25 +136,25 @@ class App(CTk):
             self.jacket_location = open_jacket
             SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
             self.draw_image_grid()
-            self.observer_restart()
+
     def load_logo_button_callback(self):
-        open_logo = openFile(title="Open logo image", filter="*.png *.jpg")
+        open_logo = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
             self.logo_location = open_logo
             SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
             self.draw_image_grid()
-            self.observer_restart()
+
     def load_thumbnail_button_callback(self):
-        open_thumbnail = openFile(title="Open thumbnail image", filter="*.png *.jpg")
+        open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
             self.thumbnail_location = open_thumbnail
             SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
             self.draw_image_grid()
-            self.observer_restart()
+
     def copy_to_clipboard_button_callback(self):
         composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
         composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector"), (0, 0))
