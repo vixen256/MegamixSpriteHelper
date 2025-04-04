@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperRTORNZ.ui'
+## Form generated from reading UI file 'SpriteHelperfENHKm.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -168,6 +168,11 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addItem(self.load_buttons_box_spacer)
 
+        self.export_background_jacket_button = QPushButton(self.grid)
+        self.export_background_jacket_button.setObjectName(u"export_background_jacket_button")
+
+        self.load_buttons_box.addWidget(self.export_background_jacket_button)
+
 
         self.horizontalLayout_5.addLayout(self.load_buttons_box)
 
@@ -188,6 +193,7 @@ class Ui_MainWindow(object):
         self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
         self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy to clipboard", None))
+        self.export_background_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Export Background/Jacket", None))
         pass
     # retranslateUi
 
