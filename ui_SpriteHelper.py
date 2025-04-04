@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperxNyKSN.ui'
+## Form generated from reading UI file 'SpriteHelperRTORNZ.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -24,15 +24,18 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModality.NonModal)
-        MainWindow.resize(1386, 795)
+        #MainWindow.resize(2180, 1090)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(16)
         sizePolicy.setVerticalStretch(9)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QSize(640, 320))
+        MainWindow.setMinimumSize(QSize(546, 273))
+        MainWindow.setMaximumSize(QSize(2180, 1090))
         MainWindow.setSizeIncrement(QSize(16, 9))
-        MainWindow.setBaseSize(QSize(1666, 777))
+        MainWindow.setBaseSize(QSize(872, 436))
+        MainWindow.setAcceptDrops(False)
+        MainWindow.setWindowTitle(u"Megamix Sprite Helper")
         MainWindow.setAutoFillBackground(True)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Europe))
         MainWindow.setAnimated(True)
@@ -46,20 +49,23 @@ class Ui_MainWindow(object):
         self.grid.setSizePolicy(sizePolicy1)
         self.grid.setMinimumSize(QSize(0, 0))
         self.grid.setSizeIncrement(QSize(16, 9))
-        self.grid.setBaseSize(QSize(1666, 777))
+        self.grid.setBaseSize(QSize(0, 0))
         self.grid.setAutoFillBackground(False)
         self.horizontalLayout_5 = QHBoxLayout(self.grid)
+        self.horizontalLayout_5.setSpacing(5)
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.horizontalLayout_5.setContentsMargins(5, 5, 5, 5)
         self.image_grid = QGridLayout()
         self.image_grid.setSpacing(5)
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.image_grid.setContentsMargins(5, 5, 5, 5)
+        self.image_grid.setContentsMargins(0, 0, 0, 0)
         self.ft_song_selector_preview = QLabel(self.grid)
         self.ft_song_selector_preview.setObjectName(u"ft_song_selector_preview")
         sizePolicy1.setHeightForWidth(self.ft_song_selector_preview.sizePolicy().hasHeightForWidth())
         self.ft_song_selector_preview.setSizePolicy(sizePolicy1)
-        self.ft_song_selector_preview.setMinimumSize(QSize(0, 0))
+        self.ft_song_selector_preview.setMinimumSize(QSize(256, 144))
+        self.ft_song_selector_preview.setMaximumSize(QSize(1920, 1080))
         self.ft_song_selector_preview.setSizeIncrement(QSize(16, 9))
         self.ft_song_selector_preview.setBaseSize(QSize(640, 360))
         self.ft_song_selector_preview.setScaledContents(True)
@@ -70,7 +76,8 @@ class Ui_MainWindow(object):
         self.mm_result_preview.setObjectName(u"mm_result_preview")
         sizePolicy1.setHeightForWidth(self.mm_result_preview.sizePolicy().hasHeightForWidth())
         self.mm_result_preview.setSizePolicy(sizePolicy1)
-        self.mm_result_preview.setMinimumSize(QSize(0, 0))
+        self.mm_result_preview.setMinimumSize(QSize(256, 144))
+        self.mm_result_preview.setMaximumSize(QSize(1920, 1080))
         self.mm_result_preview.setSizeIncrement(QSize(16, 9))
         self.mm_result_preview.setBaseSize(QSize(640, 360))
         self.mm_result_preview.setScaledContents(True)
@@ -81,7 +88,8 @@ class Ui_MainWindow(object):
         self.ft_result_preview.setObjectName(u"ft_result_preview")
         sizePolicy1.setHeightForWidth(self.ft_result_preview.sizePolicy().hasHeightForWidth())
         self.ft_result_preview.setSizePolicy(sizePolicy1)
-        self.ft_result_preview.setMinimumSize(QSize(0, 0))
+        self.ft_result_preview.setMinimumSize(QSize(256, 144))
+        self.ft_result_preview.setMaximumSize(QSize(1920, 1080))
         self.ft_result_preview.setSizeIncrement(QSize(16, 9))
         self.ft_result_preview.setBaseSize(QSize(640, 360))
         self.ft_result_preview.setScaledContents(True)
@@ -92,7 +100,8 @@ class Ui_MainWindow(object):
         self.mm_song_selector_preview.setObjectName(u"mm_song_selector_preview")
         sizePolicy1.setHeightForWidth(self.mm_song_selector_preview.sizePolicy().hasHeightForWidth())
         self.mm_song_selector_preview.setSizePolicy(sizePolicy1)
-        self.mm_song_selector_preview.setMinimumSize(QSize(0, 0))
+        self.mm_song_selector_preview.setMinimumSize(QSize(256, 144))
+        self.mm_song_selector_preview.setMaximumSize(QSize(1920, 1680))
         self.mm_song_selector_preview.setSizeIncrement(QSize(16, 9))
         self.mm_song_selector_preview.setBaseSize(QSize(640, 360))
         self.mm_song_selector_preview.setScaledContents(True)
@@ -103,13 +112,17 @@ class Ui_MainWindow(object):
         self.image_grid.setRowStretch(1, 2)
         self.image_grid.setColumnStretch(0, 2)
         self.image_grid.setColumnStretch(1, 2)
+        self.image_grid.setColumnMinimumWidth(1, 256)
+        self.image_grid.setRowMinimumHeight(1, 144)
 
         self.horizontalLayout_5.addLayout(self.image_grid)
 
         self.load_buttons_box = QVBoxLayout()
+        self.load_buttons_box.setSpacing(5)
         self.load_buttons_box.setObjectName(u"load_buttons_box")
         self.load_buttons_box.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.load_buttons_box_row1 = QHBoxLayout()
+        self.load_buttons_box_row1.setSpacing(5)
         self.load_buttons_box_row1.setObjectName(u"load_buttons_box_row1")
         self.load_background_button = QPushButton(self.grid)
         self.load_background_button.setObjectName(u"load_background_button")
@@ -125,6 +138,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box.addLayout(self.load_buttons_box_row1)
 
         self.load_buttons_box_row2 = QHBoxLayout()
+        self.load_buttons_box_row2.setSpacing(5)
         self.load_buttons_box_row2.setObjectName(u"load_buttons_box_row2")
         self.load_thumbnail_button = QPushButton(self.grid)
         self.load_thumbnail_button.setObjectName(u"load_thumbnail_button")
@@ -140,6 +154,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box.addLayout(self.load_buttons_box_row2)
 
         self.load_buttons_box_row3 = QHBoxLayout()
+        self.load_buttons_box_row3.setSpacing(5)
         self.load_buttons_box_row3.setObjectName(u"load_buttons_box_row3")
         self.copy_to_clipboard_button = QPushButton(self.grid)
         self.copy_to_clipboard_button.setObjectName(u"copy_to_clipboard_button")
@@ -149,7 +164,7 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addLayout(self.load_buttons_box_row3)
 
-        self.load_buttons_box_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.load_buttons_box_spacer = QSpacerItem(52, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.load_buttons_box.addItem(self.load_buttons_box_spacer)
 
@@ -164,7 +179,6 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Megamix Sprite Helper", None))
         self.ft_song_selector_preview.setText("")
         self.mm_result_preview.setText("")
         self.ft_result_preview.setText("")
@@ -174,5 +188,6 @@ class Ui_MainWindow(object):
         self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
         self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy to clipboard", None))
+        pass
     # retranslateUi
 
