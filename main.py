@@ -1,10 +1,11 @@
 from pathlib import Path, PurePath
 import sys
+from time import sleep
 
-from PySide6.QtCore import Qt, Slot, QSize, QMetaObject, QCoreApplication
+from PySide6.QtCore import Qt, Slot, QSize, QMetaObject, QCoreApplication, QFileSystemWatcher
 from PySide6.QtWidgets import QApplication, QPushButton, QDialog, QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, \
     QGridLayout, QMessageBox, QSizePolicy, QWidget, QLayout, QMainWindow
-from PySide6.QtGui import QPixmap, QImage, QPicture
+from PySide6.QtGui import QPixmap, QImage, QPicture, QScreen
 from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 from copykitten import copy_image
@@ -93,7 +94,13 @@ class MainWindow(QMainWindow):
         SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
         SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
 
-
+        self.watcher = QFileSystemWatcher()
+        self.watcher.fileChanged.connect(self.watcher_file_modified_action)
+        self.watcher.addPath(str(self.background_location))
+        self.watcher.addPath(str(self.jacket_location))
+        self.watcher.addPath(str(self.logo_location))
+        self.watcher.addPath(str(self.thumbnail_location))
+        print(self.watcher.files())
 
         #Connect buttons with their functionality
         self.main_box.load_background_button.clicked.connect(self.load_background_button_callback)
@@ -104,6 +111,19 @@ class MainWindow(QMainWindow):
 
         self.draw_image_grid()
 
+    def reload_images(self):
+        background = Image.open(self.background_location).convert('RGBA')
+        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
+        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+
+    def watcher_file_modified_action(self,path):
+        sleep(1)
+        self.watcher.removePath(path)
+        self.reload_images()
+        self.watcher.addPath(path)
+        self.draw_image_grid()
 
     def draw_image_grid(self):
         self.mm_song_selector_preview = QLabel(self)
@@ -138,9 +158,12 @@ class MainWindow(QMainWindow):
         if open_background == '':
             print("Background image wasn't chosen")
         else:
+            self.watcher.removePath(str(self.background_location))
             self.background_location = open_background
             background = Image.open(self.background_location).convert('RGBA')
             SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
+            self.watcher.addPath(str(self.background_location))
+            print(self.watcher.files())
             self.draw_image_grid()
     @Slot()
     def load_jacket_button_callback(self):
@@ -149,8 +172,10 @@ class MainWindow(QMainWindow):
         if open_jacket == '':
             print("Jacket image wasn't chosen")
         else:
+            self.watcher.removePath(str(self.jacket_location))
             self.jacket_location = open_jacket
             SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+            self.watcher.addPath(str(self.jacket_location))
             self.draw_image_grid()
     @Slot()
     def load_logo_button_callback(self):
@@ -158,8 +183,10 @@ class MainWindow(QMainWindow):
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
+            self.watcher.removePath(str(self.logo_location))
             self.logo_location = open_logo
             SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+            self.watcher.addPath(str(self.logo_location))
             self.draw_image_grid()
     @Slot()
     def load_thumbnail_button_callback(self):
@@ -167,8 +194,10 @@ class MainWindow(QMainWindow):
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
+            self.watcher.removePath(str(self.thumbnail_location))
             self.thumbnail_location = open_thumbnail
             SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+            self.watcher.addPath(str(self.thumbnail_location))
             self.draw_image_grid()
 
 
