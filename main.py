@@ -1,219 +1,29 @@
 from pathlib import Path, PurePath
+import sys
 from time import sleep
 
-from PIL import Image, ImageOps
+import PIL.Image
+import filedialpy
+from PySide6.QtCore import Qt, Slot, QSize, QMetaObject, QCoreApplication, QFileSystemWatcher
+from PySide6.QtWidgets import QApplication, QPushButton, QDialog, QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, \
+    QGridLayout, QMessageBox, QSizePolicy, QWidget, QLayout, QMainWindow
+from PySide6.QtGui import QPixmap, QImage, QPicture, QScreen
+from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 from copykitten import copy_image
-from ctkmessagebox2 import showerror
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame, CTkToplevel
 from filedialpy import openFile
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
-import threading
+
+import numpy as np
+from scipy.ndimage import distance_transform_edt
+
+from ui_SpriteHelper import Ui_MainWindow
 
 
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-
-class FileChangeHandler(FileSystemEventHandler):
-        def __init__(self,lock):
-            super().__init__()
-            self.lock = lock
-            print("ran")
-
-        def on_modified(self,event):
-            with self.lock:
-                print("detected")
-                sleep(0.5) # Needed to avoid getting errors that file doesn't exist
-                app.refresh_images()
-
-class App(CTk):
-    def __init__(self):
-        super().__init__()
-        self.title("Megamix Sprite Helper")
-        self.geometry(self.set_window_size())
-        self.resizable(False,False)
-        self.image_size = (self.width * 0.83, self.height * 0.5)
-        self.lock = threading.Lock()
-
-        CTkFrame(self,fg_color="transparent").grid(row=0,column=2,padx=55,pady=10, sticky="nsw")
-
-        #Set default images for images used
-        self.background_location = config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
-        self.jacket_location = config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
-        self.logo_location = config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
-        self.thumbnail_location = config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
-        SceneComposer.scaled_background = ImageOps.scale(Image.open(self.background_location), (1.5)).convert('RGBA')
-        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
-
-        self.check_for_files()
-        self.draw_image_grid()
-
-        load_background_button = CTkButton(self, text="Load Background", command=self.load_background_button_callback)
-        load_background_button.grid(row=0, column=2, padx=10, pady=10, sticky="wn")
-
-        load_thumbnail_button = CTkButton(self, text="Load Thumbnail", command=self.load_thumbnail_button_callback)
-        load_thumbnail_button.grid(row=0, column=2, padx=10, pady=50, sticky="ne")
-
-        load_logo_button = CTkButton(self, text="Load Logo", command=self.load_logo_button_callback)
-        load_logo_button.grid(row=0, column=2, padx=10, pady=50, sticky="wn")
-
-        load_jacket_button = CTkButton(self, text="Load Jacket",command=self.load_jacket_button_callback)
-        load_jacket_button.grid(row=0, column=2, padx=10, pady=10, sticky="ne")
-
-        self.copy_to_clipboard_button = CTkButton(self, text="Copy to clipboard",command=self.copy_to_clipboard_button_callback)
-        self.copy_to_clipboard_button.grid(row=0, column=2, padx=10, pady=90, sticky="wn")
-
-    def check_for_files(self):
-        missing_files = []
-        required_files = [
-            config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
-            config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
-            config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
-            config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png',
-            config.script_directory / 'Images/MM UI - Song Select/Backdrop.png',
-            config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
-            config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
-            config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
-            config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
-            config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
-            config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
-            config.script_directory / 'Images/FT UI - Song Select/Base.png',
-            config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
-            config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
-            config.script_directory / 'Images/FT UI - Results Screen/Base.png',
-            config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
-            config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'
-        ]
-
-        for file_path in required_files:
-            if not file_path.is_file():
-                missing_files.append(str(PurePath(file_path.as_posix()).relative_to(config.script_directory.parent))+ "\n")
-            else:
-                pass
-        if not len(missing_files) == 0:
-            self.iconify()
-            showerror(self,"Error",f"Images are missing:\n{''.join(missing_files)}")
-            quit("Images are missing")
-
-        self.start_monitoring()
-
-    def start_monitoring(self):
-        observed_files = [self.background_location,self.jacket_location,self.logo_location,self.thumbnail_location]
-
-        self.event_handler = FileChangeHandler(self.lock)
-        self.observer = Observer()
-        for file in observed_files:
-            self.observer.schedule(self.event_handler, file, recursive=False)
-            print(file)
-
-        self.monitoring_thread = threading.Thread(target=self.run_observer, daemon=True)
-        self.monitoring_thread.start()
-    def run_observer(self):
-        self.observer.start()
-        try:
-            while self.observer.is_alive():
-                self.observer.join(1)
-        except KeyboardInterrupt:
-            self.observer.stop()
-    def stop_monitoring(self):
-        if self.observer is not None:
-            self.observer.stop()
-            self.observer.join()
-    def observer_restart(self):
-        self.observer.stop()
-        self.start_monitoring()
-
-    def set_window_size(self) -> str:
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        width_percent = 30.25
-        height_percent = 50
-        self.width = (screen_width * width_percent) // 100
-        self.height = (screen_height * height_percent) // 100
-
-        return f"{self.width}x{self.height}+{screen_width // 2 - self.width // 2}+{screen_height // 2 - self.height // 2}"
-
-    def draw_image_grid(self):
-        self.mm_song_selector_preview = CTkLabel(self, image=self.get_scene("mm_song_selector"), text="")
-        self.ft_song_selector_preview = CTkLabel(self, image=self.get_scene("ft_song_selector"), text="")
-        self.mm_result_preview = CTkLabel(self, image=self.get_scene("mm_result"), text="")
-        self.ft_result_preview = CTkLabel(self, image=self.get_scene("ft_result"), text="")
-
-        self.mm_song_selector_preview.grid(row=0, column=0, padx=0, pady=0, sticky="wn")
-        self.ft_song_selector_preview.grid(row=0, column=1, padx=0, pady=0, sticky="ne")
-        self.mm_result_preview.grid(row=1, column=0, padx=0, pady=0, sticky="wn")
-        self.ft_result_preview.grid(row=1, column=1, padx=0, pady=0, sticky="wn")
-    def refresh_images(self):
-        background = Image.open(self.background_location).convert('RGBA')
-        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
-
-        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
-
-        self.draw_image_grid()
-        self.observer_restart()
-    def get_scene(self,ui_scene):
-       return CTkImage(SceneComposer.compose_scene(ui_scene),size=self.image_size)
-
-    def load_background_button_callback(self):
-        open_background = openFile(title="Open background image", filter="*.png *.jpg")
-
-        if open_background == '':
-            print("Background image wasn't chosen")
-        else:
-            self.background_location = open_background
-            background = Image.open(self.background_location).convert('RGBA')
-            SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
-            self.draw_image_grid()
-            self.observer_restart()
-    def load_jacket_button_callback(self):
-        open_jacket = openFile(title="Open jacket image", filter="*.png *.jpg")
-
-        if open_jacket == '':
-            print("Jacket image wasn't chosen")
-        else:
-            self.jacket_location = open_jacket
-            SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-            self.draw_image_grid()
-            self.observer_restart()
-    def load_logo_button_callback(self):
-        open_logo = openFile(title="Open logo image", filter="*.png *.jpg")
-        if open_logo == '':
-            print("Logo image wasn't chosen")
-        else:
-            self.logo_location = open_logo
-            SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-            self.draw_image_grid()
-            self.observer_restart()
-    def load_thumbnail_button_callback(self):
-        open_thumbnail = openFile(title="Open thumbnail image", filter="*.png *.jpg")
-        if open_thumbnail == '':
-            print("Thumbnail image wasn't chosen")
-        else:
-            self.thumbnail_location = open_thumbnail
-            SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
-            self.draw_image_grid()
-            self.observer_restart()
-    def copy_to_clipboard_button_callback(self):
-        composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
-        composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector"), (0, 0))
-        composite.alpha_composite(SceneComposer.compose_scene("mm_result"), (1920, 0))
-        composite.alpha_composite(SceneComposer.compose_scene("ft_song_selector"), (0, 1080))
-        composite.alpha_composite(SceneComposer.compose_scene("ft_result"), (1920, 1080))
-        pixels = composite.tobytes()
-        copy_image(pixels, composite.width, composite.height)
-        self.button_click_feedback(self.copy_to_clipboard_button,"green")
-    def button_click_feedback(self,button,color_on_press):
-        fg_color = button.cget("fg_color")
-        hover_color = button.cget("hover_color")
-        button.configure(fg_color=color_on_press,hover_color=color_on_press)
-        self.update()
-        button.after(600,button.configure(fg_color=fg_color,hover_color=hover_color))
+        self.allowed_file_types = ["*.png *.jpg"]
+        self.image_scaling_behaviour = QSizePolicy.Policy.Ignored
 
 class SceneComposer:
     def compose_scene(self,ui_screen):
@@ -393,8 +203,225 @@ class SceneComposer:
                     self.top_layer
                 )
 
-config = Configurable()
-SceneComposer = SceneComposer()
-app = App()
 
-app.mainloop()
+def fill_transparent_pixels(image):
+    img_array = np.array(image)
+    if img_array.shape[2] != 4:
+        raise ValueError("The image must have an alpha channel.")
+
+    rgb = img_array[..., :3]
+    alpha = img_array[..., 3]
+    mask = alpha > 0
+    if np.all(mask):
+        return image
+
+    _, indices = distance_transform_edt(~mask, return_indices=True)
+    filled_rgb = rgb[tuple(indices)]
+    filled_alpha = np.where(mask, alpha, 255)
+    filled_img_array = np.dstack((filled_rgb, filled_alpha)).astype(np.uint8)
+    return Image.fromarray(filled_img_array)
+
+def get_scene(ui_scene):
+    return QPixmap.fromImage(ImageQt.ImageQt(SceneComposer.compose_scene(ui_scene)))
+
+def find_nearest_16_by_9(w,h) -> (int,int):
+    if (h / w) < (16 / 9):
+        screen_width, screen_height = 16 * (w // 16), 9 * (w // 16)
+    else:
+        screen_width, screen_height = 16 * (w // 9), 9 * (w // 9)
+    return screen_width, screen_height
+
+def check_for_files():
+    missing_files = []
+    required_files = [
+        config.script_directory / 'Images/Dummy/Jacketfix-Mask.png',
+        config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
+        config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
+        config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
+        config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png',
+        config.script_directory / 'Images/MM UI - Song Select/Backdrop.png',
+        config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
+        config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
+        config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
+        config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
+        config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
+        config.script_directory / 'Images/FT UI - Song Select/Base.png',
+        config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
+        config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
+        config.script_directory / 'Images/FT UI - Results Screen/Base.png',
+        config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
+        config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'
+    ]
+
+    for file_path in required_files:
+        if not file_path.is_file():
+            missing_files.append(str(PurePath(file_path.as_posix()).relative_to(config.script_directory.parent))+ "\n")
+        else:
+            pass
+    if not len(missing_files) == 0:
+        error_window = QMessageBox()
+        error_window.setWindowTitle("Error has occurred!")
+        error_window.setText(f"Images are missing:\n{''.join(missing_files)}")
+        error_window.exec()
+        quit("Images are missing")
+
+@Slot()
+def copy_to_clipboard_button_callback():
+    composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
+    composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector"), (0, 0))
+    composite.alpha_composite(SceneComposer.compose_scene("mm_result"), (1920, 0))
+    composite.alpha_composite(SceneComposer.compose_scene("ft_song_selector"), (0, 1080))
+    composite.alpha_composite(SceneComposer.compose_scene("ft_result"), (1920, 1080))
+    pixels = composite.tobytes()
+    copy_image(pixels, composite.width, composite.height)
+
+class MainWindow(QMainWindow):
+
+
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.main_box = Ui_MainWindow()
+        self.main_box.setupUi(self)
+
+        check_for_files()
+        #Set default sprites for scenes
+        self.background_location = config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
+        self.jacket_location = config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
+        self.logo_location = config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
+        self.thumbnail_location = config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
+        #Set default values for sprites user can swap
+        self.background = Image.open(self.background_location).convert('RGBA')
+        SceneComposer.scaled_background = ImageOps.scale(self.background, 1.5).convert('RGBA')
+        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+
+        self.watcher = QFileSystemWatcher()
+        self.watcher.fileChanged.connect(self.watcher_file_modified_action)
+        self.watcher.addPath(str(self.background_location))
+        self.watcher.addPath(str(self.jacket_location))
+        self.watcher.addPath(str(self.logo_location))
+        self.watcher.addPath(str(self.thumbnail_location))
+        print(self.watcher.files())
+
+        #Connect buttons with their functionality
+        self.main_box.load_background_button.clicked.connect(self.load_background_button_callback)
+        self.main_box.load_thumbnail_button.clicked.connect(self.load_thumbnail_button_callback)
+        self.main_box.load_logo_button.clicked.connect(self.load_logo_button_callback)
+        self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
+        self.main_box.copy_to_clipboard_button.clicked.connect(copy_to_clipboard_button_callback)
+        self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
+
+        self.draw_image_grid()
+
+    def reload_images(self):
+        background = Image.open(self.background_location).convert('RGBA')
+        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
+        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+
+    def watcher_file_modified_action(self,path):
+        sleep(1) #TODO replace sleep with detection is the modified file there
+        self.watcher.removePath(path)
+        self.reload_images()
+        self.watcher.addPath(path)
+        self.draw_image_grid()
+
+    def draw_image_grid(self):
+        self.mm_song_selector_preview = QLabel(self)
+        self.mm_song_selector_preview.setPixmap(
+            get_scene("mm_song_selector").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
+        self.mm_song_selector_preview.setScaledContents(True)
+
+        self.ft_song_selector_preview = QLabel(self)
+        self.ft_song_selector_preview.setPixmap(
+            get_scene("ft_song_selector").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
+        self.ft_song_selector_preview.setScaledContents(True)
+
+        self.mm_result_preview = QLabel(self)
+        self.mm_result_preview.setPixmap(
+            get_scene("mm_result").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
+        self.mm_result_preview.setScaledContents(True)
+
+        self.ft_result_preview = QLabel(self)
+        self.ft_result_preview.setPixmap(
+            get_scene("ft_result").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
+        self.ft_result_preview.setScaledContents(True)
+
+        self.main_box.image_grid.addWidget(self.mm_song_selector_preview, 0, 0)
+        self.main_box.image_grid.addWidget(self.ft_song_selector_preview, 0, 1)
+        self.main_box.image_grid.addWidget(self.mm_result_preview, 1, 0)
+        self.main_box.image_grid.addWidget(self.ft_result_preview, 1, 1)
+
+    @Slot()
+    def load_background_button_callback(self):
+        open_background = openFile(title="Open background image", filter=config.allowed_file_types)
+
+        if open_background == '':
+            print("Background image wasn't chosen")
+        else:
+            self.watcher.removePath(str(self.background_location))
+            self.background_location = open_background
+            self.background = Image.open(self.background_location).convert('RGBA')
+            SceneComposer.scaled_background = ImageOps.scale(self.background, (1.5))
+            self.watcher.addPath(str(self.background_location))
+            print(self.watcher.files())
+            self.draw_image_grid()
+    @Slot()
+    def load_jacket_button_callback(self):
+        open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
+
+        if open_jacket == '':
+            print("Jacket image wasn't chosen")
+        else:
+            self.watcher.removePath(str(self.jacket_location))
+            self.jacket_location = open_jacket
+            SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+            self.watcher.addPath(str(self.jacket_location))
+            self.draw_image_grid()
+    @Slot()
+    def load_logo_button_callback(self):
+        open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
+        if open_logo == '':
+            print("Logo image wasn't chosen")
+        else:
+            self.watcher.removePath(str(self.logo_location))
+            self.logo_location = open_logo
+            SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+            self.watcher.addPath(str(self.logo_location))
+            self.draw_image_grid()
+    @Slot()
+    def load_thumbnail_button_callback(self):
+        open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
+        if open_thumbnail == '':
+            print("Thumbnail image wasn't chosen")
+        else:
+            self.watcher.removePath(str(self.thumbnail_location))
+            self.thumbnail_location = open_thumbnail
+            SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+            self.watcher.addPath(str(self.thumbnail_location))
+            self.draw_image_grid()
+    @Slot()
+    def export_background_jacket_button_callback(self):
+        mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Mask.png').convert('L')
+        composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        composite.alpha_composite(self.background,(2,2))
+        composite.alpha_composite(SceneComposer.jacket, (1286,2))
+        #Extend colors from the edges and then apply mask
+        #This fixes jagged edges of the jacket in-game
+        composite = fill_transparent_pixels(composite)
+        composite.putalpha(mask)
+
+        save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
+        composite.save(save_location,"png")
+
+if __name__ == "__main__":
+    config = Configurable()
+    SceneComposer = SceneComposer()
+    app = QApplication(sys.argv)
+
+    main_window = MainWindow()
+    main_window.show()
+
+    app.exec()
