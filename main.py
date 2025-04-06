@@ -319,46 +319,62 @@ class MainWindow(QMainWindow):
 
     def spinbox_editing_finished_trigger(self,state):
         if state == "on":
-            self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_post_processing)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.connect(self.jacket_post_processing)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.connect(self.jacket_post_processing)
-            self.main_box.jacket_zoom_spinbox.editingFinished.connect(self.jacket_post_processing)
+            self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_vertical_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_zoom_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.connect(self.logo_post_processing)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.connect(self.logo_post_processing)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.connect(self.logo_post_processing)
-            self.main_box.logo_zoom_spinbox.editingFinished.connect(self.logo_post_processing)
+            self.main_box.logo_rotation_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_horizontal_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_vertical_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_zoom_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.connect(self.background_post_processing)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.connect(self.background_post_processing)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.connect(self.background_post_processing)
-            self.main_box.background_zoom_spinbox.editingFinished.connect(self.background_post_processing)
+            self.main_box.background_rotation_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_horizontal_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_vertical_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_zoom_spinbox.editingFinished.connect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.connect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.connect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.connect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.connect(self.thumbnail_post_processing)
+            self.main_box.thumbnail_rotation_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_zoom_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
 
         else:
-            self.main_box.jacket_rotation_spinbox.editingFinished.disconnect(self.jacket_post_processing)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.disconnect(self.jacket_post_processing)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.disconnect(self.jacket_post_processing)
-            self.main_box.jacket_zoom_spinbox.editingFinished.disconnect(self.jacket_post_processing)
+            self.main_box.jacket_rotation_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_vertical_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_zoom_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.disconnect(self.logo_post_processing)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.disconnect(self.logo_post_processing)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.disconnect(self.logo_post_processing)
-            self.main_box.logo_zoom_spinbox.editingFinished.disconnect(self.logo_post_processing)
+            self.main_box.logo_rotation_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_horizontal_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_vertical_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_zoom_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.disconnect(self.background_post_processing)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.disconnect(self.background_post_processing)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.disconnect(self.background_post_processing)
-            self.main_box.background_zoom_spinbox.editingFinished.disconnect(self.background_post_processing)
+            self.main_box.background_rotation_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_horizontal_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_vertical_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_zoom_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.disconnect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.disconnect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_post_processing)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_post_processing)
+            self.main_box.thumbnail_rotation_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+
+    def jacket_value_edit_trigger(self):
+        self.jacket_post_processing()
+        self.draw_image_grid()
+
+    def logo_value_edit_trigger(self):
+        self.logo_post_processing()
+        self.draw_image_grid()
+
+    def background_value_edit_trigger(self):
+        self.background_post_processing()
+        self.draw_image_grid()
+
+    def thumbnail_value_edit_trigger(self):
+        self.thumbnail_post_processing()
+        self.draw_image_grid()
 
     def spinbox_values_reset(self):
         self.spinbox_editing_finished_trigger("off")
@@ -386,14 +402,13 @@ class MainWindow(QMainWindow):
         self.spinbox_editing_finished_trigger("on")
 
     def reload_images(self):
-        background = Image.open(self.background_location).convert('RGBA') #TODO update for post process
-        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
-        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+        self.background_post_processing()
+        self.jacket_post_processing()
+        self.logo_post_processing()
+        self.thumbnail_post_processing()
 
     def watcher_file_modified_action(self,path):
-        sleep(1) #TODO replace sleep with detection is the modified file there
+        sleep(2) #TODO replace sleep with detection is the modified file there
         self.watcher.removePath(path)
         self.reload_images()
         self.watcher.addPath(path)
@@ -440,7 +455,7 @@ class MainWindow(QMainWindow):
         jacket_base.alpha_composite(jacket_scaled,(jacket_horizontal_translate,jacket_vertical_translate))
 
         SceneComposer.jacket = jacket_base
-        self.draw_image_grid()
+
 
     @Slot()
     def logo_post_processing(self):
@@ -457,7 +472,7 @@ class MainWindow(QMainWindow):
         logo_base.alpha_composite(logo_scaled,(logo_horizontal_translate,logo_vertical_translate))
 
         SceneComposer.logo = logo_base
-        self.draw_image_grid()
+
 
     @Slot()
     def background_post_processing(self):
@@ -473,7 +488,7 @@ class MainWindow(QMainWindow):
         background_scaled = ImageOps.scale(background_rotated, background_zoom)
         background_base.alpha_composite(background_scaled, (background_horizontal_translate,background_vertical_translate,))
         SceneComposer.scaled_background = ImageOps.scale(background_base,1.5)
-        self.draw_image_grid()
+
 
     @Slot()
     def thumbnail_post_processing(self):
@@ -492,7 +507,7 @@ class MainWindow(QMainWindow):
         thumbnail_base.alpha_composite(thumbnail_scaled,(thumbnail_horizontal_translate,thumbnail_vertical_translate))
         thumbnail_base = Image.composite(thumbnail_base,thumbnail_empty,mask)
         SceneComposer.thumbnail = thumbnail_base
-        self.draw_image_grid()
+
 
 
 
@@ -508,6 +523,7 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.background_location))
             self.spinbox_values_reset()
             self.background_post_processing()
+            self.draw_image_grid()
 
     @Slot()
     def load_jacket_button_callback(self):
@@ -521,6 +537,7 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.jacket_location))
             self.spinbox_values_reset()
             self.jacket_post_processing()
+            self.draw_image_grid()
 
     @Slot()
     def load_logo_button_callback(self):
@@ -533,6 +550,8 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.logo_location))
             self.spinbox_values_reset()
             self.logo_post_processing()
+            self.draw_image_grid()
+
     @Slot()
     def load_thumbnail_button_callback(self):
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
@@ -544,6 +563,8 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.thumbnail_location))
             self.spinbox_values_reset()
             self.thumbnail_post_processing()
+            self.draw_image_grid()
+
     @Slot()
     def export_background_jacket_button_callback(self):
         mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Mask.png').convert('L')
