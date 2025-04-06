@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperSJkRqm.ui'
+## Form generated from reading UI file 'SpriteHelperNFEpTQ.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplication, QDoubleSpinBox,
-    QGridLayout, QHBoxLayout, QLabel, QLayout,
-    QMainWindow, QPushButton, QScrollArea, QSizePolicy,
-    QSpinBox, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplication, QCheckBox,
+    QDoubleSpinBox, QGridLayout, QHBoxLayout, QLabel,
+    QLayout, QMainWindow, QPushButton, QScrollArea,
+    QSizePolicy, QSpinBox, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -332,6 +332,11 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addWidget(self.copy_to_clipboard_button)
 
+        self.export_thumbnail_button = QPushButton(self.grid)
+        self.export_thumbnail_button.setObjectName(u"export_thumbnail_button")
+
+        self.load_buttons_box.addWidget(self.export_thumbnail_button)
+
         self.export_logo_button = QPushButton(self.grid)
         self.export_logo_button.setObjectName(u"export_logo_button")
 
@@ -341,6 +346,12 @@ class Ui_MainWindow(object):
         self.export_background_jacket_button.setObjectName(u"export_background_jacket_button")
 
         self.load_buttons_box.addWidget(self.export_background_jacket_button)
+
+        self.fix_jacket_edges_check_box = QCheckBox(self.grid)
+        self.fix_jacket_edges_check_box.setObjectName(u"fix_jacket_edges_check_box")
+        self.fix_jacket_edges_check_box.setChecked(True)
+
+        self.load_buttons_box.addWidget(self.fix_jacket_edges_check_box)
 
 
         self.horizontalLayout_5.addLayout(self.load_buttons_box)
@@ -386,8 +397,10 @@ class Ui_MainWindow(object):
         self.logo_rotation_spinbox.setSuffix(QCoreApplication.translate("MainWindow", u"\u00b0", None))
         self.background_zoom_label.setText(QCoreApplication.translate("MainWindow", u"Background Zoom", None))
         self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy to clipboard", None))
+        self.export_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Export Thumbnail", None))
         self.export_logo_button.setText(QCoreApplication.translate("MainWindow", u"Export Logo", None))
         self.export_background_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Export Background/Jacket", None))
+        self.fix_jacket_edges_check_box.setText(QCoreApplication.translate("MainWindow", u"Fix jacket edges on export", None))
         pass
     # retranslateUi
 

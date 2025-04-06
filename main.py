@@ -311,6 +311,7 @@ class MainWindow(QMainWindow):
         self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
         self.main_box.copy_to_clipboard_button.clicked.connect(copy_to_clipboard_button_callback)
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
+        self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
 
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
@@ -578,6 +579,14 @@ class MainWindow(QMainWindow):
 
         save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
         composite.save(save_location,"png")
+
+    @Slot()
+    def export_thumbnail_button_callback(self):
+        composite = Image.new('RGBA',(128,64))
+        composite.alpha_composite(SceneComposer.thumbnail)
+
+        save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png", filter="*.png")
+        composite.save(save_location, "png")
 
 if __name__ == "__main__":
     config = Configurable()
