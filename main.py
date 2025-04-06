@@ -406,8 +406,8 @@ class MainWindow(QMainWindow):
     def export_background_jacket_button_callback(self):
         mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Mask.png').convert('L')
         composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        composite.alpha_composite(self.background,(2,2))
-        composite.alpha_composite(SceneComposer.jacket, (1286,2))
+        composite.alpha_composite(self.background,(2,2),(0,0,1280,720)) #Overlay background and limit it to 1280x720 area
+        composite.alpha_composite(SceneComposer.jacket, (1286,2),(0,0,502,502))
         #Extend colors from the edges and then apply mask
         #This fixes jagged edges of the jacket in-game
         composite = fill_transparent_pixels(composite)
