@@ -235,7 +235,8 @@ def check_for_files():
     missing_files = []
     required_files = [
         config.script_directory / 'Images/Dummy/Thumbnail-Mask.png',
-        config.script_directory / 'Images/Dummy/Jacketfix-Mask.png',
+        config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png',
+        config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png',
         config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
@@ -569,14 +570,23 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def export_background_jacket_button_callback(self):
-        mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Mask.png').convert('L')
-        composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        composite.alpha_composite(self.background,(2,2),(0,0,1280,720)) #Overlay background and limit it to 1280x720 area
-        composite.alpha_composite(SceneComposer.jacket, (1286,2),(0,0,502,502))
-        #Extend colors from the edges and then apply mask
-        #This fixes jagged edges of the jacket in-game
-        composite = fill_transparent_pixels(composite)
-        composite.putalpha(mask)
+        jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
+        background_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png').convert('L')
+
+        jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        jacket_composite.alpha_composite(SceneComposer.jacket, (1286, 2), (0, 0, 502, 502))
+        jacket_composite = fill_transparent_pixels(jacket_composite)
+        jacket_composite.putalpha(jacket_mask)
+
+        background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        background_composite.alpha_composite(self.background,(2,2),(0,0,1280,720))
+        background_composite = fill_transparent_pixels(background_composite)
+        background_composite.putalpha(background_mask)
+
+        composite = Image.new('RGBA',(2048,1024))
+        composite.alpha_composite(background_composite)
+        composite.alpha_composite(jacket_composite)
+
 
         save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
         composite.save(save_location,"png")
