@@ -292,11 +292,17 @@ class MainWindow(QMainWindow):
         self.logo_location = config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
         self.thumbnail_location = config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
         #Set default values for sprites user can swap
-        self.background = Image.open(self.background_location).convert('RGBA')
-        SceneComposer.scaled_background = ImageOps.scale(self.background, 1.5).convert('RGBA')
-        SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-        SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-        SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
+        self.jacket_post_processing()
+        self.background_post_processing()
+        self.thumbnail_post_processing()
+        self.logo_post_processing()
+
+
+        #self.background = Image.open(self.background_location).convert('RGBA')
+        #SceneComposer.scaled_background = ImageOps.scale(self.background, 1.5).convert('RGBA')
+        #SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
+        #SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
+        #SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
 
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
@@ -458,7 +464,9 @@ class MainWindow(QMainWindow):
         jacket_base.alpha_composite(jacket_scaled,(jacket_horizontal_translate,jacket_vertical_translate))
 
         SceneComposer.jacket = jacket_base
-
+        self.main_box.jacket_horizontal_offset_spinbox.setRange((jacket_scaled.width * -1) + 502, 0)
+        self.main_box.jacket_vertical_offset_spinbox.setRange((jacket_scaled.height * -1) + 502, 0)
+        #need to fix zoom
 
     @Slot()
     def logo_post_processing(self):
@@ -469,12 +477,15 @@ class MainWindow(QMainWindow):
         logo_zoom = self.main_box.logo_zoom_spinbox.value()
         logo_base = Image.new('RGBA', (870, 330))
 
-        logo_image = Image.open(self.logo_location).convert('RGBA')
-        logo_rotated = logo_image.rotate(logo_rotation, Resampling.BILINEAR, expand=True)
+        self.logo_image = Image.open(self.logo_location).convert('RGBA')
+        logo_rotated = self.logo_image.rotate(logo_rotation, Resampling.BILINEAR, expand=True)
         logo_scaled = ImageOps.scale(logo_rotated, logo_zoom)
         logo_base.alpha_composite(logo_scaled,(logo_horizontal_translate,logo_vertical_translate))
 
         SceneComposer.logo = logo_base
+
+        self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435, logo_scaled.width-435)
+        self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150, logo_scaled.height-150)
 
 
     @Slot()
@@ -486,11 +497,14 @@ class MainWindow(QMainWindow):
         background_zoom = self.main_box.background_zoom_spinbox.value()
         background_base = Image.new('RGBA', (1280, 720))
 
-        background_image = Image.open(self.background_location).convert('RGBA')
-        background_rotated = background_image.rotate(background_rotation, Resampling.BILINEAR, expand=True)
+        self.background_image = Image.open(self.background_location).convert('RGBA')
+        background_rotated = self.background_image.rotate(background_rotation, Resampling.BILINEAR, expand=True)
         background_scaled = ImageOps.scale(background_rotated, background_zoom)
         background_base.alpha_composite(background_scaled, (background_horizontal_translate,background_vertical_translate,))
         SceneComposer.scaled_background = ImageOps.scale(background_base,1.5)
+
+        self.main_box.background_horizontal_offset_spinbox.setRange((background_scaled.width * -1) + 1280, 0)
+        self.main_box.background_vertical_offset_spinbox.setRange((background_scaled.height * -1) + 720, 0)
 
 
     @Slot()
@@ -504,15 +518,15 @@ class MainWindow(QMainWindow):
         thumbnail_empty = Image.new('RGBA', (128, 64))
         thumbnail_base = Image.new('RGBA', (128, 64))
 
-        thumbnail_image = Image.open(self.thumbnail_location).convert('RGBA')
-        thumbnail_rotated = thumbnail_image.rotate(thumbnail_rotation, Resampling.BILINEAR, expand=True)
+        self.thumbnail_image = Image.open(self.thumbnail_location).convert('RGBA')
+        thumbnail_rotated = self.thumbnail_image.rotate(thumbnail_rotation, Resampling.BILINEAR, expand=True)
         thumbnail_scaled = ImageOps.scale(thumbnail_rotated, thumbnail_zoom)
         thumbnail_base.alpha_composite(thumbnail_scaled,(thumbnail_horizontal_translate,thumbnail_vertical_translate))
         thumbnail_base = Image.composite(thumbnail_base,thumbnail_empty,mask)
         SceneComposer.thumbnail = thumbnail_base
 
-
-
+        self.main_box.thumbnail_horizontal_offset_spinbox.setRange((thumbnail_scaled.width * -1) +128,27)
+        self.main_box.thumbnail_vertical_offset_spinbox.setRange((thumbnail_scaled.height * -1) + 64,0)
 
     @Slot()
     def load_background_button_callback(self):
