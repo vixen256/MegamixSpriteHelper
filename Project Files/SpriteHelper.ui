@@ -5,42 +5,28 @@
   <property name="windowModality">
    <enum>Qt::WindowModality::NonModal</enum>
   </property>
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>1608</width>
-    <height>902</height>
-   </rect>
-  </property>
   <property name="sizePolicy">
    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-    <horstretch>16</horstretch>
-    <verstretch>9</verstretch>
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
    </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
-    <width>546</width>
-    <height>273</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>2180</width>
-    <height>1090</height>
+    <width>1200</width>
+    <height>600</height>
    </size>
   </property>
   <property name="sizeIncrement">
    <size>
-    <width>16</width>
-    <height>9</height>
+    <width>0</width>
+    <height>0</height>
    </size>
   </property>
   <property name="baseSize">
    <size>
-    <width>872</width>
-    <height>436</height>
+    <width>1200</width>
+    <height>600</height>
    </size>
   </property>
   <property name="acceptDrops">
@@ -58,14 +44,17 @@
   <property name="animated">
    <bool>true</bool>
   </property>
+  <property name="documentMode">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="grid">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="sizePolicy">
     <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-     <horstretch>16</horstretch>
-     <verstretch>9</verstretch>
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
@@ -76,8 +65,8 @@
    </property>
    <property name="sizeIncrement">
     <size>
-     <width>16</width>
-     <height>9</height>
+     <width>0</width>
+     <height>0</height>
     </size>
    </property>
    <property name="baseSize">
@@ -125,92 +114,12 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="mm_song_selector_preview">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>16</horstretch>
-          <verstretch>9</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>256</width>
-          <height>144</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>1920</width>
-          <height>1680</height>
-         </size>
-        </property>
-        <property name="sizeIncrement">
-         <size>
-          <width>16</width>
-          <height>9</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>640</width>
-          <height>360</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="ft_song_selector_preview">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>16</horstretch>
-          <verstretch>9</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>256</width>
-          <height>144</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>1920</width>
-          <height>1080</height>
-         </size>
-        </property>
-        <property name="sizeIncrement">
-         <size>
-          <width>16</width>
-          <height>9</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>640</width>
-          <height>360</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <widget class="QLabel" name="ft_result_preview">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>16</horstretch>
-          <verstretch>9</verstretch>
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -227,8 +136,8 @@
         </property>
         <property name="sizeIncrement">
          <size>
-          <width>16</width>
-          <height>9</height>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
         <property name="baseSize">
@@ -249,8 +158,8 @@
        <widget class="QLabel" name="mm_result_preview">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>16</horstretch>
-          <verstretch>9</verstretch>
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
@@ -267,8 +176,88 @@
         </property>
         <property name="sizeIncrement">
          <size>
-          <width>16</width>
-          <height>9</height>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>640</width>
+          <height>360</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="mm_song_selector_preview">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>256</width>
+          <height>144</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1920</width>
+          <height>1080</height>
+         </size>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>640</width>
+          <height>360</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="ft_song_selector_preview">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>256</width>
+          <height>144</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1920</width>
+          <height>1080</height>
+         </size>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
         <property name="baseSize">
@@ -338,6 +327,19 @@
        </layout>
       </item>
       <item>
+       <widget class="QCheckBox" name="has_logo_checkbox">
+        <property name="text">
+         <string>Has logo?</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="load_buttons_box_row3">
         <property name="spacing">
          <number>5</number>
@@ -383,7 +385,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-238</y>
+           <y>-666</y>
            <width>199</width>
            <height>900</height>
           </rect>
@@ -433,6 +435,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Jacket Rotation</string>
           </property>
@@ -446,6 +453,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Thumbnail Rotation</string>
           </property>
@@ -455,7 +467,7 @@
            <rect>
             <x>0</x>
             <y>528</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -468,7 +480,7 @@
            <rect>
             <x>0</x>
             <y>78</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -491,6 +503,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Logo Horizontal Offset</string>
           </property>
@@ -500,7 +517,7 @@
            <rect>
             <x>0</x>
             <y>473</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -517,6 +534,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Thumbnail Vertical Offset</string>
           </property>
@@ -529,6 +551,11 @@
             <width>1080</width>
             <height>18</height>
            </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
           </property>
           <property name="text">
            <string>Background Vertical Offset</string>
@@ -543,6 +570,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Thumbnail Horizontal Offset</string>
           </property>
@@ -552,7 +584,7 @@
            <rect>
             <x>0</x>
             <y>23</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -577,7 +609,7 @@
            <rect>
             <x>0</x>
             <y>698</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -590,7 +622,7 @@
            <rect>
             <x>0</x>
             <y>413</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -618,7 +650,7 @@
            <rect>
             <x>0</x>
             <y>133</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -650,6 +682,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Background Rotation</string>
           </property>
@@ -659,7 +696,7 @@
            <rect>
             <x>0</x>
             <y>808</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -687,7 +724,7 @@
            <rect>
             <x>0</x>
             <y>638</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -719,6 +756,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Jacket Horizontal Offset</string>
           </property>
@@ -728,7 +770,7 @@
            <rect>
             <x>0</x>
             <y>188</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -763,6 +805,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Jacket Zoom</string>
           </property>
@@ -772,7 +819,7 @@
            <rect>
             <x>0</x>
             <y>248</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -788,7 +835,7 @@
            <rect>
             <x>0</x>
             <y>863</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -826,6 +873,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Logo Zoom</string>
           </property>
@@ -838,6 +890,11 @@
             <width>1080</width>
             <height>18</height>
            </rect>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
           </property>
           <property name="text">
            <string>Thumbnail Zoom</string>
@@ -852,6 +909,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Jacket Vertical Offset</string>
           </property>
@@ -865,6 +927,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Logo Vertical Offset</string>
           </property>
@@ -874,7 +941,7 @@
            <rect>
             <x>0</x>
             <y>753</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -887,7 +954,7 @@
            <rect>
             <x>0</x>
             <y>358</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -922,6 +989,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Background Horizontal Offset</string>
           </property>
@@ -935,6 +1007,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Logo Rotation</string>
           </property>
@@ -944,7 +1021,7 @@
            <rect>
             <x>0</x>
             <y>583</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -972,7 +1049,7 @@
            <rect>
             <x>0</x>
             <y>303</y>
-            <width>197</width>
+            <width>165</width>
             <height>27</height>
            </rect>
           </property>
@@ -989,6 +1066,11 @@
             <height>18</height>
            </rect>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="text">
            <string>Background Zoom</string>
           </property>
@@ -997,41 +1079,177 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="copy_to_clipboard_button">
+       <widget class="QLabel" name="export_to_label">
         <property name="text">
-         <string>Copy to clipboard</string>
+         <string>Export to...</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="export_thumbnail_button">
-        <property name="text">
-         <string>Export Thumbnail</string>
+       <widget class="QTabWidget" name="export_options_tab_widget">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="export_logo_button">
-        <property name="text">
-         <string>Export Logo</string>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="export_background_jacket_button">
-        <property name="text">
-         <string>Export Background/Jacket</string>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>222</height>
+         </size>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="fix_jacket_edges_check_box">
-        <property name="text">
-         <string>Fix jacket edges on export</string>
+        <property name="tabPosition">
+         <enum>QTabWidget::TabPosition::North</enum>
         </property>
-        <property name="checked">
-         <bool>true</bool>
+        <property name="tabShape">
+         <enum>QTabWidget::TabShape::Rounded</enum>
         </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <property name="elideMode">
+         <enum>Qt::TextElideMode::ElideNone</enum>
+        </property>
+        <property name="documentMode">
+         <bool>false</bool>
+        </property>
+        <property name="tabsClosable">
+         <bool>false</bool>
+        </property>
+        <property name="movable">
+         <bool>false</bool>
+        </property>
+        <widget class="QWidget" name="export_options_image_tab">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <attribute name="title">
+          <string>Image</string>
+         </attribute>
+         <widget class="QWidget" name="verticalLayoutWidget">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>211</width>
+            <height>191</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="image_tab_vertical_layout">
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="copy_to_clipboard_button">
+             <property name="text">
+              <string>Copy to clipboard</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="export_thumbnail_button">
+             <property name="text">
+              <string>Export Thumbnail</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="export_logo_button">
+             <property name="text">
+              <string>Export Logo</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="export_background_jacket_button">
+             <property name="text">
+              <string>Export Background/Jacket</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="export_options_game_tab">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <attribute name="title">
+          <string>Game</string>
+         </attribute>
+         <widget class="QWidget" name="verticalLayoutWidget_2">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>211</width>
+            <height>191</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="game_tab_vertical_layout">
+           <item>
+            <widget class="QLabel" name="song_id_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Song ID:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="song_id_spinbox">
+             <property name="decimals">
+              <number>0</number>
+             </property>
+             <property name="minimum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>4294967295.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="export_bg_jk_logo_farc_button">
+             <property name="text">
+              <string>Export BG/JK/Logo Farc</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="export_thumbnail_farc_button">
+             <property name="text">
+              <string>Export Thumbnail Farc</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="generate_spr_db_button">
+             <property name="text">
+              <string>Generate Sprite Database</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
        </widget>
       </item>
      </layout>
