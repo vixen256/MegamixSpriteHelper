@@ -221,13 +221,6 @@ def fill_transparent_pixels(image):
 def get_scene(ui_scene):
     return QPixmap.fromImage(ImageQt.ImageQt(SceneComposer.compose_scene(ui_scene)))
 
-def find_nearest_16_by_9(w,h) -> (int,int):
-    if (h / w) < (16 / 9):
-        screen_width, screen_height = 16 * (w // 16), 9 * (w // 16)
-    else:
-        screen_width, screen_height = 16 * (w // 9), 9 * (w // 9)
-    return screen_width, screen_height
-
 def check_for_files():
     missing_files = []
     required_files = [
@@ -370,7 +363,6 @@ class MainWindow(QMainWindow):
         self.spinbox_editing_finished_trigger("on")
 
     def thumbnail_spinbox_values_reset(self):
-        #TODO Split function for each editable image
         self.spinbox_editing_finished_trigger("off")
 
         self.main_box.thumbnail_rotation_spinbox.setValue(0)
