@@ -319,9 +319,9 @@ class MainWindow(QMainWindow):
 
     def resizeEvent(self,event):
         # Force 2:1 aspect ratio
-        newWidth = self.size().width()
-        newHeight = newWidth / 2
-        size = QSize(newWidth,newHeight)
+        new_width = self.size().width()
+        new_height = int(new_width / 2)
+        size = QSize(new_width,new_height)
         self.resize(size)
 
     def jacket_value_edit_trigger(self):
