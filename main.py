@@ -339,9 +339,7 @@ class MainWindow(QMainWindow):
     def thumbnail_value_edit_trigger(self):
         self.thumbnail_post_processing()
         self.draw_image_grid()
-
-    def spinbox_values_reset(self):
-        #TODO Split function for each editable image
+    def jacket_spinbox_values_reset(self):
         self.spinbox_editing_finished_trigger("off")
 
         self.main_box.jacket_rotation_spinbox.setValue(0)
@@ -349,15 +347,31 @@ class MainWindow(QMainWindow):
         self.main_box.jacket_vertical_offset_spinbox.setValue(0)
         self.main_box.jacket_zoom_spinbox.setValue(1.00)
 
+        self.spinbox_editing_finished_trigger("on")
+
+    def logo_spinbox_values_reset(self):
+        self.spinbox_editing_finished_trigger("off")
+
         self.main_box.logo_rotation_spinbox.setValue(0)
         self.main_box.logo_horizontal_offset_spinbox.setValue(0)
         self.main_box.logo_vertical_offset_spinbox.setValue(0)
         self.main_box.logo_zoom_spinbox.setValue(1.00)
 
+        self.spinbox_editing_finished_trigger("on")
+
+    def background_spinbox_values_reset(self):
+        self.spinbox_editing_finished_trigger("off")
+
         self.main_box.background_rotation_spinbox.setValue(0)
         self.main_box.background_horizontal_offset_spinbox.setValue(0)
         self.main_box.background_vertical_offset_spinbox.setValue(0)
         self.main_box.background_zoom_spinbox.setValue(1.00)
+
+        self.spinbox_editing_finished_trigger("on")
+
+    def thumbnail_spinbox_values_reset(self):
+        #TODO Split function for each editable image
+        self.spinbox_editing_finished_trigger("off")
 
         self.main_box.thumbnail_rotation_spinbox.setValue(0)
         self.main_box.thumbnail_horizontal_offset_spinbox.setValue(0)
@@ -365,6 +379,7 @@ class MainWindow(QMainWindow):
         self.main_box.thumbnail_zoom_spinbox.setValue(1.00)
 
         self.spinbox_editing_finished_trigger("on")
+
     def spinbox_editing_finished_trigger(self,state):
         if state == "on":
             self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
@@ -570,7 +585,7 @@ class MainWindow(QMainWindow):
             self.watcher.removePath(str(self.background_location))
             self.background_location = open_background
             self.watcher.addPath(str(self.background_location))
-            self.spinbox_values_reset()
+            self.background_spinbox_values_reset()
             self.background_post_processing()
             self.draw_image_grid()
     @Slot()
@@ -583,7 +598,7 @@ class MainWindow(QMainWindow):
             self.watcher.removePath(str(self.jacket_location))
             self.jacket_location = open_jacket
             self.watcher.addPath(str(self.jacket_location))
-            self.spinbox_values_reset()
+            self.jacket_spinbox_values_reset()
             self.jacket_post_processing()
             self.draw_image_grid()
     @Slot()
@@ -595,7 +610,7 @@ class MainWindow(QMainWindow):
             self.watcher.removePath(str(self.logo_location))
             self.logo_location = open_logo
             self.watcher.addPath(str(self.logo_location))
-            self.spinbox_values_reset()
+            self.logo_spinbox_values_reset()
             self.logo_post_processing()
             self.draw_image_grid()
     @Slot()
@@ -607,7 +622,7 @@ class MainWindow(QMainWindow):
             self.watcher.removePath(str(self.thumbnail_location))
             self.thumbnail_location = open_thumbnail
             self.watcher.addPath(str(self.thumbnail_location))
-            self.spinbox_values_reset()
+            self.thumbnail_spinbox_values_reset()
             self.thumbnail_post_processing()
             self.draw_image_grid()
     @Slot()
