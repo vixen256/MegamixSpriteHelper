@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperVgWCdS.ui'
+## Form generated from reading UI file 'SpriteHelperGJZQDp.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -263,10 +263,11 @@ class Ui_MainWindow(object):
         self.jacket_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.jacket_zoom_spinbox.setObjectName(u"jacket_zoom_spinbox")
         self.jacket_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
-        self.jacket_zoom_spinbox.setDecimals(2)
+        self.jacket_zoom_spinbox.setAccelerated(True)
+        self.jacket_zoom_spinbox.setDecimals(3)
         self.jacket_zoom_spinbox.setMinimum(0.010000000000000)
         self.jacket_zoom_spinbox.setMaximum(1.000000000000000)
-        self.jacket_zoom_spinbox.setSingleStep(0.010000000000000)
+        self.jacket_zoom_spinbox.setSingleStep(0.001000000000000)
         self.jacket_zoom_spinbox.setValue(1.000000000000000)
 
         self.verticalLayout_2.addWidget(self.jacket_zoom_spinbox)
@@ -323,9 +324,11 @@ class Ui_MainWindow(object):
         self.background_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.background_zoom_spinbox.setObjectName(u"background_zoom_spinbox")
         self.background_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.background_zoom_spinbox.setAccelerated(True)
+        self.background_zoom_spinbox.setDecimals(3)
         self.background_zoom_spinbox.setMinimum(0.010000000000000)
         self.background_zoom_spinbox.setMaximum(1.000000000000000)
-        self.background_zoom_spinbox.setSingleStep(0.010000000000000)
+        self.background_zoom_spinbox.setSingleStep(0.001000000000000)
         self.background_zoom_spinbox.setValue(1.000000000000000)
 
         self.verticalLayout_2.addWidget(self.background_zoom_spinbox)
@@ -387,9 +390,11 @@ class Ui_MainWindow(object):
         self.logo_zoom_spinbox.setObjectName(u"logo_zoom_spinbox")
         self.logo_zoom_spinbox.setEnabled(True)
         self.logo_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.logo_zoom_spinbox.setAccelerated(True)
+        self.logo_zoom_spinbox.setDecimals(3)
         self.logo_zoom_spinbox.setMinimum(0.010000000000000)
         self.logo_zoom_spinbox.setMaximum(1.000000000000000)
-        self.logo_zoom_spinbox.setSingleStep(0.010000000000000)
+        self.logo_zoom_spinbox.setSingleStep(0.001000000000000)
         self.logo_zoom_spinbox.setValue(1.000000000000000)
 
         self.verticalLayout_2.addWidget(self.logo_zoom_spinbox)
@@ -442,12 +447,14 @@ class Ui_MainWindow(object):
 
         self.thumbnail_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.thumbnail_zoom_spinbox.setObjectName(u"thumbnail_zoom_spinbox")
-        sizePolicy.setHeightForWidth(self.thumbnail_zoom_spinbox.sizePolicy().hasHeightForWidth())
-        self.thumbnail_zoom_spinbox.setSizePolicy(sizePolicy)
+        sizePolicy5.setHeightForWidth(self.thumbnail_zoom_spinbox.sizePolicy().hasHeightForWidth())
+        self.thumbnail_zoom_spinbox.setSizePolicy(sizePolicy5)
         self.thumbnail_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.thumbnail_zoom_spinbox.setAccelerated(True)
+        self.thumbnail_zoom_spinbox.setDecimals(3)
         self.thumbnail_zoom_spinbox.setMinimum(0.010000000000000)
         self.thumbnail_zoom_spinbox.setMaximum(1.000000000000000)
-        self.thumbnail_zoom_spinbox.setSingleStep(0.010000000000000)
+        self.thumbnail_zoom_spinbox.setSingleStep(0.001000000000000)
         self.thumbnail_zoom_spinbox.setValue(1.000000000000000)
 
         self.verticalLayout_2.addWidget(self.thumbnail_zoom_spinbox)
