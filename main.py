@@ -3,7 +3,7 @@ import sys
 from time import sleep
 
 import filedialpy
-from PySide6.QtCore import Qt, Slot,QFileSystemWatcher
+from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
 from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QSizePolicy, QMainWindow
 from PySide6.QtGui import QPixmap
 from PIL import Image, ImageOps, ImageQt
@@ -316,6 +316,13 @@ class MainWindow(QMainWindow):
         self.spinbox_editing_finished_trigger("on")
 
         self.draw_image_grid()
+
+    def resizeEvent(self,event):
+        # Force 2:1 aspect ratio
+        newWidth = self.size().width()
+        newHeight = newWidth / 2
+        size = QSize(newWidth,newHeight)
+        self.resize(size)
 
     def jacket_value_edit_trigger(self):
         self.jacket_post_processing()
