@@ -315,6 +315,9 @@ class MainWindow(QMainWindow):
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
 
+        #Connect checkboxes with their functions
+        self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
+
         self.draw_image_grid()
 
     def resizeEvent(self,event):
@@ -463,21 +466,25 @@ class MainWindow(QMainWindow):
     @Slot()
     def logo_post_processing(self):
         print("logo")
-        logo_rotation = self.main_box.logo_rotation_spinbox.value()
-        logo_vertical_translate = self.main_box.logo_vertical_offset_spinbox.value()
-        logo_horizontal_translate = self.main_box.logo_horizontal_offset_spinbox.value()
-        logo_zoom = self.main_box.logo_zoom_spinbox.value()
-        logo_base = Image.new('RGBA', (870, 330))
+        if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+            logo_rotation = self.main_box.logo_rotation_spinbox.value()
+            logo_vertical_translate = self.main_box.logo_vertical_offset_spinbox.value()
+            logo_horizontal_translate = self.main_box.logo_horizontal_offset_spinbox.value()
+            logo_zoom = self.main_box.logo_zoom_spinbox.value()
+            logo_base = Image.new('RGBA', (870, 330))
 
-        self.logo_image = Image.open(self.logo_location).convert('RGBA')
-        logo_rotated = self.logo_image.rotate(logo_rotation, Resampling.BILINEAR, expand=True)
-        logo_scaled = ImageOps.scale(logo_rotated, logo_zoom)
-        logo_base.alpha_composite(logo_scaled,(logo_horizontal_translate,logo_vertical_translate))
+            self.logo_image = Image.open(self.logo_location).convert('RGBA')
+            logo_rotated = self.logo_image.rotate(logo_rotation, Resampling.BILINEAR, expand=True)
+            logo_scaled = ImageOps.scale(logo_rotated, logo_zoom)
+            logo_base.alpha_composite(logo_scaled, (logo_horizontal_translate, logo_vertical_translate))
 
-        SceneComposer.logo = logo_base
+            SceneComposer.logo = logo_base
 
-        self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435, logo_scaled.width-435)
-        self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150, logo_scaled.height-150)
+            self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435,logo_scaled.width - 435)
+            self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150,logo_scaled.height - 150)
+        else:
+            SceneComposer.logo = Image.new('RGBA', (870, 330))
+
         #TODO Fix zoom
     @Slot()
     def background_post_processing(self):
@@ -519,6 +526,40 @@ class MainWindow(QMainWindow):
         self.main_box.thumbnail_vertical_offset_spinbox.setRange((thumbnail_scaled.height * -1) + 64,0)
         #TODO Fix zoom
 
+    @Slot()
+    def has_logo_checkbox_callback(self):
+        if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+            #Make options to tweak logo visible
+            self.main_box.logo_horizontal_offset_label.setEnabled(True)
+            self.main_box.logo_horizontal_offset_spinbox.setEnabled(True)
+            self.main_box.logo_vertical_offset_label.setEnabled(True)
+            self.main_box.logo_vertical_offset_spinbox.setEnabled(True)
+            self.main_box.logo_rotation_label.setEnabled(True)
+            self.main_box.logo_rotation_spinbox.setEnabled(True)
+            self.main_box.logo_zoom_label.setEnabled(True)
+            self.main_box.logo_zoom_spinbox.setEnabled(True)
+            #Enable buttons related to logos
+            self.main_box.load_logo_button.setEnabled(True)
+            self.main_box.export_logo_button.setEnabled(True)
+            #Draw Logo
+            self.logo_post_processing()
+            self.draw_image_grid()
+        else:
+            # Make options to tweak logo invisible
+            self.main_box.logo_horizontal_offset_label.setDisabled(True)
+            self.main_box.logo_horizontal_offset_spinbox.setDisabled(True)
+            self.main_box.logo_vertical_offset_label.setDisabled(True)
+            self.main_box.logo_vertical_offset_spinbox.setDisabled(True)
+            self.main_box.logo_rotation_label.setDisabled(True)
+            self.main_box.logo_rotation_spinbox.setDisabled(True)
+            self.main_box.logo_zoom_label.setDisabled(True)
+            self.main_box.logo_zoom_spinbox.setDisabled(True)
+            #Disable buttons related to logos
+            self.main_box.load_logo_button.setDisabled(True)
+            self.main_box.export_logo_button.setDisabled(True)
+            # Hide Logo
+            self.logo_post_processing()
+            self.draw_image_grid()
     @Slot()
     def load_background_button_callback(self):
         open_background = openFile(title="Open background image", filter=config.allowed_file_types)

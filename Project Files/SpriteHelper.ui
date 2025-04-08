@@ -5,6 +5,14 @@
   <property name="windowModality">
    <enum>Qt::WindowModality::NonModal</enum>
   </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>600</height>
+   </rect>
+  </property>
   <property name="sizePolicy">
    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
     <horstretch>0</horstretch>
@@ -114,48 +122,8 @@
       <property name="spacing">
        <number>5</number>
       </property>
-      <item row="1" column="1">
-       <widget class="QLabel" name="ft_result_preview">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-          <horstretch>1</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>256</width>
-          <height>144</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>1920</width>
-          <height>1080</height>
-         </size>
-        </property>
-        <property name="sizeIncrement">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="baseSize">
-         <size>
-          <width>640</width>
-          <height>360</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="mm_result_preview">
+      <item row="0" column="1">
+       <widget class="QLabel" name="ft_song_selector_preview">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
           <horstretch>1</horstretch>
@@ -234,8 +202,48 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="ft_song_selector_preview">
+      <item row="0" column="0">
+       <widget class="QLabel" name="mm_result_preview">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+          <horstretch>1</horstretch>
+          <verstretch>1</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>256</width>
+          <height>144</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>1920</width>
+          <height>1080</height>
+         </size>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>640</width>
+          <height>360</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="ft_result_preview">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
           <horstretch>1</horstretch>
@@ -367,7 +375,7 @@
          <enum>QFrame::Shadow::Sunken</enum>
         </property>
         <property name="verticalScrollBarPolicy">
-         <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+         <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
         </property>
         <property name="horizontalScrollBarPolicy">
          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
@@ -385,27 +393,21 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-666</y>
+           <y>-671</y>
            <width>199</width>
-           <height>900</height>
+           <height>905</height>
           </rect>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
            <horstretch>0</horstretch>
-           <verstretch>100</verstretch>
+           <verstretch>0</verstretch>
           </sizepolicy>
          </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>900</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>10000</width>
-           <height>100000</height>
+           <height>905</height>
           </size>
          </property>
          <property name="sizeIncrement">
@@ -426,662 +428,537 @@
          <property name="autoFillBackground">
           <bool>true</bool>
          </property>
-         <widget class="QLabel" name="jacket_rotation_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>110</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Jacket Rotation</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="thumbnail_rotation_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>785</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Thumbnail Rotation</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="logo_vertical_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>528</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="jacket_vertical_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>78</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="minimum">
-           <number>-500</number>
-          </property>
-          <property name="maximum">
-           <number>500</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="logo_horizontal_offset">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>450</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Logo Horizontal Offset</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="logo_horizontal_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>473</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-         </widget>
-         <widget class="QLabel" name="thumbnail_vertical_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>730</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Thumbnail Vertical Offset</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="background_vertical_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>280</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Background Vertical Offset</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="thumbnail_horizontal_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>675</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Thumbnail Horizontal Offset</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="jacket_horizontal_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>23</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="minimum">
-           <number>-500</number>
-          </property>
-          <property name="maximum">
-           <number>500</number>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="thumbnail_horizontal_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>698</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-         </widget>
-         <widget class="QDoubleSpinBox" name="background_zoom_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>413</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>x</string>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="jacket_rotation_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>133</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="wrapping">
-           <bool>true</bool>
-          </property>
-          <property name="correctionMode">
-           <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-          </property>
-          <property name="suffix">
-           <string>°</string>
-          </property>
-          <property name="minimum">
-           <number>-180</number>
-          </property>
-          <property name="maximum">
-           <number>180</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="background_rotation_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>335</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Background Rotation</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="thumbnail_rotation_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>808</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="wrapping">
-           <bool>true</bool>
-          </property>
-          <property name="correctionMode">
-           <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-          </property>
-          <property name="suffix">
-           <string>°</string>
-          </property>
-          <property name="minimum">
-           <number>-180</number>
-          </property>
-          <property name="maximum">
-           <number>180</number>
-          </property>
-         </widget>
-         <widget class="QDoubleSpinBox" name="logo_zoom_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>638</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>x</string>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QLabel" name="jacket_horizontal_offset_label">
+         <widget class="QWidget" name="verticalLayoutWidget_3">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>1080</width>
-            <height>18</height>
+            <width>201</width>
+            <height>901</height>
            </rect>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Jacket Horizontal Offset</string>
-          </property>
-         </widget>
-         <widget class="QDoubleSpinBox" name="jacket_zoom_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>188</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>x</string>
-          </property>
-          <property name="decimals">
-           <number>2</number>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QLabel" name="jacket_zoom_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>165</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Jacket Zoom</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="background_horizontal_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>248</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="wrapping">
-           <bool>false</bool>
-          </property>
-         </widget>
-         <widget class="QDoubleSpinBox" name="thumbnail_zoom_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>863</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="suffix">
-           <string>x</string>
-          </property>
-          <property name="minimum">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-         <widget class="QLabel" name="logo_zoom_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>615</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Logo Zoom</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="thumbnail_zoom_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>840</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Thumbnail Zoom</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="jacket_vertical_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>55</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Jacket Vertical Offset</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="logo_vertical_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>505</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Logo Vertical Offset</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="thumbnail_vertical_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>753</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="background_rotation_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>358</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="wrapping">
-           <bool>true</bool>
-          </property>
-          <property name="buttonSymbols">
-           <enum>QAbstractSpinBox::ButtonSymbols::UpDownArrows</enum>
-          </property>
-          <property name="correctionMode">
-           <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-          </property>
-          <property name="suffix">
-           <string>°</string>
-          </property>
-          <property name="minimum">
-           <number>-180</number>
-          </property>
-          <property name="maximum">
-           <number>180</number>
-          </property>
-         </widget>
-         <widget class="QLabel" name="background_horizontal_offset_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>225</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Background Horizontal Offset</string>
-          </property>
-         </widget>
-         <widget class="QLabel" name="logo_rotation_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>560</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Logo Rotation</string>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="logo_rotation_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>583</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-          <property name="wrapping">
-           <bool>true</bool>
-          </property>
-          <property name="correctionMode">
-           <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
-          </property>
-          <property name="suffix">
-           <string>°</string>
-          </property>
-          <property name="minimum">
-           <number>-180</number>
-          </property>
-          <property name="value">
-           <number>0</number>
-          </property>
-         </widget>
-         <widget class="QSpinBox" name="background_vertical_offset_spinbox">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>303</y>
-            <width>165</width>
-            <height>27</height>
-           </rect>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::WheelFocus</enum>
-          </property>
-         </widget>
-         <widget class="QLabel" name="background_zoom_label">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>390</y>
-            <width>1080</width>
-            <height>18</height>
-           </rect>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>10</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>Background Zoom</string>
-          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="sizeConstraint">
+            <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+           </property>
+           <item>
+            <widget class="QLabel" name="jacket_horizontal_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Jacket Horizontal Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="jacket_horizontal_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="minimum">
+              <number>-500</number>
+             </property>
+             <property name="maximum">
+              <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="jacket_vertical_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Jacket Vertical Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="jacket_vertical_offset_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="minimum">
+              <number>-500</number>
+             </property>
+             <property name="maximum">
+              <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="jacket_rotation_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Jacket Rotation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="jacket_rotation_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="wrapping">
+              <bool>true</bool>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string>°</string>
+             </property>
+             <property name="minimum">
+              <number>-180</number>
+             </property>
+             <property name="maximum">
+              <number>180</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="jacket_zoom_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Jacket Zoom</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="jacket_zoom_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="suffix">
+              <string>x</string>
+             </property>
+             <property name="decimals">
+              <number>2</number>
+             </property>
+             <property name="minimum">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="background_horizontal_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Background Horizontal Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="background_horizontal_offset_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="wrapping">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="background_vertical_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Background Vertical Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="background_vertical_offset_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="background_rotation_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Background Rotation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="background_rotation_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="wrapping">
+              <bool>true</bool>
+             </property>
+             <property name="buttonSymbols">
+              <enum>QAbstractSpinBox::ButtonSymbols::UpDownArrows</enum>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="showGroupSeparator" stdset="0">
+              <bool>false</bool>
+             </property>
+             <property name="suffix">
+              <string>°</string>
+             </property>
+             <property name="minimum">
+              <number>-180</number>
+             </property>
+             <property name="maximum">
+              <number>180</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="background_zoom_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Background Zoom</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="background_zoom_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="suffix">
+              <string>x</string>
+             </property>
+             <property name="minimum">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="logo_horizontal_offset_label">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Logo Horizontal Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="logo_horizontal_offset_spinbox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="logo_vertical_offset_label">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Logo Vertical Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="logo_vertical_offset_spinbox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="logo_rotation_label">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Logo Rotation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="logo_rotation_spinbox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="wrapping">
+              <bool>true</bool>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string>°</string>
+             </property>
+             <property name="minimum">
+              <number>-180</number>
+             </property>
+             <property name="value">
+              <number>0</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="logo_zoom_label">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Logo Zoom</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="logo_zoom_spinbox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="suffix">
+              <string>x</string>
+             </property>
+             <property name="minimum">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="thumbnail_horizontal_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Thumbnail Horizontal Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="thumbnail_horizontal_offset_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="thumbnail_vertical_offset_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Thumbnail Vertical Offset</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="thumbnail_vertical_offset_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="thumbnail_rotation_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Thumbnail Rotation</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="thumbnail_rotation_spinbox">
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="wrapping">
+              <bool>true</bool>
+             </property>
+             <property name="correctionMode">
+              <enum>QAbstractSpinBox::CorrectionMode::CorrectToNearestValue</enum>
+             </property>
+             <property name="suffix">
+              <string>°</string>
+             </property>
+             <property name="minimum">
+              <number>-180</number>
+             </property>
+             <property name="maximum">
+              <number>180</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="thumbnail_zoom_label">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>Thumbnail Zoom</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="thumbnail_zoom_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="focusPolicy">
+              <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="suffix">
+              <string>x</string>
+             </property>
+             <property name="minimum">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>1.000000000000000</double>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::MinimumExpanding</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
          </widget>
         </widget>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="export_to_label">
+        <property name="maximumSize">
+         <size>
+          <width>80</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>Export to...</string>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -1105,6 +982,9 @@
           <height>222</height>
          </size>
         </property>
+        <property name="layoutDirection">
+         <enum>Qt::LayoutDirection::RightToLeft</enum>
+        </property>
         <property name="tabPosition">
          <enum>QTabWidget::TabPosition::North</enum>
         </property>
@@ -1117,8 +997,11 @@
         <property name="elideMode">
          <enum>Qt::TextElideMode::ElideNone</enum>
         </property>
+        <property name="usesScrollButtons">
+         <bool>true</bool>
+        </property>
         <property name="documentMode">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="tabsClosable">
          <bool>false</bool>
@@ -1215,6 +1098,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="song_id_spinbox">
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="decimals">
               <number>0</number>
              </property>
