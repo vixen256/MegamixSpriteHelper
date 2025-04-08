@@ -2,12 +2,10 @@ from pathlib import Path, PurePath
 import sys
 from time import sleep
 
-import PIL.Image
 import filedialpy
-from PySide6.QtCore import Qt, Slot, QSize, QMetaObject, QCoreApplication, QFileSystemWatcher
-from PySide6.QtWidgets import QApplication, QPushButton, QDialog, QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, \
-    QGridLayout, QMessageBox, QSizePolicy, QWidget, QLayout, QMainWindow
-from PySide6.QtGui import QPixmap, QImage, QPicture, QScreen
+from PySide6.QtCore import Qt, Slot,QFileSystemWatcher
+from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QSizePolicy, QMainWindow
+from PySide6.QtGui import QPixmap
 from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 from copykitten import copy_image
@@ -23,7 +21,6 @@ class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
         self.allowed_file_types = ["*.png *.jpg"]
-        self.image_scaling_behaviour = QSizePolicy.Policy.Ignored
 
 class SceneComposer:
     def compose_scene(self,ui_screen):
@@ -297,13 +294,7 @@ class MainWindow(QMainWindow):
         self.thumbnail_post_processing()
         self.logo_post_processing()
 
-
-        #self.background = Image.open(self.background_location).convert('RGBA')
-        #SceneComposer.scaled_background = ImageOps.scale(self.background, 1.5).convert('RGBA')
-        #SceneComposer.jacket = Image.open(self.jacket_location).convert('RGBA')
-        #SceneComposer.logo = Image.open(self.logo_location).convert('RGBA')
-        #SceneComposer.thumbnail = Image.open(self.thumbnail_location).convert('RGBA')
-
+        #Start watching for file updates of loaded files
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
         self.watcher.addPath(str(self.background_location))
@@ -326,6 +317,44 @@ class MainWindow(QMainWindow):
 
         self.draw_image_grid()
 
+    def jacket_value_edit_trigger(self):
+        self.jacket_post_processing()
+        self.draw_image_grid()
+    def logo_value_edit_trigger(self):
+        self.logo_post_processing()
+        self.draw_image_grid()
+    def background_value_edit_trigger(self):
+        self.background_post_processing()
+        self.draw_image_grid()
+    def thumbnail_value_edit_trigger(self):
+        self.thumbnail_post_processing()
+        self.draw_image_grid()
+
+    def spinbox_values_reset(self):
+        #TODO Split function for each editable image
+        self.spinbox_editing_finished_trigger("off")
+
+        self.main_box.jacket_rotation_spinbox.setValue(0)
+        self.main_box.jacket_horizontal_offset_spinbox.setValue(0)
+        self.main_box.jacket_vertical_offset_spinbox.setValue(0)
+        self.main_box.jacket_zoom_spinbox.setValue(1.00)
+
+        self.main_box.logo_rotation_spinbox.setValue(0)
+        self.main_box.logo_horizontal_offset_spinbox.setValue(0)
+        self.main_box.logo_vertical_offset_spinbox.setValue(0)
+        self.main_box.logo_zoom_spinbox.setValue(1.00)
+
+        self.main_box.background_rotation_spinbox.setValue(0)
+        self.main_box.background_horizontal_offset_spinbox.setValue(0)
+        self.main_box.background_vertical_offset_spinbox.setValue(0)
+        self.main_box.background_zoom_spinbox.setValue(1.00)
+
+        self.main_box.thumbnail_rotation_spinbox.setValue(0)
+        self.main_box.thumbnail_horizontal_offset_spinbox.setValue(0)
+        self.main_box.thumbnail_vertical_offset_spinbox.setValue(0)
+        self.main_box.thumbnail_zoom_spinbox.setValue(1.00)
+
+        self.spinbox_editing_finished_trigger("on")
     def spinbox_editing_finished_trigger(self,state):
         if state == "on":
             self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
@@ -369,60 +398,17 @@ class MainWindow(QMainWindow):
             self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
             self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
 
-    def jacket_value_edit_trigger(self):
-        self.jacket_post_processing()
-        self.draw_image_grid()
-
-    def logo_value_edit_trigger(self):
-        self.logo_post_processing()
-        self.draw_image_grid()
-
-    def background_value_edit_trigger(self):
-        self.background_post_processing()
-        self.draw_image_grid()
-
-    def thumbnail_value_edit_trigger(self):
-        self.thumbnail_post_processing()
-        self.draw_image_grid()
-
-    def spinbox_values_reset(self):
-        self.spinbox_editing_finished_trigger("off")
-
-        self.main_box.jacket_rotation_spinbox.setValue(0)
-        self.main_box.jacket_horizontal_offset_spinbox.setValue(0)
-        self.main_box.jacket_vertical_offset_spinbox.setValue(0)
-        self.main_box.jacket_zoom_spinbox.setValue(1.00)
-
-        self.main_box.logo_rotation_spinbox.setValue(0)
-        self.main_box.logo_horizontal_offset_spinbox.setValue(0)
-        self.main_box.logo_vertical_offset_spinbox.setValue(0)
-        self.main_box.logo_zoom_spinbox.setValue(1.00)
-
-        self.main_box.background_rotation_spinbox.setValue(0)
-        self.main_box.background_horizontal_offset_spinbox.setValue(0)
-        self.main_box.background_vertical_offset_spinbox.setValue(0)
-        self.main_box.background_zoom_spinbox.setValue(1.00)
-
-        self.main_box.thumbnail_rotation_spinbox.setValue(0)
-        self.main_box.thumbnail_horizontal_offset_spinbox.setValue(0)
-        self.main_box.thumbnail_vertical_offset_spinbox.setValue(0)
-        self.main_box.thumbnail_zoom_spinbox.setValue(1.00)
-
-        self.spinbox_editing_finished_trigger("on")
-
-    def reload_images(self):
-        self.background_post_processing()
-        self.jacket_post_processing()
-        self.logo_post_processing()
-        self.thumbnail_post_processing()
-
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
         self.watcher.removePath(path)
         self.reload_images()
         self.watcher.addPath(path)
         self.draw_image_grid()
-
+    def reload_images(self):
+        self.background_post_processing()
+        self.jacket_post_processing()
+        self.logo_post_processing()
+        self.thumbnail_post_processing()
     def draw_image_grid(self):
         self.mm_song_selector_preview = QLabel(self)
         self.mm_song_selector_preview.setPixmap(
@@ -466,8 +452,7 @@ class MainWindow(QMainWindow):
         SceneComposer.jacket = jacket_base
         self.main_box.jacket_horizontal_offset_spinbox.setRange((jacket_scaled.width * -1) + 502, 0)
         self.main_box.jacket_vertical_offset_spinbox.setRange((jacket_scaled.height * -1) + 502, 0)
-        #need to fix zoom
-
+        #TODO Fix zoom
     @Slot()
     def logo_post_processing(self):
         print("logo")
@@ -486,8 +471,7 @@ class MainWindow(QMainWindow):
 
         self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435, logo_scaled.width-435)
         self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150, logo_scaled.height-150)
-
-
+        #TODO Fix zoom
     @Slot()
     def background_post_processing(self):
         print("background")
@@ -505,8 +489,7 @@ class MainWindow(QMainWindow):
 
         self.main_box.background_horizontal_offset_spinbox.setRange((background_scaled.width * -1) + 1280, 0)
         self.main_box.background_vertical_offset_spinbox.setRange((background_scaled.height * -1) + 720, 0)
-
-
+        #TODO Fix zoom
     @Slot()
     def thumbnail_post_processing(self):
         print("thumbnail")
@@ -527,6 +510,7 @@ class MainWindow(QMainWindow):
 
         self.main_box.thumbnail_horizontal_offset_spinbox.setRange((thumbnail_scaled.width * -1) +128,27)
         self.main_box.thumbnail_vertical_offset_spinbox.setRange((thumbnail_scaled.height * -1) + 64,0)
+        #TODO Fix zoom
 
     @Slot()
     def load_background_button_callback(self):
@@ -541,7 +525,6 @@ class MainWindow(QMainWindow):
             self.spinbox_values_reset()
             self.background_post_processing()
             self.draw_image_grid()
-
     @Slot()
     def load_jacket_button_callback(self):
         open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
@@ -555,7 +538,6 @@ class MainWindow(QMainWindow):
             self.spinbox_values_reset()
             self.jacket_post_processing()
             self.draw_image_grid()
-
     @Slot()
     def load_logo_button_callback(self):
         open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
@@ -568,7 +550,6 @@ class MainWindow(QMainWindow):
             self.spinbox_values_reset()
             self.logo_post_processing()
             self.draw_image_grid()
-
     @Slot()
     def load_thumbnail_button_callback(self):
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
@@ -581,7 +562,6 @@ class MainWindow(QMainWindow):
             self.spinbox_values_reset()
             self.thumbnail_post_processing()
             self.draw_image_grid()
-
     @Slot()
     def export_background_jacket_button_callback(self):
         jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
@@ -604,7 +584,6 @@ class MainWindow(QMainWindow):
 
         save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
         composite.save(save_location,"png")
-
     @Slot()
     def export_thumbnail_button_callback(self):
         composite = Image.new('RGBA',(128,64))
@@ -612,7 +591,6 @@ class MainWindow(QMainWindow):
 
         save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png", filter="*.png")
         composite.save(save_location, "png")
-
     @Slot()
     def export_logo_button_callback(self):
         composite = Image.new('RGBA',(870,330))
@@ -620,6 +598,7 @@ class MainWindow(QMainWindow):
 
         save_location = filedialpy.saveFile(initial_file="Logo Texture.png", filter="*.png")
         composite.save(save_location, "png")
+
 if __name__ == "__main__":
     config = Configurable()
     SceneComposer = SceneComposer()
