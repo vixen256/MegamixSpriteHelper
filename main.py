@@ -21,6 +21,7 @@ class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
         self.allowed_file_types = ["*.png *.jpg"]
+        self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
 
 def fill_transparent_pixels(image):
     img_array = np.array(image)
@@ -132,7 +133,8 @@ class MainWindow(QMainWindow):
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
 
-        self.draw_image_grid()
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
 
     def resizeEvent(self,event):
         # Force 2:1 aspect ratio
@@ -143,16 +145,19 @@ class MainWindow(QMainWindow):
 
     def jacket_value_edit_trigger(self):
         self.jacket_post_processing()
-        self.draw_image_grid()
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
     def logo_value_edit_trigger(self):
         self.logo_post_processing()
-        self.draw_image_grid()
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
     def background_value_edit_trigger(self):
         self.background_post_processing()
-        self.draw_image_grid()
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
     def thumbnail_value_edit_trigger(self):
         self.thumbnail_post_processing()
-        self.draw_image_grid()
+        self.draw_image_grid("mm_song_selector")
     def jacket_spinbox_values_reset(self):
         self.spinbox_editing_finished_trigger("off")
 
@@ -241,37 +246,28 @@ class MainWindow(QMainWindow):
         self.watcher.removePath(path)
         self.reload_images()
         self.watcher.addPath(path)
-        self.draw_image_grid()
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
     def reload_images(self):
         self.background_post_processing()
         self.jacket_post_processing()
         self.logo_post_processing()
         self.thumbnail_post_processing()
-    def draw_image_grid(self):
-        self.mm_song_selector_preview = QLabel(self)
-        self.mm_song_selector_preview.setPixmap(
-            get_scene("mm_song_selector").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
-        self.mm_song_selector_preview.setScaledContents(True)
+    def draw_image_grid(self,ui_scene):
+        rendered_preview = QLabel(self)
+        rendered_preview.setPixmap(
+            get_scene(ui_scene).scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
+        rendered_preview.setScaledContents(True)
 
-        self.ft_song_selector_preview = QLabel(self)
-        self.ft_song_selector_preview.setPixmap(
-            get_scene("ft_song_selector").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
-        self.ft_song_selector_preview.setScaledContents(True)
-
-        self.mm_result_preview = QLabel(self)
-        self.mm_result_preview.setPixmap(
-            get_scene("mm_result").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
-        self.mm_result_preview.setScaledContents(True)
-
-        self.ft_result_preview = QLabel(self)
-        self.ft_result_preview.setPixmap(
-            get_scene("ft_result").scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
-        self.ft_result_preview.setScaledContents(True)
-
-        self.main_box.image_grid.addWidget(self.mm_song_selector_preview, 0, 0)
-        self.main_box.image_grid.addWidget(self.ft_song_selector_preview, 0, 1)
-        self.main_box.image_grid.addWidget(self.mm_result_preview, 1, 0)
-        self.main_box.image_grid.addWidget(self.ft_result_preview, 1, 1)
+        match ui_scene:
+            case "mm_song_selector":
+                self.main_box.image_grid.addWidget(rendered_preview, 0, 0)
+            case "ft_song_selector":
+                self.main_box.image_grid.addWidget(rendered_preview, 0, 1)
+            case "mm_result":
+                self.main_box.image_grid.addWidget(rendered_preview, 1, 0)
+            case "ft_result":
+                self.main_box.image_grid.addWidget(rendered_preview, 1, 1)
 
     @Slot()
     def jacket_post_processing(self):
@@ -372,7 +368,8 @@ class MainWindow(QMainWindow):
             self.main_box.export_logo_button.setEnabled(True)
             #Draw Logo
             self.logo_post_processing()
-            self.draw_image_grid()
+            for scene in config.scenes_to_draw:
+                self.draw_image_grid(scene)
         else:
             # Make options to tweak logo invisible
             self.main_box.logo_horizontal_offset_label.setDisabled(True)
@@ -388,7 +385,8 @@ class MainWindow(QMainWindow):
             self.main_box.export_logo_button.setDisabled(True)
             # Hide Logo
             self.logo_post_processing()
-            self.draw_image_grid()
+            for scene in config.scenes_to_draw:
+                self.draw_image_grid(scene)
     @Slot()
     def load_background_button_callback(self):
         open_background = openFile(title="Open background image", filter=config.allowed_file_types)
@@ -401,7 +399,8 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.background_location))
             self.background_spinbox_values_reset()
             self.background_post_processing()
-            self.draw_image_grid()
+            for scene in config.scenes_to_draw:
+                self.draw_image_grid(scene)
     @Slot()
     def load_jacket_button_callback(self):
         open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
@@ -414,7 +413,8 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.jacket_location))
             self.jacket_spinbox_values_reset()
             self.jacket_post_processing()
-            self.draw_image_grid()
+            for scene in config.scenes_to_draw:
+                self.draw_image_grid(scene)
     @Slot()
     def load_logo_button_callback(self):
         open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
@@ -426,7 +426,8 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.logo_location))
             self.logo_spinbox_values_reset()
             self.logo_post_processing()
-            self.draw_image_grid()
+            for scene in config.scenes_to_draw:
+                self.draw_image_grid(scene)
     @Slot()
     def load_thumbnail_button_callback(self):
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
@@ -438,7 +439,7 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(self.thumbnail_location))
             self.thumbnail_spinbox_values_reset()
             self.thumbnail_post_processing()
-            self.draw_image_grid()
+            self.draw_image_grid("mm_song_selector")
     @Slot()
     def export_background_jacket_button_callback(self):
         jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
