@@ -204,24 +204,6 @@ class SceneComposer:
         self.logo_post_processing()
         self.thumbnail_post_processing()
 
-
-    def jacket_value_edit_trigger(self):
-        self.jacket_post_processing()
-        for scene in config.scenes_to_draw:
-            self.draw_image_grid(scene)
-    def logo_value_edit_trigger(self):
-        self.logo_post_processing()
-        for scene in config.scenes_to_draw:
-            self.draw_image_grid(scene)
-    def background_value_edit_trigger(self):
-        self.background_post_processing()
-        for scene in config.scenes_to_draw:
-            self.draw_image_grid(scene)
-    def thumbnail_value_edit_trigger(self):
-        self.thumbnail_post_processing()
-        self.draw_image_grid("mm_song_selector")
-
-
     def jacket_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("jacket")
         self.jacket = Image.new('RGBA',(502,502))

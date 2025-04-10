@@ -151,6 +151,22 @@ class MainWindow(QMainWindow):
             case "ft_result":
                 self.main_box.image_grid.addWidget(rendered_preview, 1, 1)
 
+    def jacket_value_edit_trigger(self):
+        SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
+    def logo_value_edit_trigger(self):
+        SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
+    def background_value_edit_trigger(self):
+        SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
+    def thumbnail_value_edit_trigger(self):
+        SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+        self.draw_image_grid("mm_song_selector")
+
     def jacket_spinbox_values_reset(self):
         self.spinbox_editing_finished_trigger("off")
 
@@ -190,46 +206,46 @@ class MainWindow(QMainWindow):
 
     def spinbox_editing_finished_trigger(self,state):
         if state == "on":
-            self.main_box.jacket_rotation_spinbox.editingFinished.connect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.connect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.connect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_zoom_spinbox.editingFinished.connect(SceneComposer.jacket_value_edit_trigger)
+            self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_vertical_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_zoom_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.connect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.connect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.connect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_zoom_spinbox.editingFinished.connect(SceneComposer.logo_value_edit_trigger)
+            self.main_box.logo_rotation_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_horizontal_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_vertical_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.main_box.logo_zoom_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.connect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.connect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.connect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_zoom_spinbox.editingFinished.connect(SceneComposer.background_value_edit_trigger)
+            self.main_box.background_rotation_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_horizontal_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_vertical_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.main_box.background_zoom_spinbox.editingFinished.connect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.connect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.connect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.connect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.connect(SceneComposer.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_rotation_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_zoom_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
 
         else:
-            self.main_box.jacket_rotation_spinbox.editingFinished.disconnect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.disconnect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.disconnect(SceneComposer.jacket_value_edit_trigger)
-            self.main_box.jacket_zoom_spinbox.editingFinished.disconnect(SceneComposer.jacket_value_edit_trigger)
+            self.main_box.jacket_rotation_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_vertical_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.main_box.jacket_zoom_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.disconnect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.disconnect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.disconnect(SceneComposer.logo_value_edit_trigger)
-            self.main_box.logo_zoom_spinbox.editingFinished.disconnect(SceneComposer.logo_value_edit_trigger)
+            self.main_box.logo_rotation_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_horizontal_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_vertical_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.main_box.logo_zoom_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.disconnect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.disconnect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.disconnect(SceneComposer.background_value_edit_trigger)
-            self.main_box.background_zoom_spinbox.editingFinished.disconnect(SceneComposer.background_value_edit_trigger)
+            self.main_box.background_rotation_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_horizontal_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_vertical_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.main_box.background_zoom_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.disconnect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.disconnect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(SceneComposer.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(SceneComposer.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_rotation_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
 
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
