@@ -17,10 +17,6 @@ class SceneComposer:
         self.thumbnail_location = self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
 
     def compose_scene(self,ui_screen):
-        with (Image.open(self.background_location) as self.background,
-              Image.open(self.jacket_location) as self.jacket,
-              Image.open(self.logo_location) as self.logo,
-              Image.open(self.thumbnail_location) as self.thumbnail):
             self.prepare_scene(ui_screen)
             composite = Image.new('RGBA' ,(1920,1080))
             iteration=0
