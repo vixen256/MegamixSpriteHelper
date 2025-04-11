@@ -103,7 +103,7 @@
      <number>5</number>
     </property>
     <item>
-     <layout class="QGridLayout" name="image_grid" rowstretch="2,0" columnstretch="2,0">
+     <layout class="QGridLayout" name="image_grid" rowstretch="0,0" columnstretch="0,0">
       <property name="sizeConstraint">
        <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
       </property>
@@ -125,7 +125,7 @@
       <item row="0" column="1">
        <widget class="QLabel" name="ft_song_selector_preview">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
@@ -163,9 +163,9 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="mm_song_selector_preview">
+       <widget class="QLabel" name="mm_result_preview">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
@@ -203,9 +203,9 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QLabel" name="mm_result_preview">
+       <widget class="QLabel" name="mm_song_selector_preview">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
@@ -245,7 +245,7 @@
       <item row="1" column="1">
        <widget class="QLabel" name="ft_result_preview">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
           <horstretch>1</horstretch>
           <verstretch>1</verstretch>
          </sizepolicy>
@@ -393,7 +393,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-671</y>
+           <y>0</y>
            <width>199</width>
            <height>905</height>
           </rect>
@@ -408,6 +408,12 @@
           <size>
            <width>0</width>
            <height>905</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
           </size>
          </property>
          <property name="sizeIncrement">
@@ -433,19 +439,37 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>201</width>
+            <width>286</width>
             <height>901</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>6</number>
+           </property>
            <property name="sizeConstraint">
             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
            </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QLabel" name="jacket_horizontal_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -461,6 +485,12 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -474,9 +504,21 @@
            </item>
            <item>
             <widget class="QLabel" name="jacket_vertical_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -486,6 +528,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="jacket_vertical_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -499,9 +553,21 @@
            </item>
            <item>
             <widget class="QLabel" name="jacket_rotation_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -511,6 +577,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="jacket_rotation_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -533,9 +611,21 @@
            </item>
            <item>
             <widget class="QLabel" name="jacket_zoom_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -545,6 +635,18 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="jacket_zoom_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -573,9 +675,21 @@
            </item>
            <item>
             <widget class="QLabel" name="background_horizontal_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -585,6 +699,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="background_horizontal_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -595,9 +721,21 @@
            </item>
            <item>
             <widget class="QLabel" name="background_vertical_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -607,6 +745,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="background_vertical_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -614,9 +764,21 @@
            </item>
            <item>
             <widget class="QLabel" name="background_rotation_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -626,6 +788,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="background_rotation_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -654,9 +828,21 @@
            </item>
            <item>
             <widget class="QLabel" name="background_zoom_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -666,6 +852,18 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="background_zoom_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -697,9 +895,21 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -712,6 +922,18 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -722,9 +944,21 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -737,6 +971,18 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -747,9 +993,21 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -761,6 +1019,18 @@
             <widget class="QSpinBox" name="logo_rotation_spinbox">
              <property name="enabled">
               <bool>true</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
@@ -787,9 +1057,21 @@
              <property name="enabled">
               <bool>true</bool>
              </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -801,6 +1083,18 @@
             <widget class="QDoubleSpinBox" name="logo_zoom_spinbox">
              <property name="enabled">
               <bool>true</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
@@ -830,9 +1124,21 @@
            </item>
            <item>
             <widget class="QLabel" name="thumbnail_horizontal_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -842,6 +1148,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="thumbnail_horizontal_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -849,9 +1167,21 @@
            </item>
            <item>
             <widget class="QLabel" name="thumbnail_vertical_offset_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -861,6 +1191,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="thumbnail_vertical_offset_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -868,9 +1210,21 @@
            </item>
            <item>
             <widget class="QLabel" name="thumbnail_rotation_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -880,6 +1234,18 @@
            </item>
            <item>
             <widget class="QSpinBox" name="thumbnail_rotation_spinbox">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
@@ -902,9 +1268,21 @@
            </item>
            <item>
             <widget class="QLabel" name="thumbnail_zoom_label">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="font">
               <font>
-               <pointsize>10</pointsize>
+               <pointsize>9</pointsize>
               </font>
              </property>
              <property name="text">
@@ -919,6 +1297,12 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
@@ -1045,7 +1429,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>211</width>
+            <width>201</width>
             <height>191</height>
            </rect>
           </property>
@@ -1055,6 +1439,15 @@
            </property>
            <item>
             <widget class="QPushButton" name="copy_to_clipboard_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Copy to clipboard</string>
              </property>
@@ -1062,6 +1455,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="export_thumbnail_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Export Thumbnail</string>
              </property>
@@ -1069,6 +1471,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="export_logo_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Export Logo</string>
              </property>
@@ -1076,6 +1487,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="export_background_jacket_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Export Background/Jacket</string>
              </property>
@@ -1099,7 +1519,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>211</width>
+            <width>201</width>
             <height>191</height>
            </rect>
           </property>
@@ -1119,6 +1539,12 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="song_id_spinbox">
+             <property name="maximumSize">
+              <size>
+               <width>160</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="layoutDirection">
               <enum>Qt::LayoutDirection::LeftToRight</enum>
              </property>
@@ -1135,6 +1561,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="export_bg_jk_logo_farc_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Export BG/JK/Logo Farc</string>
              </property>
@@ -1142,6 +1577,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="export_thumbnail_farc_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Export Thumbnail Farc</string>
              </property>
@@ -1149,6 +1593,15 @@
            </item>
            <item>
             <widget class="QPushButton" name="generate_spr_db_button">
+             <property name="maximumSize">
+              <size>
+               <width>195</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
              <property name="text">
               <string>Generate Sprite Database</string>
              </property>

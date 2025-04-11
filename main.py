@@ -132,20 +132,15 @@ class MainWindow(QMainWindow):
         self.resize(size)
 
     def draw_image_grid(self,ui_scene):
-        rendered_preview = QLabel(self)
-        rendered_preview.setPixmap(
-            QPixmap.fromImage(ImageQt.ImageQt(SceneComposer.compose_scene(ui_scene))).scaled(1920,1080,aspectMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding, mode=Qt.TransformationMode.SmoothTransformation))
-        rendered_preview.setScaledContents(True)
-
         match ui_scene:
             case "mm_song_selector":
-                self.main_box.image_grid.addWidget(rendered_preview, 0, 0)
+                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
             case "ft_song_selector":
-                self.main_box.image_grid.addWidget(rendered_preview, 0, 1)
+                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
             case "mm_result":
-                self.main_box.image_grid.addWidget(rendered_preview, 1, 0)
+                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
             case "ft_result":
-                self.main_box.image_grid.addWidget(rendered_preview, 1, 1)
+                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
 
     def jacket_value_edit_trigger(self):
         SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())

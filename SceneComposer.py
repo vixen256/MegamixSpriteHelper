@@ -10,20 +10,24 @@ class SceneComposer:
     def __init__(self):
         self.script_directory = Path.cwd()
 
-        # Set default sprites for scenes
+        # Set defaults for swappable sprites
         self.background_location = self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
         self.jacket_location = self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
         self.logo_location = self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
         self.thumbnail_location = self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
 
     def compose_scene(self,ui_screen):
-        self.prepare_scene(ui_screen)
-        composite = Image.new('RGBA' ,(1920,1080))
-        iteration=0
-        for layer in self.grab_layers(ui_screen):
-            composite.alpha_composite(layer,self.anchor_points[iteration])
-            iteration=iteration+1
-        return composite
+        with (Image.open(self.background_location) as self.background,
+              Image.open(self.jacket_location) as self.jacket,
+              Image.open(self.logo_location) as self.logo,
+              Image.open(self.thumbnail_location) as self.thumbnail):
+            self.prepare_scene(ui_screen)
+            composite = Image.new('RGBA' ,(1920,1080))
+            iteration=0
+            for layer in self.grab_layers(ui_screen):
+                composite.alpha_composite(layer,self.anchor_points[iteration])
+                iteration=iteration+1
+            return composite.toqpixmap()
 
     def prepare_scene(self,ui_screen):
         match ui_screen:
@@ -104,7 +108,6 @@ class SceneComposer:
                 self.middle_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png'))
                 self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'))
 
-        pass
     def grab_layers(self,ui_screen):
         match ui_screen:
             case "mm_song_selector":
@@ -197,19 +200,22 @@ class SceneComposer:
 
     def jacket_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("jacket")
-        self.jacket = Image.new('RGBA',(502,502))
-        jacket_image = ImageOps.scale(Image.open(self.jacket_location).convert('RGBA').rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
-        self.jacket.alpha_composite(jacket_image,(horizontal_offset,vertical_offset))
+        with Image.open(self.jacket_location).convert('RGBA') as jacket:
+            self.jacket = Image.new('RGBA',(502,502))
+            jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
+            self.jacket.alpha_composite(jacket_image,(horizontal_offset,vertical_offset))
+
 
         #self.main_box.jacket_horizontal_offset_spinbox.setRange((jacket_scaled.width * -1) + 502, 0)
         #self.main_box.jacket_vertical_offset_spinbox.setRange((jacket_scaled.height * -1) + 502, 0)
         #TODO Fix zoom
     def background_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("background")
-        background_image = ImageOps.scale(Image.open(self.background_location).convert('RGBA').rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
-        self.background = Image.new('RGBA', (1280, 720))
-        self.background.alpha_composite(background_image, (horizontal_offset, vertical_offset))
-        self.scaled_background = ImageOps.scale(self.background,1.5)
+        with Image.open(self.background_location).convert('RGBA') as background:
+            background_image = ImageOps.scale(background.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+            self.background = Image.new('RGBA', (1280, 720))
+            self.background.alpha_composite(background_image, (horizontal_offset, vertical_offset))
+            self.scaled_background = ImageOps.scale(self.background,1.5)
 
         #self.main_box.background_horizontal_offset_spinbox.setRange((background_scaled.width * -1) + 1280, 0)
         #self.main_box.background_vertical_offset_spinbox.setRange((background_scaled.height * -1) + 720, 0)
@@ -217,9 +223,10 @@ class SceneComposer:
     def logo_post_processing(self,state,horizontal_offset,vertical_offset,rotation,zoom):
         print("logo")
         if state == Qt.CheckState.Checked:
-            logo_image = ImageOps.scale(Image.open(self.logo_location).convert('RGBA').rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
-            self.logo = Image.new('RGBA', (870, 330))
-            self.logo.alpha_composite(logo_image, (horizontal_offset, vertical_offset))
+            with Image.open(self.logo_location).convert('RGBA') as logo:
+                logo_image = ImageOps.scale(logo.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+                self.logo = Image.new('RGBA', (870, 330))
+                self.logo.alpha_composite(logo_image, (horizontal_offset, vertical_offset))
 
             #self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435,logo_scaled.width - 435)
             #self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150,logo_scaled.height - 150)
@@ -229,10 +236,11 @@ class SceneComposer:
         #TODO Fix zoom
     def thumbnail_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("thumbnail")
-        thumbnail_image = ImageOps.scale(Image.open(self.thumbnail_location).convert('RGBA').rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
-        self.thumbnail = Image.new('RGBA',(128,64))
-        self.thumbnail.alpha_composite(thumbnail_image,(horizontal_offset,vertical_offset))
-        self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Mask.png').convert('L'))
+        with Image.open(self.thumbnail_location).convert('RGBA') as thumbnail ,Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Mask.png').convert('L') as mask:
+            thumbnail_image = ImageOps.scale(thumbnail.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+            self.thumbnail = Image.new('RGBA',(128,64))
+            self.thumbnail.alpha_composite(thumbnail_image,(horizontal_offset,vertical_offset))
+            self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask)
 
         #self.main_box.thumbnail_horizontal_offset_spinbox.setRange((thumbnail_scaled.width * -1) +128,27)
         #self.main_box.thumbnail_vertical_offset_spinbox.setRange((thumbnail_scaled.height * -1) + 64,0)
