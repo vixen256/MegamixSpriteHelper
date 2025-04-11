@@ -1,15 +1,10 @@
 from pathlib import Path, PurePath
-import sys
-from time import sleep
 
-import filedialpy
-from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
-from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QSizePolicy, QMainWindow
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import Qt
+
 from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
-from copykitten import copy_image
-from filedialpy import openFile
+
 
 class SceneComposer:
     def __init__(self):
