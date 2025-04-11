@@ -198,11 +198,7 @@ class SceneComposer:
                     self.top_layer
                 )
 
-    def reload_images(self):
-        self.background_post_processing()
-        self.jacket_post_processing()
-        self.logo_post_processing()
-        self.thumbnail_post_processing()
+
 
     def jacket_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("jacket")

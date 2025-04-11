@@ -167,6 +167,12 @@ class MainWindow(QMainWindow):
         SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
         self.draw_image_grid("mm_song_selector")
 
+    def reload_images(self):
+        SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+        SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(), self.main_box.jacket_vertical_offset_spinbox.value(), self.main_box.jacket_rotation_spinbox.value(), self.main_box.jacket_zoom_spinbox.value())
+        SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(), self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+        SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+
     def jacket_spinbox_values_reset(self):
         self.spinbox_editing_finished_trigger("off")
 
@@ -250,10 +256,10 @@ class MainWindow(QMainWindow):
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
         self.watcher.removePath(path)
-        SceneComposer.reload_images()
+        self.reload_images()
         self.watcher.addPath(path)
         for scene in config.scenes_to_draw:
-            SceneComposer.draw_image_grid(scene)
+            self.draw_image_grid(scene)
 
 
 
