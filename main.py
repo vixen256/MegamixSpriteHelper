@@ -300,13 +300,13 @@ class MainWindow(QMainWindow):
         if open_background == '':
             print("Background image wasn't chosen")
         else:
-            self.watcher.removePath(str(self.background_location))
-            self.background_location = open_background
-            self.watcher.addPath(str(self.background_location))
+            self.watcher.removePath(str(SceneComposer.background_location))
+            SceneComposer.background_location = open_background
+            self.watcher.addPath(str(SceneComposer.background_location))
             self.background_spinbox_values_reset()
-            SceneComposer.background_post_processing()
+            SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
-                SceneComposer.draw_image_grid(scene)
+                self.draw_image_grid(scene)
     @Slot()
     def load_jacket_button_callback(self):
         open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
@@ -314,38 +314,38 @@ class MainWindow(QMainWindow):
         if open_jacket == '':
             print("Jacket image wasn't chosen")
         else:
-            self.watcher.removePath(str(self.jacket_location))
-            self.jacket_location = open_jacket
-            self.watcher.addPath(str(self.jacket_location))
+            self.watcher.removePath(str(SceneComposer.jacket_location))
+            SceneComposer.jacket_location = open_jacket
+            self.watcher.addPath(str(SceneComposer.jacket_location))
             self.jacket_spinbox_values_reset()
-            SceneComposer.jacket_post_processing()
+            SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
-                SceneComposer.draw_image_grid(scene)
+                self.draw_image_grid(scene)
     @Slot()
     def load_logo_button_callback(self):
         open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
-            self.watcher.removePath(str(self.logo_location))
-            self.logo_location = open_logo
-            self.watcher.addPath(str(self.logo_location))
+            self.watcher.removePath(str(SceneComposer.logo_location))
+            SceneComposer.logo_location = open_logo
+            self.watcher.addPath(str(SceneComposer.logo_location))
             self.logo_spinbox_values_reset()
-            SceneComposer.logo_post_processing()
+            SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
-                SceneComposer.draw_image_grid(scene)
+                self.draw_image_grid(scene)
     @Slot()
     def load_thumbnail_button_callback(self):
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
-            self.watcher.removePath(str(self.thumbnail_location))
-            self.thumbnail_location = open_thumbnail
-            self.watcher.addPath(str(self.thumbnail_location))
+            self.watcher.removePath(str(SceneComposer.thumbnail_location))
+            SceneComposer.thumbnail_location = open_thumbnail
+            self.watcher.addPath(str(SceneComposer.thumbnail_location))
             self.thumbnail_spinbox_values_reset()
-            SceneComposer.thumbnail_post_processing()
-            SceneComposer.draw_image_grid("mm_song_selector")
+            SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+            self.draw_image_grid("mm_song_selector")
     @Slot()
     def export_background_jacket_button_callback(self):
         jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
