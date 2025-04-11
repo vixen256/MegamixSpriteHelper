@@ -357,7 +357,7 @@ class MainWindow(QMainWindow):
         jacket_composite.putalpha(jacket_mask)
 
         background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        background_composite.alpha_composite(self.background_image,(2,2),(0,0,1280,720))
+        background_composite.alpha_composite(SceneComposer.background,(2,2),(0,0,1280,720))
         background_composite = fill_transparent_pixels(background_composite)
         background_composite.putalpha(background_mask)
 
