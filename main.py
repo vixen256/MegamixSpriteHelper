@@ -273,9 +273,9 @@ class MainWindow(QMainWindow):
             self.main_box.load_logo_button.setEnabled(True)
             self.main_box.export_logo_button.setEnabled(True)
             #Draw Logo
-            SceneComposer.logo_post_processing()
+            SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
-                SceneComposer.draw_image_grid(scene)
+                self.draw_image_grid(scene)
         else:
             # Make options to tweak logo invisible
             self.main_box.logo_horizontal_offset_label.setDisabled(True)
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
             self.main_box.load_logo_button.setDisabled(True)
             self.main_box.export_logo_button.setDisabled(True)
             # Hide Logo
-            self.logo_post_processing()
+            SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
