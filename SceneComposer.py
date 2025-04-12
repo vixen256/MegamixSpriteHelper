@@ -198,19 +198,19 @@ class SceneComposer:
         print("jacket")
         with Image.open(self.jacket_location).convert('RGBA') as jacket:
             self.jacket = Image.new('RGBA',(502,502))
-            jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
-            self.jacket.alpha_composite(jacket_image,(horizontal_offset,vertical_offset))
+            self.jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
+            self.jacket.alpha_composite(self.jacket_image,(horizontal_offset,vertical_offset))
 
 
-        #self.main_box.jacket_horizontal_offset_spinbox.setRange((jacket_scaled.width * -1) + 502, 0)
+
         #self.main_box.jacket_vertical_offset_spinbox.setRange((jacket_scaled.height * -1) + 502, 0)
         #TODO Fix zoom
     def background_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("background")
         with Image.open(self.background_location).convert('RGBA') as background:
-            background_image = ImageOps.scale(background.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+            self.background_image = ImageOps.scale(background.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
             self.background = Image.new('RGBA', (1280, 720))
-            self.background.alpha_composite(background_image, (horizontal_offset, vertical_offset))
+            self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
             self.scaled_background = ImageOps.scale(self.background,1.5)
 
         #self.main_box.background_horizontal_offset_spinbox.setRange((background_scaled.width * -1) + 1280, 0)
@@ -220,9 +220,9 @@ class SceneComposer:
         print("logo")
         if state == Qt.CheckState.Checked:
             with Image.open(self.logo_location).convert('RGBA') as logo:
-                logo_image = ImageOps.scale(logo.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+                self.logo_image = ImageOps.scale(logo.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
                 self.logo = Image.new('RGBA', (870, 330))
-                self.logo.alpha_composite(logo_image, (horizontal_offset, vertical_offset))
+                self.logo.alpha_composite(self.logo_image, (horizontal_offset, vertical_offset))
 
             #self.main_box.logo_horizontal_offset_spinbox.setRange((logo_scaled.width * -1) + 435,logo_scaled.width - 435)
             #self.main_box.logo_vertical_offset_spinbox.setRange((logo_scaled.height * -1) + 150,logo_scaled.height - 150)
@@ -233,9 +233,9 @@ class SceneComposer:
     def thumbnail_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("thumbnail")
         with Image.open(self.thumbnail_location).convert('RGBA') as thumbnail ,Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Mask.png').convert('L') as mask:
-            thumbnail_image = ImageOps.scale(thumbnail.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+            self.thumbnail_image = ImageOps.scale(thumbnail.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
             self.thumbnail = Image.new('RGBA',(128,64))
-            self.thumbnail.alpha_composite(thumbnail_image,(horizontal_offset,vertical_offset))
+            self.thumbnail.alpha_composite(self.thumbnail_image,(horizontal_offset,vertical_offset))
             self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask)
 
         #self.main_box.thumbnail_horizontal_offset_spinbox.setRange((thumbnail_scaled.width * -1) +128,27)

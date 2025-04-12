@@ -10,6 +10,7 @@ from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 from copykitten import copy_image
 from filedialpy import openFile
+from decimal import Decimal, getcontext, ROUND_HALF_UP
 
 import numpy as np
 from scipy.ndimage import distance_transform_edt
@@ -141,22 +142,24 @@ class MainWindow(QMainWindow):
                 self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
             case "ft_result":
                 self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
-
     def jacket_value_edit_trigger(self):
         SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
+        self.change_spinbox_offset_range("jacket")
         for scene in config.scenes_to_draw:
-            print(scene)
             self.draw_image_grid(scene)
     def logo_value_edit_trigger(self):
         SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+        self.change_spinbox_offset_range("logo")
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
     def background_value_edit_trigger(self):
         SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+        self.change_spinbox_offset_range("background")
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
     def thumbnail_value_edit_trigger(self):
         SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+        self.change_spinbox_offset_range("thumbnail")
         self.draw_image_grid("mm_song_selector")
 
     def reload_images(self):
@@ -244,6 +247,106 @@ class MainWindow(QMainWindow):
             self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
             self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
 
+    def change_spinbox_offset_range(self,spinbox):
+        match spinbox:
+            case "jacket":
+                minimum_horizontal = (SceneComposer.jacket_image.width * -1) + 502
+                minimum_vertical = (SceneComposer.jacket_image.height * -1) + 502
+                self.main_box.jacket_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
+                self.main_box.jacket_vertical_offset_spinbox.setRange(minimum_vertical, 0)
+
+                if minimum_horizontal == 0:
+                    self.main_box.jacket_horizontal_offset_spinbox.setEnabled(False)
+                else:
+                    self.main_box.jacket_horizontal_offset_spinbox.setEnabled(True)
+
+                if minimum_vertical == 0:
+                    self.main_box.jacket_vertical_offset_spinbox.setEnabled(False)
+                else:
+                    self.main_box.jacket_vertical_offset_spinbox.setEnabled(True)
+            case "background":
+                minimum_horizontal = (SceneComposer.background_image.width * -1) + 1280
+                minimum_vertical = (SceneComposer.background_image.height * -1) + 720
+                self.main_box.background_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
+                self.main_box.background_vertical_offset_spinbox.setRange(minimum_vertical, 0)
+
+                if minimum_horizontal == 0:
+                    self.main_box.background_horizontal_offset_spinbox.setEnabled(False)
+                else:
+                    self.main_box.background_horizontal_offset_spinbox.setEnabled(True)
+
+                if minimum_vertical == 0:
+                    self.main_box.background_vertical_offset_spinbox.setEnabled(False)
+                else:
+                    self.main_box.background_vertical_offset_spinbox.setEnabled(True)
+            case "logo":
+                self.main_box.logo_horizontal_offset_spinbox.setRange((SceneComposer.logo_image.width * -1) + 435,SceneComposer.logo_image.width - 435)
+                self.main_box.logo_vertical_offset_spinbox.setRange((SceneComposer.logo_image.height * -1) + 150,SceneComposer.logo_image.height - 150)
+            case "thumbnail":
+                minimum_horizontal = (SceneComposer.thumbnail_image.width * -1) +128
+                minimum_vertical = (SceneComposer.thumbnail_image.height * -1) + 64
+                self.main_box.thumbnail_horizontal_offset_spinbox.setRange(minimum_horizontal ,27)
+                self.main_box.thumbnail_vertical_offset_spinbox.setRange(minimum_vertical,0)
+
+                if minimum_horizontal == 0:
+                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(True)
+                else:
+                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(True)
+
+                if minimum_vertical == 0:
+                    self.main_box.thumbnail_vertical_offset_spinbox.setEnabled(False)
+                else:
+                    self.main_box.thumbnail_vertical_offset_spinbox.setEnabled(True)
+
+    def change_spinbox_zoom_range(self,spinbox,image_width,image_height):
+        match spinbox:
+            case "jacket_zoom":
+                width_factor =  Decimal(502 / image_width)
+                height_factor = Decimal(502 / image_height)
+                if width_factor > height_factor:
+                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
+                    self.main_box.jacket_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP),1.00)
+                elif height_factor > width_factor:
+                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
+                    self.main_box.jacket_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP),1.00)
+                elif height_factor == width_factor:
+                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
+                    self.main_box.jacket_zoom_spinbox.setRange(height_factor,1.00)
+                else:
+                    self.main_box.jacket_zoom_spinbox.setEnabled(False)
+                    self.main_box.jacket_zoom_spinbox.setRange(1.00, 1.00)
+
+            case "background_zoom":
+                width_factor = Decimal(1280 / image_width)
+                height_factor = Decimal(720 / image_height)
+                if width_factor > height_factor:
+                    self.main_box.background_zoom_spinbox.setEnabled(True)
+                    self.main_box.background_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
+                elif height_factor > width_factor:
+                    self.main_box.background_zoom_spinbox.setEnabled(True)
+                    self.main_box.background_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
+                elif height_factor == width_factor:
+                    self.main_box.background_zoom_spinbox.setEnabled(True)
+                    self.main_box.background_zoom_spinbox.setRange(height_factor, 1.00)
+                else:
+                    self.main_box.background_zoom_spinbox.setEnabled(False)
+                    self.main_box.background_zoom_spinbox.setRange(1.00, 1.00)
+            case "thumbnail_zoom":
+                width_factor = Decimal(128 / image_width)
+                height_factor = Decimal(64 / image_height)
+                if width_factor > height_factor:
+                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
+                    self.main_box.thumbnail_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
+                elif height_factor > width_factor:
+                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
+                    self.main_box.thumbnail_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
+                elif height_factor == width_factor:
+                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
+                    self.main_box.thumbnail_zoom_spinbox.setRange(height_factor, 1.00)
+                else:
+                    self.main_box.thumbnail_zoom_spinbox.setEnabled(False)
+                    self.main_box.thumbnail_zoom_spinbox.setRange(1.00, 1.00)
+
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
         self.watcher.removePath(path)
@@ -291,7 +394,7 @@ class MainWindow(QMainWindow):
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_background_button_callback(self):
+    def load_background_button_callback(self): #TODO Add minimal size of image that's accepted
         open_background = openFile(title="Open background image", filter=config.allowed_file_types)
 
         if open_background == '':
@@ -299,13 +402,14 @@ class MainWindow(QMainWindow):
         else:
             self.watcher.removePath(str(SceneComposer.background_location))
             SceneComposer.background_location = open_background
+            self.change_spinbox_zoom_range("background_zoom", Image.open(open_background).width, Image.open(open_background).height)
             self.watcher.addPath(str(SceneComposer.background_location))
             self.background_spinbox_values_reset()
             SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_jacket_button_callback(self):
+    def load_jacket_button_callback(self): #TODO Add minimal size of image that's accepted
         open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
 
         if open_jacket == '':
@@ -313,13 +417,15 @@ class MainWindow(QMainWindow):
         else:
             self.watcher.removePath(str(SceneComposer.jacket_location))
             SceneComposer.jacket_location = open_jacket
+            self.change_spinbox_zoom_range("jacket_zoom", Image.open(open_jacket).width, Image.open(open_jacket).height)
             self.watcher.addPath(str(SceneComposer.jacket_location))
             self.jacket_spinbox_values_reset()
             SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
+            self.change_spinbox_offset_range("jacket")
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_logo_button_callback(self):
+    def load_logo_button_callback(self): #TODO Add minimal size of image that's accepted
         open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
@@ -329,10 +435,11 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(SceneComposer.logo_location))
             self.logo_spinbox_values_reset()
             SceneComposer.logo_post_processing(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+            self.change_spinbox_offset_range("logo")
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_thumbnail_button_callback(self):
+    def load_thumbnail_button_callback(self): #TODO Add minimal size of image that's accepted
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
@@ -342,6 +449,7 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(SceneComposer.thumbnail_location))
             self.thumbnail_spinbox_values_reset()
             SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+            self.change_spinbox_offset_range("thumbnail")
             self.draw_image_grid("mm_song_selector")
     @Slot()
     def export_background_jacket_button_callback(self):

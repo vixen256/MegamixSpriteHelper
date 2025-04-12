@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperOKPGDU.ui'
+## Form generated from reading UI file 'SpriteHelperfqIZuT.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -183,7 +183,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
         self.image_edit_area_widget_properties = QWidget()
         self.image_edit_area_widget_properties.setObjectName(u"image_edit_area_widget_properties")
-        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 199, 905))
+        self.image_edit_area_widget_properties.setGeometry(QRect(0, -431, 199, 905))
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
@@ -219,6 +219,7 @@ class Ui_MainWindow(object):
 
         self.jacket_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget_3)
         self.jacket_horizontal_offset_spinbox.setObjectName(u"jacket_horizontal_offset_spinbox")
+        self.jacket_horizontal_offset_spinbox.setEnabled(False)
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
@@ -226,8 +227,8 @@ class Ui_MainWindow(object):
         self.jacket_horizontal_offset_spinbox.setSizePolicy(sizePolicy6)
         self.jacket_horizontal_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.jacket_horizontal_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
-        self.jacket_horizontal_offset_spinbox.setMinimum(-500)
-        self.jacket_horizontal_offset_spinbox.setMaximum(500)
+        self.jacket_horizontal_offset_spinbox.setMinimum(0)
+        self.jacket_horizontal_offset_spinbox.setMaximum(0)
 
         self.verticalLayout_2.addWidget(self.jacket_horizontal_offset_spinbox)
 
@@ -242,12 +243,13 @@ class Ui_MainWindow(object):
 
         self.jacket_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_3)
         self.jacket_vertical_offset_spinbox.setObjectName(u"jacket_vertical_offset_spinbox")
+        self.jacket_vertical_offset_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.jacket_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
         self.jacket_vertical_offset_spinbox.setSizePolicy(sizePolicy6)
         self.jacket_vertical_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.jacket_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
-        self.jacket_vertical_offset_spinbox.setMinimum(-500)
-        self.jacket_vertical_offset_spinbox.setMaximum(500)
+        self.jacket_vertical_offset_spinbox.setMinimum(0)
+        self.jacket_vertical_offset_spinbox.setMaximum(0)
 
         self.verticalLayout_2.addWidget(self.jacket_vertical_offset_spinbox)
 
@@ -284,13 +286,14 @@ class Ui_MainWindow(object):
 
         self.jacket_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.jacket_zoom_spinbox.setObjectName(u"jacket_zoom_spinbox")
+        self.jacket_zoom_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.jacket_zoom_spinbox.sizePolicy().hasHeightForWidth())
         self.jacket_zoom_spinbox.setSizePolicy(sizePolicy6)
         self.jacket_zoom_spinbox.setMaximumSize(QSize(160, 16777215))
         self.jacket_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.jacket_zoom_spinbox.setAccelerated(True)
         self.jacket_zoom_spinbox.setDecimals(3)
-        self.jacket_zoom_spinbox.setMinimum(0.010000000000000)
+        self.jacket_zoom_spinbox.setMinimum(1.000000000000000)
         self.jacket_zoom_spinbox.setMaximum(1.000000000000000)
         self.jacket_zoom_spinbox.setSingleStep(0.001000000000000)
         self.jacket_zoom_spinbox.setValue(1.000000000000000)
@@ -308,11 +311,13 @@ class Ui_MainWindow(object):
 
         self.background_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget_3)
         self.background_horizontal_offset_spinbox.setObjectName(u"background_horizontal_offset_spinbox")
+        self.background_horizontal_offset_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.background_horizontal_offset_spinbox.sizePolicy().hasHeightForWidth())
         self.background_horizontal_offset_spinbox.setSizePolicy(sizePolicy6)
         self.background_horizontal_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.background_horizontal_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.background_horizontal_offset_spinbox.setWrapping(False)
+        self.background_horizontal_offset_spinbox.setMaximum(0)
 
         self.verticalLayout_2.addWidget(self.background_horizontal_offset_spinbox)
 
@@ -327,10 +332,12 @@ class Ui_MainWindow(object):
 
         self.background_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_3)
         self.background_vertical_offset_spinbox.setObjectName(u"background_vertical_offset_spinbox")
+        self.background_vertical_offset_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.background_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
         self.background_vertical_offset_spinbox.setSizePolicy(sizePolicy6)
         self.background_vertical_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.background_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.background_vertical_offset_spinbox.setMaximum(0)
 
         self.verticalLayout_2.addWidget(self.background_vertical_offset_spinbox)
 
@@ -369,13 +376,14 @@ class Ui_MainWindow(object):
 
         self.background_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.background_zoom_spinbox.setObjectName(u"background_zoom_spinbox")
+        self.background_zoom_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.background_zoom_spinbox.sizePolicy().hasHeightForWidth())
         self.background_zoom_spinbox.setSizePolicy(sizePolicy6)
         self.background_zoom_spinbox.setMaximumSize(QSize(160, 16777215))
         self.background_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.background_zoom_spinbox.setAccelerated(True)
         self.background_zoom_spinbox.setDecimals(3)
-        self.background_zoom_spinbox.setMinimum(0.010000000000000)
+        self.background_zoom_spinbox.setMinimum(1.000000000000000)
         self.background_zoom_spinbox.setMaximum(1.000000000000000)
         self.background_zoom_spinbox.setSingleStep(0.001000000000000)
         self.background_zoom_spinbox.setValue(1.000000000000000)
@@ -399,6 +407,8 @@ class Ui_MainWindow(object):
         self.logo_horizontal_offset_spinbox.setSizePolicy(sizePolicy6)
         self.logo_horizontal_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.logo_horizontal_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.logo_horizontal_offset_spinbox.setMinimum(-435)
+        self.logo_horizontal_offset_spinbox.setMaximum(435)
 
         self.verticalLayout_2.addWidget(self.logo_horizontal_offset_spinbox)
 
@@ -419,6 +429,8 @@ class Ui_MainWindow(object):
         self.logo_vertical_offset_spinbox.setSizePolicy(sizePolicy6)
         self.logo_vertical_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.logo_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.logo_vertical_offset_spinbox.setMinimum(-150)
+        self.logo_vertical_offset_spinbox.setMaximum(150)
 
         self.verticalLayout_2.addWidget(self.logo_vertical_offset_spinbox)
 
@@ -458,14 +470,14 @@ class Ui_MainWindow(object):
 
         self.logo_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.logo_zoom_spinbox.setObjectName(u"logo_zoom_spinbox")
-        self.logo_zoom_spinbox.setEnabled(True)
+        self.logo_zoom_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.logo_zoom_spinbox.sizePolicy().hasHeightForWidth())
         self.logo_zoom_spinbox.setSizePolicy(sizePolicy6)
         self.logo_zoom_spinbox.setMaximumSize(QSize(160, 16777215))
         self.logo_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.logo_zoom_spinbox.setAccelerated(True)
         self.logo_zoom_spinbox.setDecimals(3)
-        self.logo_zoom_spinbox.setMinimum(0.010000000000000)
+        self.logo_zoom_spinbox.setMinimum(1.000000000000000)
         self.logo_zoom_spinbox.setMaximum(1.000000000000000)
         self.logo_zoom_spinbox.setSingleStep(0.001000000000000)
         self.logo_zoom_spinbox.setValue(1.000000000000000)
@@ -487,6 +499,7 @@ class Ui_MainWindow(object):
         self.thumbnail_horizontal_offset_spinbox.setSizePolicy(sizePolicy6)
         self.thumbnail_horizontal_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.thumbnail_horizontal_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.thumbnail_horizontal_offset_spinbox.setMaximum(27)
 
         self.verticalLayout_2.addWidget(self.thumbnail_horizontal_offset_spinbox)
 
@@ -501,10 +514,12 @@ class Ui_MainWindow(object):
 
         self.thumbnail_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_3)
         self.thumbnail_vertical_offset_spinbox.setObjectName(u"thumbnail_vertical_offset_spinbox")
+        self.thumbnail_vertical_offset_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.thumbnail_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
         self.thumbnail_vertical_offset_spinbox.setSizePolicy(sizePolicy6)
         self.thumbnail_vertical_offset_spinbox.setMaximumSize(QSize(160, 16777215))
         self.thumbnail_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
+        self.thumbnail_vertical_offset_spinbox.setMaximum(0)
 
         self.verticalLayout_2.addWidget(self.thumbnail_vertical_offset_spinbox)
 
@@ -541,13 +556,14 @@ class Ui_MainWindow(object):
 
         self.thumbnail_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.thumbnail_zoom_spinbox.setObjectName(u"thumbnail_zoom_spinbox")
+        self.thumbnail_zoom_spinbox.setEnabled(False)
         sizePolicy6.setHeightForWidth(self.thumbnail_zoom_spinbox.sizePolicy().hasHeightForWidth())
         self.thumbnail_zoom_spinbox.setSizePolicy(sizePolicy6)
         self.thumbnail_zoom_spinbox.setMaximumSize(QSize(160, 16777215))
         self.thumbnail_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.thumbnail_zoom_spinbox.setAccelerated(True)
         self.thumbnail_zoom_spinbox.setDecimals(3)
-        self.thumbnail_zoom_spinbox.setMinimum(0.010000000000000)
+        self.thumbnail_zoom_spinbox.setMinimum(1.000000000000000)
         self.thumbnail_zoom_spinbox.setMaximum(1.000000000000000)
         self.thumbnail_zoom_spinbox.setSingleStep(0.001000000000000)
         self.thumbnail_zoom_spinbox.setValue(1.000000000000000)

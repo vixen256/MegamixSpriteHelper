@@ -393,7 +393,7 @@
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>0</y>
+           <y>-431</y>
            <width>199</width>
            <height>905</height>
           </rect>
@@ -479,6 +479,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="jacket_horizontal_offset_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -495,10 +498,10 @@
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
              <property name="minimum">
-              <number>-500</number>
+              <number>0</number>
              </property>
              <property name="maximum">
-              <number>500</number>
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -528,6 +531,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="jacket_vertical_offset_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -544,10 +550,10 @@
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
              <property name="minimum">
-              <number>-500</number>
+              <number>0</number>
              </property>
              <property name="maximum">
-              <number>500</number>
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -635,6 +641,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="jacket_zoom_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -660,7 +669,7 @@
               <number>3</number>
              </property>
              <property name="minimum">
-              <double>0.010000000000000</double>
+              <double>1.000000000000000</double>
              </property>
              <property name="maximum">
               <double>1.000000000000000</double>
@@ -699,6 +708,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="background_horizontal_offset_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -716,6 +728,9 @@
              </property>
              <property name="wrapping">
               <bool>false</bool>
+             </property>
+             <property name="maximum">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -745,6 +760,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="background_vertical_offset_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -759,6 +777,9 @@
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="maximum">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -852,6 +873,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="background_zoom_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -877,7 +901,7 @@
               <number>3</number>
              </property>
              <property name="minimum">
-              <double>0.010000000000000</double>
+              <double>1.000000000000000</double>
              </property>
              <property name="maximum">
               <double>1.000000000000000</double>
@@ -937,6 +961,12 @@
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
+             <property name="minimum">
+              <number>-435</number>
+             </property>
+             <property name="maximum">
+              <number>435</number>
+             </property>
             </widget>
            </item>
            <item>
@@ -985,6 +1015,12 @@
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="minimum">
+              <number>-150</number>
+             </property>
+             <property name="maximum">
+              <number>150</number>
              </property>
             </widget>
            </item>
@@ -1082,7 +1118,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="logo_zoom_spinbox">
              <property name="enabled">
-              <bool>true</bool>
+              <bool>false</bool>
              </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -1109,7 +1145,7 @@
               <number>3</number>
              </property>
              <property name="minimum">
-              <double>0.010000000000000</double>
+              <double>1.000000000000000</double>
              </property>
              <property name="maximum">
               <double>1.000000000000000</double>
@@ -1163,6 +1199,9 @@
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
              </property>
+             <property name="maximum">
+              <number>27</number>
+             </property>
             </widget>
            </item>
            <item>
@@ -1191,6 +1230,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="thumbnail_vertical_offset_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -1205,6 +1247,9 @@
              </property>
              <property name="focusPolicy">
               <enum>Qt::FocusPolicy::WheelFocus</enum>
+             </property>
+             <property name="maximum">
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -1292,6 +1337,9 @@
            </item>
            <item>
             <widget class="QDoubleSpinBox" name="thumbnail_zoom_spinbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -1317,7 +1365,7 @@
               <number>3</number>
              </property>
              <property name="minimum">
-              <double>0.010000000000000</double>
+              <double>1.000000000000000</double>
              </property>
              <property name="maximum">
               <double>1.000000000000000</double>
