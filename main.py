@@ -141,13 +141,13 @@ class MainWindow(QMainWindow):
     def draw_image_grid(self,ui_scene):
         match ui_scene:
             case "mm_song_selector":
-                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
+                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
             case "ft_song_selector":
-                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
+                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
             case "mm_result":
-                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
+                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
             case "ft_result":
-                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene))
+                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
     def jacket_value_edit_trigger(self):
         SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
         self.change_spinbox_offset_range("jacket")

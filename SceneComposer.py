@@ -23,7 +23,7 @@ class SceneComposer:
             for layer in self.grab_layers(ui_screen):
                 composite.alpha_composite(layer,self.anchor_points[iteration])
                 iteration=iteration+1
-            return composite.toqpixmap()
+            return composite
 
     def prepare_scene(self,ui_screen):
         match ui_screen:
