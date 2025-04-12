@@ -76,6 +76,12 @@ def check_for_files():
         error_window.setText(f"Images are missing:\n{''.join(missing_files)}")
         error_window.exec()
         quit("Images are missing")
+def show_message_box(title,contents):
+    message_box = QMessageBox()
+    message_box.setModal(True)
+    message_box.setWindowTitle(title)
+    message_box.setText(contents)
+    message_box.exec()
 
 @Slot()
 def copy_to_clipboard_button_callback():
@@ -394,11 +400,14 @@ class MainWindow(QMainWindow):
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_background_button_callback(self): #TODO Add minimal size of image that's accepted
+    def load_background_button_callback(self):
         open_background = openFile(title="Open background image", filter=config.allowed_file_types)
 
         if open_background == '':
             print("Background image wasn't chosen")
+
+        elif Image.open(open_background).size < (1280,720):
+            show_message_box("Image is too small","Image is too small. Image needs to be at least 1280x720")
         else:
             self.watcher.removePath(str(SceneComposer.background_location))
             SceneComposer.background_location = open_background
@@ -409,11 +418,13 @@ class MainWindow(QMainWindow):
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_jacket_button_callback(self): #TODO Add minimal size of image that's accepted
+    def load_jacket_button_callback(self):
         open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
+        elif Image.open(open_jacket).size < (502,502):
+            show_message_box("Image is too small", "Image is too small. Image needs to be at least 502x502")
         else:
             self.watcher.removePath(str(SceneComposer.jacket_location))
             SceneComposer.jacket_location = open_jacket
@@ -425,10 +436,12 @@ class MainWindow(QMainWindow):
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_logo_button_callback(self): #TODO Add minimal size of image that's accepted
+    def load_logo_button_callback(self):
         open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
+        elif Image.open(open_logo).size < (435,150):
+            show_message_box("Image is too small", "Image is too small. Image needs to be at least 435x150")
         else:
             self.watcher.removePath(str(SceneComposer.logo_location))
             SceneComposer.logo_location = open_logo
@@ -439,10 +452,12 @@ class MainWindow(QMainWindow):
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
-    def load_thumbnail_button_callback(self): #TODO Add minimal size of image that's accepted
+    def load_thumbnail_button_callback(self):
         open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
+        elif Image.open(open_thumbnail).size < (100,64):
+            show_message_box("Image is too small", "Image is too small. Image needs to be at least 100x64")
         else:
             self.watcher.removePath(str(SceneComposer.thumbnail_location))
             SceneComposer.thumbnail_location = open_thumbnail
