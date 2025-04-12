@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperfqIZuT.ui'
+## Form generated from reading UI file 'SpriteHelperAobJvY.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -470,14 +470,14 @@ class Ui_MainWindow(object):
 
         self.logo_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_3)
         self.logo_zoom_spinbox.setObjectName(u"logo_zoom_spinbox")
-        self.logo_zoom_spinbox.setEnabled(False)
+        self.logo_zoom_spinbox.setEnabled(True)
         sizePolicy6.setHeightForWidth(self.logo_zoom_spinbox.sizePolicy().hasHeightForWidth())
         self.logo_zoom_spinbox.setSizePolicy(sizePolicy6)
         self.logo_zoom_spinbox.setMaximumSize(QSize(160, 16777215))
         self.logo_zoom_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.logo_zoom_spinbox.setAccelerated(True)
         self.logo_zoom_spinbox.setDecimals(3)
-        self.logo_zoom_spinbox.setMinimum(1.000000000000000)
+        self.logo_zoom_spinbox.setMinimum(0.001000000000000)
         self.logo_zoom_spinbox.setMaximum(1.000000000000000)
         self.logo_zoom_spinbox.setSingleStep(0.001000000000000)
         self.logo_zoom_spinbox.setValue(1.000000000000000)

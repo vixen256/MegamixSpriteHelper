@@ -415,6 +415,7 @@ class MainWindow(QMainWindow):
             self.watcher.addPath(str(SceneComposer.background_location))
             self.background_spinbox_values_reset()
             SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+            self.change_spinbox_offset_range("background")
             for scene in config.scenes_to_draw:
                 self.draw_image_grid(scene)
     @Slot()
@@ -461,6 +462,7 @@ class MainWindow(QMainWindow):
         else:
             self.watcher.removePath(str(SceneComposer.thumbnail_location))
             SceneComposer.thumbnail_location = open_thumbnail
+            self.change_spinbox_zoom_range("thumbnail_zoom", Image.open(open_thumbnail).width, Image.open(open_thumbnail).height)
             self.watcher.addPath(str(SceneComposer.thumbnail_location))
             self.thumbnail_spinbox_values_reset()
             SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
