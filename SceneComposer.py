@@ -5,6 +5,25 @@ from PySide6.QtCore import Qt
 from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 
+import numpy as np
+from scipy.ndimage import distance_transform_edt
+
+def fill_transparent_pixels(image):
+    img_array = np.array(image)
+    if img_array.shape[2] != 4:
+        raise ValueError("The image must have an alpha channel.")
+
+    rgb = img_array[..., :3]
+    alpha = img_array[..., 3]
+    mask = alpha > 0
+    if np.all(mask):
+        return image
+
+    _, indices = distance_transform_edt(~mask, return_indices=True)
+    filled_rgb = rgb[tuple(indices)]
+    filled_alpha = np.where(mask, alpha, 255)
+    filled_img_array = np.dstack((filled_rgb, filled_alpha)).astype(np.uint8)
+    return Image.fromarray(filled_img_array)
 
 class SceneComposer:
     def __init__(self):
@@ -197,6 +216,11 @@ class SceneComposer:
     def jacket_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("jacket")
         with Image.open(self.jacket_location).convert('RGBA') as jacket:
+            if jacket.size in ((500,500),(501,501)):
+                filled_jacket = Image.new('RGBA',(502,502))
+                filled_jacket.alpha_composite(jacket,(1,1))
+                print(f"Extended edges of {jacket.size} jacket")
+                jacket = fill_transparent_pixels(filled_jacket)
             self.jacket = Image.new('RGBA',(502,502))
             self.jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
             self.jacket.alpha_composite(self.jacket_image,(horizontal_offset,vertical_offset))

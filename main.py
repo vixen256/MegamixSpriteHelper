@@ -1,6 +1,8 @@
+import tempfile
 from pathlib import Path, PurePath
 import sys
 from time import sleep
+from tempfile import mkstemp
 
 import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
@@ -15,8 +17,11 @@ from decimal import Decimal, getcontext, ROUND_HALF_UP
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
+from FarcCreator import FarcCreator
 from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer
+from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
+
 
 class Configurable:
     def __init__(self):
@@ -121,7 +126,9 @@ class MainWindow(QMainWindow):
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
-
+        self.main_box.export_bg_jk_logo_farc_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
+        self.main_box.export_thumbnail_farc_button.clicked.connect(self.export_thumbnail_farc_button_callback)
+        self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
 
@@ -361,7 +368,41 @@ class MainWindow(QMainWindow):
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
 
+    def create_background_jacket_texture(self):
+        jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
+        background_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png').convert('L')
 
+        jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        jacket_composite.alpha_composite(SceneComposer.jacket, (1286, 2), (0, 0, 502, 502))
+        jacket_composite = fill_transparent_pixels(jacket_composite)
+        jacket_composite.putalpha(jacket_mask)
+
+        background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        background_composite.alpha_composite(SceneComposer.background, (2, 2), (0, 0, 1280, 720))
+        background_composite = fill_transparent_pixels(background_composite)
+        background_composite.putalpha(background_mask)
+
+        background_jacket_texture = Image.new('RGBA', (2048, 1024))
+        background_jacket_texture.alpha_composite(background_composite)
+        background_jacket_texture.alpha_composite(jacket_composite)
+        return background_jacket_texture
+    def create_logo_texture(self):
+        logo_texture = Image.new('RGBA', (1024, 512))
+        logo_texture.alpha_composite(SceneComposer.logo,(2,2))
+        return logo_texture
+    def create_thumbnail_texture(self):
+        thumbnail_texture = Image.new('RGBA', (128, 64))
+        thumbnail_texture.alpha_composite(SceneComposer.thumbnail)
+        return thumbnail_texture
+    def get_song_id(self):
+        song_id = int(self.main_box.song_id_spinbox.value())
+        if song_id <= 9:
+            song_id = f'00{song_id}'
+        elif song_id <= 99:
+            song_id = f'0{song_id}'
+        else:
+            song_id = str(song_id)
+        return song_id
 
     @Slot()
     def has_logo_checkbox_callback(self):
@@ -424,14 +465,22 @@ class MainWindow(QMainWindow):
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
-        elif Image.open(open_jacket).size < (502,502):
-            show_message_box("Image is too small", "Image is too small. Image needs to be at least 502x502")
+        elif Image.open(open_jacket).size < (500,500):
+            show_message_box("Image is too small", "Image is too small. Image needs to be at least 500x500")
         else:
             self.watcher.removePath(str(SceneComposer.jacket_location))
             SceneComposer.jacket_location = open_jacket
             self.change_spinbox_zoom_range("jacket_zoom", Image.open(open_jacket).width, Image.open(open_jacket).height)
             self.watcher.addPath(str(SceneComposer.jacket_location))
             self.jacket_spinbox_values_reset()
+            if Image.open(open_jacket).size in ((500,500),(501,501)):
+                print(f"{Image.open(open_jacket).size} jacket loaded.")
+                self.change_spinbox_zoom_range("jacket_zoom", 502, 502)
+            elif Image.open(open_jacket).width == Image.open(open_jacket).height:
+                print(f"Image is {Image.open(open_jacket).width}x{Image.open(open_jacket).height}. Imported jacket is 1:1 aspect ratio.")
+                zoom = 502 / Image.open(open_jacket).width
+                self.main_box.jacket_zoom_spinbox.setValue(zoom)
+                print(f"Set jacket's zoom to {zoom}.")
             SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
             self.change_spinbox_offset_range("jacket")
             for scene in config.scenes_to_draw:
@@ -468,48 +517,90 @@ class MainWindow(QMainWindow):
             SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
             self.change_spinbox_offset_range("thumbnail")
             self.draw_image_grid("mm_song_selector")
+
+    @Slot()
+    def export_background_jacket_logo_farc_button_callback(self):
+        Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
+        Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
+        song_id = self.get_song_id()
+
+        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            output_location = output_location + "/"
+            FarcCreator.create_jk_bg_logo_farc(song_id,str(config.script_directory / 'Images/Background Texture.png'),str(config.script_directory / 'Images/Logo Texture.png'),output_location)
+
+        Path.unlink(config.script_directory / 'Images/Background Texture.png',True)
+        Path.unlink(config.script_directory / 'Images/Logo Texture.png', True)
     @Slot()
     def export_background_jacket_button_callback(self):
-        jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
-        background_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png').convert('L')
-
-        jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(SceneComposer.jacket, (1286, 2), (0, 0, 502, 502))
-        jacket_composite = fill_transparent_pixels(jacket_composite)
-        jacket_composite.putalpha(jacket_mask)
-
-        background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        background_composite.alpha_composite(SceneComposer.background,(2,2),(0,0,1280,720))
-        background_composite = fill_transparent_pixels(background_composite)
-        background_composite.putalpha(background_mask)
-
-        composite = Image.new('RGBA',(2048,1024))
-        composite.alpha_composite(background_composite)
-        composite.alpha_composite(jacket_composite)
-
-
+        background_jacket_texture = self.create_background_jacket_texture()
         save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
-        composite.save(save_location,"png")
+        background_jacket_texture.save(save_location,"png")
     @Slot()
     def export_thumbnail_button_callback(self):
-        composite = Image.new('RGBA',(128,64))
-        composite.alpha_composite(SceneComposer.thumbnail)
-
+        thumbnail_texture = self.create_thumbnail_texture()
         save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png", filter="*.png")
-        composite.save(save_location, "png")
+        thumbnail_texture.save(save_location, "png")
+    @Slot()
+    def export_thumbnail_farc_button_callback(self):
+        Image.Image.save(self.create_thumbnail_texture(),(config.script_directory / 'Images/Thumbnail Texture.png'))
+        song_id = self.get_song_id()
+
+        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            output_location = output_location + "/"
+            FarcCreator.create_thumbnail_farc(song_id,str(config.script_directory / 'Images/Thumbnail Texture.png'),output_location)
+
+        Path.unlink(config.script_directory / 'Images/Thumbnail Texture.png', True)
     @Slot()
     def export_logo_button_callback(self):
-        composite = Image.new('RGBA',(870,330))
-        composite.alpha_composite(SceneComposer.logo)
+        logo_texture = self.create_logo_texture()
 
         save_location = filedialpy.saveFile(initial_file="Logo Texture.png", filter="*.png")
-        composite.save(save_location, "png")
+        logo_texture.save(save_location, "png")
+
+    @Slot()
+    def generate_spr_db_button_callback(self):
+        spr_db = Manager()
+        spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for")
+        farc_list = []
+        if spr_path == "":
+            print("Folder wasn't chosen")
+        else:
+            for spr in Path(spr_path).iterdir():
+                _temp_file = Path(spr)
+                if _temp_file.suffix.upper() == ".FARC":
+                    farc_list.append(_temp_file)
+            if len(farc_list) > 0:
+                has_old_tmb_farc = False
+                has_new_tmb_farc = False
+                for farc_file in farc_list:
+                    if farc_file.name == "spr_sel_pvtmb.farc":
+                        has_old_tmb_farc = True
+                    elif farc_file.name[:11] == "spr_sel_tmb":
+                        has_new_tmb_farc = True
+                if has_new_tmb_farc == True:
+                    if has_old_tmb_farc == True:
+                        farc_list.remove(Path(spr_path+"/spr_sel_pvtmb.farc"))
+                        print("Separate thumbnail farc files found , not including old combined thumbnail farc in generated database!")
+                    else:
+                        print("Only separate thumbnail farc files found.")
+                for farc_file in farc_list:
+                    farc_reader = read_farc(farc_file)
+                    add_farc_to_Manager(farc_reader, spr_db)
+            spr_db.write_db(f'{spr_path}/mod_spr_db.bin')
+            print(f"Generated mod_spr_db in {spr_path}")
 
 if __name__ == "__main__":
     config = Configurable()
     SceneComposer = SceneComposer()
+    FarcCreator = FarcCreator()
     app = QApplication(sys.argv)
-
+    app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
 
