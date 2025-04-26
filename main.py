@@ -132,6 +132,10 @@ class MainWindow(QMainWindow):
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
 
+        #Disable functionality that's not implemented / doesn't work right now
+        self.main_box.export_thumbnail_farc_button.setDisabled(True)
+        self.main_box.export_bg_jk_logo_farc_button.setDisabled(True)
+
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
 
