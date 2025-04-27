@@ -11,7 +11,9 @@ Simple program that lets you preview your song sprites in 4 different screens at
 - On export of Background/Jacket texture applies fix for jagged edges of jacket.
 
 # Notes
-- Exporting to Farc's and generating sprite database isn't implemented yet.
+- Generating sprite database uses [Hiki8man's Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
+
+- Exporting to Farc's isn't implemented yet.
 
 # Preview
 
