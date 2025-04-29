@@ -602,7 +602,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     config = Configurable()
     SceneComposer = SceneComposer()
-    FarcCreator = FarcCreator()
+    #FarcCreator = FarcCreator()
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     main_window = MainWindow()
