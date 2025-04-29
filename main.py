@@ -17,7 +17,7 @@ from decimal import Decimal, getcontext, ROUND_HALF_UP
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
-from FarcCreator import FarcCreator
+#from FarcCreator import FarcCreator
 from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
