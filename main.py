@@ -28,6 +28,7 @@ class Configurable:
         self.script_directory = Path.cwd()
         self.allowed_file_types = ["*.png *.jpg"]
         self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
+        self.last_used_directory = self.script_directory
 
 def fill_transparent_pixels(image):
     img_array = np.array(image)
@@ -446,14 +447,16 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_background_button_callback(self):
-        open_background = openFile(title="Open background image", filter=config.allowed_file_types)
+        open_background = openFile(title="Open background image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
 
         if open_background == '':
             print("Background image wasn't chosen")
 
         elif Image.open(open_background).size < (1280,720):
+            config.last_used_directory = Path(open_background).parent
             show_message_box("Image is too small","Image is too small. Image needs to be at least 1280x720")
         else:
+            config.last_used_directory = Path(open_background).parent
             self.watcher.removePath(str(SceneComposer.background_location))
             SceneComposer.background_location = open_background
             self.change_spinbox_zoom_range("background_zoom", Image.open(open_background).width, Image.open(open_background).height)
@@ -465,13 +468,15 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_jacket_button_callback(self):
-        open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
+        open_jacket = openFile(title="Open jacket image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
         elif Image.open(open_jacket).size < (500,500):
+            config.last_used_directory = Path(open_jacket).parent
             show_message_box("Image is too small", "Image is too small. Image needs to be at least 500x500")
         else:
+            config.last_used_directory = Path(open_jacket).parent
             self.watcher.removePath(str(SceneComposer.jacket_location))
             SceneComposer.jacket_location = open_jacket
             self.change_spinbox_zoom_range("jacket_zoom", Image.open(open_jacket).width, Image.open(open_jacket).height)
@@ -491,12 +496,14 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_logo_button_callback(self):
-        open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
+        open_logo = openFile(title="Open logo image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
         elif Image.open(open_logo).size < (435,150):
+            config.last_used_directory = Path(open_logo).parent
             show_message_box("Image is too small", "Image is too small. Image needs to be at least 435x150")
         else:
+            config.last_used_directory = Path(open_logo).parent
             self.watcher.removePath(str(SceneComposer.logo_location))
             SceneComposer.logo_location = open_logo
             self.watcher.addPath(str(SceneComposer.logo_location))
@@ -507,12 +514,14 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_thumbnail_button_callback(self):
-        open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
+        open_thumbnail = openFile(title="Open thumbnail image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         elif Image.open(open_thumbnail).size < (100,64):
+            config.last_used_directory = Path(open_thumbnail).parent
             show_message_box("Image is too small", "Image is too small. Image needs to be at least 100x64")
         else:
+            config.last_used_directory = Path(open_thumbnail).parent
             self.watcher.removePath(str(SceneComposer.thumbnail_location))
             SceneComposer.thumbnail_location = open_thumbnail
             self.change_spinbox_zoom_range("thumbnail_zoom", Image.open(open_thumbnail).width, Image.open(open_thumbnail).height)
@@ -528,10 +537,11 @@ class MainWindow(QMainWindow):
         Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
         song_id = self.get_song_id()
 
-        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
         if output_location == "":
             print("Directory wasn't chosen")
         else:
+            config.last_used_directory = Path(output_location)
             output_location = output_location + "/"
             FarcCreator.create_jk_bg_logo_farc(song_id,str(config.script_directory / 'Images/Background Texture.png'),str(config.script_directory / 'Images/Logo Texture.png'),output_location)
 
@@ -540,22 +550,31 @@ class MainWindow(QMainWindow):
     @Slot()
     def export_background_jacket_button_callback(self):
         background_jacket_texture = self.create_background_jacket_texture()
-        save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
-        background_jacket_texture.save(save_location,"png")
+        save_location = filedialpy.saveFile(initial_file="Background Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if save_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(save_location)
+            background_jacket_texture.save(save_location,"png")
     @Slot()
     def export_thumbnail_button_callback(self):
         thumbnail_texture = self.create_thumbnail_texture()
-        save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png", filter="*.png")
-        thumbnail_texture.save(save_location, "png")
+        save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if save_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(save_location)
+            thumbnail_texture.save(save_location, "png")
     @Slot()
     def export_thumbnail_farc_button_callback(self):
         Image.Image.save(self.create_thumbnail_texture(),(config.script_directory / 'Images/Thumbnail Texture.png'))
         song_id = self.get_song_id()
 
-        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
         if output_location == "":
             print("Directory wasn't chosen")
         else:
+            config.last_used_directory = Path(output_location)
             output_location = output_location + "/"
             FarcCreator.create_thumbnail_farc(song_id,str(config.script_directory / 'Images/Thumbnail Texture.png'),output_location)
 
@@ -564,17 +583,22 @@ class MainWindow(QMainWindow):
     def export_logo_button_callback(self):
         logo_texture = self.create_logo_texture()
 
-        save_location = filedialpy.saveFile(initial_file="Logo Texture.png", filter="*.png")
-        logo_texture.save(save_location, "png")
+        save_location = filedialpy.saveFile(initial_file="Logo Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if save_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(save_location).parent
+            logo_texture.save(save_location, "png")
 
     @Slot()
     def generate_spr_db_button_callback(self):
         spr_db = Manager()
-        spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for")
+        spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for",initial_dir=config.last_used_directory)
         farc_list = []
         if spr_path == "":
             print("Folder wasn't chosen")
         else:
+            config.last_used_directory = Path(spr_path)
             for spr in Path(spr_path).iterdir():
                 _temp_file = Path(spr)
                 if _temp_file.suffix.upper() == ".FARC":
