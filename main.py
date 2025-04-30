@@ -554,7 +554,8 @@ class MainWindow(QMainWindow):
         if save_location == "":
             print("Directory wasn't chosen")
         else:
-            config.last_used_directory = Path(save_location)
+            print(save_location)
+            config.last_used_directory = Path(save_location).parent
             background_jacket_texture.save(save_location,"png")
     @Slot()
     def export_thumbnail_button_callback(self):
