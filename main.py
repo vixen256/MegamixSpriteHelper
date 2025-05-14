@@ -265,6 +265,23 @@ class MainWindow(QMainWindow):
             self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
             self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
 
+    def fit_logo(self,logo_image):
+        with Image.open(logo_image).convert('RGBA') as logo:
+            left, upper, right, lower = Image.Image.getbbox(logo)
+            image_width = right - left
+            image_height = lower - upper
+            #print(f'{330 / image_height} than {870 / image_width}')
+
+            if image_height > 330 or image_width > 870:
+                if (330 / image_height) <= (870 / image_width):
+                    max_scale = 330 / image_height
+                else:
+                    max_scale = 870 / image_width
+            else:
+                max_scale = 1
+        #print(max_scale)
+        self.main_box.logo_zoom_spinbox.setMaximum(max_scale)
+
     def change_spinbox_offset_range(self,spinbox):
         match spinbox:
             case "jacket":
@@ -298,8 +315,17 @@ class MainWindow(QMainWindow):
                 else:
                     self.main_box.background_vertical_offset_spinbox.setEnabled(True)
             case "logo":
-                self.main_box.logo_horizontal_offset_spinbox.setRange((SceneComposer.logo_image.width * -1) + 435,SceneComposer.logo_image.width - 435)
-                self.main_box.logo_vertical_offset_spinbox.setRange((SceneComposer.logo_image.height * -1) + 150,SceneComposer.logo_image.height - 150)
+                with SceneComposer.logo_image as logo:
+                    left, upper, right , lower = Image.Image.getbbox(logo)
+                    #print(f"Left:{left} Upper:{upper} Lower:{lower} Right:{right}")
+                    image_width = right-left
+                    image_height = lower-upper
+                    #print(f"Width:{image_width} Height:{image_height}")
+                    logo_max_width_offset = 870 - right
+                    logo_max_height_offset = 330 - lower
+                    #print(f"Logo offset limits: Height: {logo_max_height_offset} Width:{logo_max_width_offset}")
+                    self.main_box.logo_horizontal_offset_spinbox.setRange(-left,logo_max_width_offset)
+                    self.main_box.logo_vertical_offset_spinbox.setRange(-upper,logo_max_height_offset)
             case "thumbnail":
                 minimum_horizontal = (SceneComposer.thumbnail_image.width * -1) +128
                 minimum_vertical = (SceneComposer.thumbnail_image.height * -1) + 64
@@ -499,12 +525,13 @@ class MainWindow(QMainWindow):
         open_logo = openFile(title="Open logo image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
-        elif Image.open(open_logo).size < (435,150):
-            config.last_used_directory = Path(open_logo).parent
-            show_message_box("Image is too small", "Image is too small. Image needs to be at least 435x150")
+        #elif Image.open(open_logo).size < (435,150):
+        #    config.last_used_directory = Path(open_logo).parent
+        #    show_message_box("Image is too small", "Image is too small. Image needs to be at least 435x150")
         else:
             config.last_used_directory = Path(open_logo).parent
             self.watcher.removePath(str(SceneComposer.logo_location))
+            self.fit_logo(open_logo)
             SceneComposer.logo_location = open_logo
             self.watcher.addPath(str(SceneComposer.logo_location))
             self.logo_spinbox_values_reset()
@@ -542,8 +569,8 @@ class MainWindow(QMainWindow):
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(output_location)
-            output_location = output_location + "/"
-            FarcCreator.create_jk_bg_logo_farc(song_id,str(config.script_directory / 'Images/Background Texture.png'),str(config.script_directory / 'Images/Logo Texture.png'),output_location)
+            output_location = output_location
+            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location)
 
         Path.unlink(config.script_directory / 'Images/Background Texture.png',True)
         Path.unlink(config.script_directory / 'Images/Logo Texture.png', True)
@@ -554,7 +581,6 @@ class MainWindow(QMainWindow):
         if save_location == "":
             print("Directory wasn't chosen")
         else:
-            print(save_location)
             config.last_used_directory = Path(save_location).parent
             background_jacket_texture.save(save_location,"png")
     @Slot()
