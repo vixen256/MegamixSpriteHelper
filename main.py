@@ -1,21 +1,16 @@
-import tempfile
 from pathlib import Path, PurePath
 import sys
 from time import sleep
-from tempfile import mkstemp
 
 import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
 from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QSizePolicy, QMainWindow
 from PySide6.QtGui import QPixmap
-from PIL import Image, ImageOps, ImageQt
+from PIL import Image, ImageOps, ImageQt, ImageFilter
 from PIL.Image import Resampling
 from copykitten import copy_image
 from filedialpy import openFile
 from decimal import Decimal, getcontext, ROUND_HALF_UP
-
-import numpy as np
-from scipy.ndimage import distance_transform_edt
 
 #from FarcCreator import FarcCreator
 from ui_SpriteHelper import Ui_MainWindow
@@ -30,22 +25,18 @@ class Configurable:
         self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
         self.last_used_directory = self.script_directory
 
-def fill_transparent_pixels(image):
-    img_array = np.array(image)
-    if img_array.shape[2] != 4:
-        raise ValueError("The image must have an alpha channel.")
+def texture_filtering_fix(image,opacity):
+    #TODO need to apply mask so only outer edges of the image are changed.
 
-    rgb = img_array[..., :3]
-    alpha = img_array[..., 3]
-    mask = alpha > 0
-    if np.all(mask):
-        return image
-
-    _, indices = distance_transform_edt(~mask, return_indices=True)
-    filled_rgb = rgb[tuple(indices)]
-    filled_alpha = np.where(mask, alpha, 255)
-    filled_img_array = np.dstack((filled_rgb, filled_alpha)).astype(np.uint8)
-    return Image.fromarray(filled_img_array)
+    #Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
+    t_edge = Image.new(image.mode,(image.size[0],image.size[1]))
+    t_edge.alpha_composite(image)
+    t_edge = t_edge.resize((image.size[0]+2,image.size[1]+2))
+    r,g,b,a = t_edge.split()
+    a = a.point(lambda  x: opacity if x > 0 else 0) #Set 102 opacity, that is 40% from 256. For Background 100% is recommended
+    t_edge = Image.merge(image.mode,(r,g,b,a))
+    t_edge.alpha_composite(image,(1,1))
+    return t_edge
 
 def check_for_files():
     missing_files = []
@@ -144,6 +135,8 @@ class MainWindow(QMainWindow):
             self.draw_image_grid(scene)
 
     def resizeEvent(self,event):
+        #Todo allow resizing by grabbing top/bottom edge too
+
         # Force 2:1 aspect ratio
         new_width = self.size().width()
         new_height = int(new_width / 2)
@@ -285,8 +278,8 @@ class MainWindow(QMainWindow):
     def change_spinbox_offset_range(self,spinbox):
         match spinbox:
             case "jacket":
-                minimum_horizontal = (SceneComposer.jacket_image.width * -1) + 502
-                minimum_vertical = (SceneComposer.jacket_image.height * -1) + 502
+                minimum_horizontal = (SceneComposer.jacket_image.width * -1) + 500
+                minimum_vertical = (SceneComposer.jacket_image.height * -1) + 500
                 self.main_box.jacket_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
                 self.main_box.jacket_vertical_offset_spinbox.setRange(minimum_vertical, 0)
 
@@ -345,8 +338,8 @@ class MainWindow(QMainWindow):
     def change_spinbox_zoom_range(self,spinbox,image_width,image_height):
         match spinbox:
             case "jacket_zoom":
-                width_factor =  Decimal(502 / image_width)
-                height_factor = Decimal(502 / image_height)
+                width_factor =  Decimal(500 / image_width)
+                height_factor = Decimal(500 / image_height)
                 if width_factor > height_factor:
                     self.main_box.jacket_zoom_spinbox.setEnabled(True)
                     self.main_box.jacket_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP),1.00)
@@ -400,26 +393,31 @@ class MainWindow(QMainWindow):
             self.draw_image_grid(scene)
 
     def create_background_jacket_texture(self):
-        jacket_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png').convert('L')
-        background_mask = Image.open(config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png').convert('L')
-
+        jacket_fixed = texture_filtering_fix(SceneComposer.jacket,102) #502x502 image
         jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(SceneComposer.jacket, (1286, 2), (0, 0, 502, 502))
-        jacket_composite = fill_transparent_pixels(jacket_composite)
-        jacket_composite.putalpha(jacket_mask)
+        jacket_composite.alpha_composite(jacket_fixed, (1286, 2)) #TODO need to re-check positions of the sprites after applying fixes to texture filtering
 
         background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        background_composite.alpha_composite(SceneComposer.background, (2, 2), (0, 0, 1280, 720))
-        background_composite = fill_transparent_pixels(background_composite)
-        background_composite.putalpha(background_mask)
+        background_composite.alpha_composite(SceneComposer.background, (1, 1), (0, 0, 1280, 720))
+        background_composite = texture_filtering_fix(background_composite,255)
 
         background_jacket_texture = Image.new('RGBA', (2048, 1024))
         background_jacket_texture.alpha_composite(background_composite)
         background_jacket_texture.alpha_composite(jacket_composite)
+        #background_jacket_texture.show()
         return background_jacket_texture
     def create_logo_texture(self):
+        logo_fix_status = False
+        if logo_fix_status:
+            logo = texture_filtering_fix(SceneComposer.logo,102)
+            x = 1
+            y = 1
+        else:
+            logo = SceneComposer.logo
+            x = 2
+            y = 2
         logo_texture = Image.new('RGBA', (1024, 512))
-        logo_texture.alpha_composite(SceneComposer.logo,(2,2))
+        logo_texture.alpha_composite(logo,(x,y))
         return logo_texture
     def create_thumbnail_texture(self):
         thumbnail_texture = Image.new('RGBA', (128, 64))
@@ -508,12 +506,12 @@ class MainWindow(QMainWindow):
             self.change_spinbox_zoom_range("jacket_zoom", Image.open(open_jacket).width, Image.open(open_jacket).height)
             self.watcher.addPath(str(SceneComposer.jacket_location))
             self.jacket_spinbox_values_reset()
-            if Image.open(open_jacket).size in ((500,500),(501,501)):
-                print(f"{Image.open(open_jacket).size} jacket loaded.")
-                self.change_spinbox_zoom_range("jacket_zoom", 502, 502)
-            elif Image.open(open_jacket).width == Image.open(open_jacket).height:
+            #if Image.open(open_jacket).size in ((500,500),(501,501)):
+            #    print(f"{Image.open(open_jacket).size} jacket loaded.")
+            #    self.change_spinbox_zoom_range("jacket_zoom", 502, 502)
+            if Image.open(open_jacket).width == Image.open(open_jacket).height:
                 print(f"Image is {Image.open(open_jacket).width}x{Image.open(open_jacket).height}. Imported jacket is 1:1 aspect ratio.")
-                zoom = 502 / Image.open(open_jacket).width
+                zoom = 500 / Image.open(open_jacket).width
                 self.main_box.jacket_zoom_spinbox.setValue(zoom)
                 print(f"Set jacket's zoom to {zoom}.")
             SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
@@ -659,4 +657,10 @@ if __name__ == "__main__":
     main_window = MainWindow()
     main_window.show()
 
+
+
+    #SceneComposer.jacket_location = "/home/jitterglitch/PycharmProjects/Jacket.png"
+    #main_window.main_box.jacket_rotation_spinbox.setValue(45)
+    #SceneComposer.jacket_post_processing(main_window.main_box.jacket_horizontal_offset_spinbox.value(), main_window.main_box.jacket_vertical_offset_spinbox.value(), main_window.main_box.jacket_rotation_spinbox.value(), main_window.main_box.jacket_zoom_spinbox.value())
+    #main_window.create_background_jacket_texture()
     app.exec()
