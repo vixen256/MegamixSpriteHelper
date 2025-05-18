@@ -42,8 +42,6 @@ def check_for_files():
     missing_files = []
     required_files = [
         config.script_directory / 'Images/Dummy/Thumbnail-Mask.png',
-        config.script_directory / 'Images/Dummy/Jacketfix-Jacket-Mask.png',
-        config.script_directory / 'Images/Dummy/Jacketfix-Background-Mask.png',
         config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
