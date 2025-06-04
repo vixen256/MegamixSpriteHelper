@@ -587,7 +587,10 @@ class MainWindow(QMainWindow):
     @Slot()
     def export_background_jacket_button_callback(self):
         background_jacket_texture = self.create_background_jacket_texture()
-        save_location = filedialpy.saveFile(initial_file="Background Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if os.name == "nt":
+            save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
+        else:
+            save_location = filedialpy.saveFile(initial_file="Background Texture.png", initial_dir=config.last_used_directory, filter="*.png")
         if save_location == "":
             print("Directory wasn't chosen")
         else:
