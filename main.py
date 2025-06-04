@@ -476,7 +476,7 @@ class MainWindow(QMainWindow):
         if open_background == '':
             print("Background image wasn't chosen")
 
-        elif Image.open(open_background).size < (1280,720):
+        elif Image.open(open_background).width < 1280 or Image.open(open_background).height < 720:
             config.last_used_directory = Path(open_background).parent
             show_message_box("Image is too small","Image is too small. Image needs to be at least 1280x720")
         else:
@@ -499,7 +499,7 @@ class MainWindow(QMainWindow):
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
-        elif Image.open(open_jacket).size < (500,500):
+        elif Image.open(open_jacket).width < 500 or Image.open(open_jacket).height < 500:
             config.last_used_directory = Path(open_jacket).parent
             show_message_box("Image is too small", "Image is too small. Image needs to be at least 500x500")
         else:
@@ -551,7 +551,7 @@ class MainWindow(QMainWindow):
             open_thumbnail = openFile(title="Open thumbnail image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
-        elif Image.open(open_thumbnail).size < (100,64):
+        elif Image.open(open_thumbnail).width < 100 or Image.open(open_thumbnail).height < 64:
             config.last_used_directory = Path(open_thumbnail).parent
             show_message_box("Image is too small", "Image is too small. Image needs to be at least 100x64")
         else:
