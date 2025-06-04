@@ -1,5 +1,5 @@
 from pathlib import Path, PurePath
-import sys
+import sys , os
 from time import sleep
 
 import filedialpy
@@ -23,6 +23,7 @@ class Configurable:
         self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"]
         self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
         self.last_used_directory = self.script_directory
+
 
 def texture_filtering_fix(image,opacity):
     #Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
@@ -467,7 +468,10 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_background_button_callback(self):
-        open_background = openFile(title="Open background image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        if os.name == "nt":
+            open_background = openFile(title="Open background image", filter=config.allowed_file_types)
+        else:
+            open_background = openFile(title="Open background image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
 
         if open_background == '':
             print("Background image wasn't chosen")
@@ -488,7 +492,10 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_jacket_button_callback(self):
-        open_jacket = openFile(title="Open jacket image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        if os.name == "nt":
+            open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
+        else:
+            open_jacket = openFile(title="Open jacket image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
@@ -516,7 +523,10 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_logo_button_callback(self):
-        open_logo = openFile(title="Open logo image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        if os.name == "nt":
+            open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
+        else:
+            open_logo = openFile(title="Open logo image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
         #elif Image.open(open_logo).size < (435,150):
@@ -535,7 +545,10 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid(scene)
     @Slot()
     def load_thumbnail_button_callback(self):
-        open_thumbnail = openFile(title="Open thumbnail image",initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        if os.name == "nt":
+            open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
+        else:
+            open_thumbnail = openFile(title="Open thumbnail image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         elif Image.open(open_thumbnail).size < (100,64):
@@ -558,7 +571,10 @@ class MainWindow(QMainWindow):
         Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
         song_id = self.get_song_id()
 
-        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
+        if os.name == "nt":
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        else:
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to", initial_dir=config.last_used_directory)
         if output_location == "":
             print("Directory wasn't chosen")
         else:
@@ -580,7 +596,10 @@ class MainWindow(QMainWindow):
     @Slot()
     def export_thumbnail_button_callback(self):
         thumbnail_texture = self.create_thumbnail_texture()
-        save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if os.name == "nt":
+            save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",filter="*.png")
+        else:
+            save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",initial_dir=config.last_used_directory, filter="*.png")
         if save_location == "":
             print("Directory wasn't chosen")
         else:
@@ -591,7 +610,10 @@ class MainWindow(QMainWindow):
         Image.Image.save(self.create_thumbnail_texture(),(config.script_directory / 'Images/Thumbnail Texture.png'))
         song_id = self.get_song_id()
 
-        output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
+        if os.name == "nt":
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        else:
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
         if output_location == "":
             print("Directory wasn't chosen")
         else:
@@ -603,8 +625,10 @@ class MainWindow(QMainWindow):
     @Slot()
     def export_logo_button_callback(self):
         logo_texture = self.create_logo_texture()
-
-        save_location = filedialpy.saveFile(initial_file="Logo Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        if os.name == "nt":
+            save_location = filedialpy.saveFile(initial_file="Logo Texture.png",filter="*.png")
+        else:
+            save_location = filedialpy.saveFile(initial_file="Logo Texture.png",initial_dir=config.last_used_directory,filter="*.png")
         if save_location == "":
             print("Directory wasn't chosen")
         else:
@@ -614,7 +638,10 @@ class MainWindow(QMainWindow):
     @Slot()
     def generate_spr_db_button_callback(self):
         spr_db = Manager()
-        spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for",initial_dir=config.last_used_directory)
+        if os.name == "nt":
+            spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for")
+        else:
+            spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for", initial_dir=config.last_used_directory)
         farc_list = []
         if spr_path == "":
             print("Folder wasn't chosen")
