@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperAobJvY.ui'
+## Form generated from reading UI file 'SpriteHelperaHjYkB.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.3
+## Created by: Qt User Interface Compiler version 6.9.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplicati
     QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
     QLabel, QLayout, QMainWindow, QPushButton,
     QScrollArea, QSizePolicy, QSpacerItem, QSpinBox,
-    QTabWidget, QVBoxLayout, QWidget)
+    QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -36,7 +36,7 @@ class Ui_MainWindow(object):
         MainWindow.setSizeIncrement(QSize(0, 0))
         MainWindow.setBaseSize(QSize(1200, 600))
         MainWindow.setAcceptDrops(False)
-        MainWindow.setWindowTitle(u"Megamix Sprite Helper")
+        MainWindow.setWindowTitle(u"Megamix Sprite Helper 1.0")
         MainWindow.setAutoFillBackground(True)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Europe))
         MainWindow.setAnimated(True)
@@ -183,7 +183,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
         self.image_edit_area_widget_properties = QWidget()
         self.image_edit_area_widget_properties.setObjectName(u"image_edit_area_widget_properties")
-        self.image_edit_area_widget_properties.setGeometry(QRect(0, -431, 199, 905))
+        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 227, 905))
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
@@ -197,7 +197,7 @@ class Ui_MainWindow(object):
         self.image_edit_area_widget_properties.setAutoFillBackground(True)
         self.verticalLayoutWidget_3 = QWidget(self.image_edit_area_widget_properties)
         self.verticalLayoutWidget_3.setObjectName(u"verticalLayoutWidget_3")
-        self.verticalLayoutWidget_3.setGeometry(QRect(0, 0, 286, 901))
+        self.verticalLayoutWidget_3.setGeometry(QRect(0, 0, 286, 939))
         self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget_3)
         self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
@@ -578,127 +578,54 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addWidget(self.image_edit_scroll_area)
 
-        self.export_to_label = QLabel(self.grid)
-        self.export_to_label.setObjectName(u"export_to_label")
-        self.export_to_label.setMaximumSize(QSize(80, 16777215))
-        self.export_to_label.setScaledContents(False)
-
-        self.load_buttons_box.addWidget(self.export_to_label)
-
-        self.export_options_tab_widget = QTabWidget(self.grid)
-        self.export_options_tab_widget.setObjectName(u"export_options_tab_widget")
-        sizePolicy3.setHeightForWidth(self.export_options_tab_widget.sizePolicy().hasHeightForWidth())
-        self.export_options_tab_widget.setSizePolicy(sizePolicy3)
-        self.export_options_tab_widget.setMinimumSize(QSize(0, 0))
-        self.export_options_tab_widget.setMaximumSize(QSize(16777215, 222))
-        self.export_options_tab_widget.setLayoutDirection(Qt.LayoutDirection.RightToLeft)
-        self.export_options_tab_widget.setTabPosition(QTabWidget.TabPosition.North)
-        self.export_options_tab_widget.setTabShape(QTabWidget.TabShape.Rounded)
-        self.export_options_tab_widget.setElideMode(Qt.TextElideMode.ElideNone)
-        self.export_options_tab_widget.setUsesScrollButtons(True)
-        self.export_options_tab_widget.setDocumentMode(True)
-        self.export_options_tab_widget.setTabsClosable(False)
-        self.export_options_tab_widget.setMovable(False)
-        self.export_options_image_tab = QWidget()
-        self.export_options_image_tab.setObjectName(u"export_options_image_tab")
-        sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Ignored)
-        sizePolicy7.setHorizontalStretch(0)
-        sizePolicy7.setVerticalStretch(0)
-        sizePolicy7.setHeightForWidth(self.export_options_image_tab.sizePolicy().hasHeightForWidth())
-        self.export_options_image_tab.setSizePolicy(sizePolicy7)
-        self.verticalLayoutWidget = QWidget(self.export_options_image_tab)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayoutWidget.setGeometry(QRect(0, 0, 201, 191))
-        self.image_tab_vertical_layout = QVBoxLayout(self.verticalLayoutWidget)
+        self.image_tab_vertical_layout = QVBoxLayout()
         self.image_tab_vertical_layout.setSpacing(5)
         self.image_tab_vertical_layout.setObjectName(u"image_tab_vertical_layout")
-        self.image_tab_vertical_layout.setContentsMargins(0, 0, 0, 0)
-        self.copy_to_clipboard_button = QPushButton(self.verticalLayoutWidget)
+        self.copy_to_clipboard_button = QPushButton(self.grid)
         self.copy_to_clipboard_button.setObjectName(u"copy_to_clipboard_button")
+        sizePolicy.setHeightForWidth(self.copy_to_clipboard_button.sizePolicy().hasHeightForWidth())
+        self.copy_to_clipboard_button.setSizePolicy(sizePolicy)
         self.copy_to_clipboard_button.setMaximumSize(QSize(195, 16777215))
         self.copy_to_clipboard_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.image_tab_vertical_layout.addWidget(self.copy_to_clipboard_button)
 
-        self.export_thumbnail_button = QPushButton(self.verticalLayoutWidget)
+        self.export_thumbnail_button = QPushButton(self.grid)
         self.export_thumbnail_button.setObjectName(u"export_thumbnail_button")
+        sizePolicy.setHeightForWidth(self.export_thumbnail_button.sizePolicy().hasHeightForWidth())
+        self.export_thumbnail_button.setSizePolicy(sizePolicy)
         self.export_thumbnail_button.setMaximumSize(QSize(195, 16777215))
         self.export_thumbnail_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.image_tab_vertical_layout.addWidget(self.export_thumbnail_button)
 
-        self.export_logo_button = QPushButton(self.verticalLayoutWidget)
+        self.export_logo_button = QPushButton(self.grid)
         self.export_logo_button.setObjectName(u"export_logo_button")
+        sizePolicy.setHeightForWidth(self.export_logo_button.sizePolicy().hasHeightForWidth())
+        self.export_logo_button.setSizePolicy(sizePolicy)
         self.export_logo_button.setMaximumSize(QSize(195, 16777215))
         self.export_logo_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.image_tab_vertical_layout.addWidget(self.export_logo_button)
 
-        self.export_background_jacket_button = QPushButton(self.verticalLayoutWidget)
+        self.export_background_jacket_button = QPushButton(self.grid)
         self.export_background_jacket_button.setObjectName(u"export_background_jacket_button")
+        sizePolicy.setHeightForWidth(self.export_background_jacket_button.sizePolicy().hasHeightForWidth())
+        self.export_background_jacket_button.setSizePolicy(sizePolicy)
         self.export_background_jacket_button.setMaximumSize(QSize(195, 16777215))
         self.export_background_jacket_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
         self.image_tab_vertical_layout.addWidget(self.export_background_jacket_button)
 
-        self.export_options_tab_widget.addTab(self.export_options_image_tab, "")
-        self.export_options_game_tab = QWidget()
-        self.export_options_game_tab.setObjectName(u"export_options_game_tab")
-        sizePolicy8 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding)
-        sizePolicy8.setHorizontalStretch(0)
-        sizePolicy8.setVerticalStretch(0)
-        sizePolicy8.setHeightForWidth(self.export_options_game_tab.sizePolicy().hasHeightForWidth())
-        self.export_options_game_tab.setSizePolicy(sizePolicy8)
-        self.verticalLayoutWidget_2 = QWidget(self.export_options_game_tab)
-        self.verticalLayoutWidget_2.setObjectName(u"verticalLayoutWidget_2")
-        self.verticalLayoutWidget_2.setGeometry(QRect(0, 0, 201, 191))
-        self.game_tab_vertical_layout = QVBoxLayout(self.verticalLayoutWidget_2)
-        self.game_tab_vertical_layout.setObjectName(u"game_tab_vertical_layout")
-        self.game_tab_vertical_layout.setContentsMargins(0, 0, 0, 0)
-        self.song_id_label = QLabel(self.verticalLayoutWidget_2)
-        self.song_id_label.setObjectName(u"song_id_label")
-        sizePolicy9 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
-        sizePolicy9.setHorizontalStretch(0)
-        sizePolicy9.setVerticalStretch(0)
-        sizePolicy9.setHeightForWidth(self.song_id_label.sizePolicy().hasHeightForWidth())
-        self.song_id_label.setSizePolicy(sizePolicy9)
-
-        self.game_tab_vertical_layout.addWidget(self.song_id_label)
-
-        self.song_id_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_2)
-        self.song_id_spinbox.setObjectName(u"song_id_spinbox")
-        self.song_id_spinbox.setMaximumSize(QSize(160, 16777215))
-        self.song_id_spinbox.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-        self.song_id_spinbox.setDecimals(0)
-        self.song_id_spinbox.setMinimum(1.000000000000000)
-        self.song_id_spinbox.setMaximum(4294967295.000000000000000)
-
-        self.game_tab_vertical_layout.addWidget(self.song_id_spinbox)
-
-        self.export_bg_jk_logo_farc_button = QPushButton(self.verticalLayoutWidget_2)
-        self.export_bg_jk_logo_farc_button.setObjectName(u"export_bg_jk_logo_farc_button")
-        self.export_bg_jk_logo_farc_button.setMaximumSize(QSize(195, 16777215))
-        self.export_bg_jk_logo_farc_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.game_tab_vertical_layout.addWidget(self.export_bg_jk_logo_farc_button)
-
-        self.export_thumbnail_farc_button = QPushButton(self.verticalLayoutWidget_2)
-        self.export_thumbnail_farc_button.setObjectName(u"export_thumbnail_farc_button")
-        self.export_thumbnail_farc_button.setMaximumSize(QSize(195, 16777215))
-        self.export_thumbnail_farc_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.game_tab_vertical_layout.addWidget(self.export_thumbnail_farc_button)
-
-        self.generate_spr_db_button = QPushButton(self.verticalLayoutWidget_2)
+        self.generate_spr_db_button = QPushButton(self.grid)
         self.generate_spr_db_button.setObjectName(u"generate_spr_db_button")
         self.generate_spr_db_button.setMaximumSize(QSize(195, 16777215))
         self.generate_spr_db_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.game_tab_vertical_layout.addWidget(self.generate_spr_db_button)
+        self.image_tab_vertical_layout.addWidget(self.generate_spr_db_button)
 
-        self.export_options_tab_widget.addTab(self.export_options_game_tab, "")
 
-        self.load_buttons_box.addWidget(self.export_options_tab_widget)
+        self.load_buttons_box.addLayout(self.image_tab_vertical_layout)
 
 
         self.horizontalLayout_5.addLayout(self.load_buttons_box)
@@ -706,9 +633,6 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.grid)
 
         self.retranslateUi(MainWindow)
-
-        self.export_options_tab_widget.setCurrentIndex(1)
-
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
@@ -747,17 +671,11 @@ class Ui_MainWindow(object):
         self.thumbnail_rotation_spinbox.setSuffix(QCoreApplication.translate("MainWindow", u"\u00b0", None))
         self.thumbnail_zoom_label.setText(QCoreApplication.translate("MainWindow", u"Thumbnail Zoom", None))
         self.thumbnail_zoom_spinbox.setSuffix(QCoreApplication.translate("MainWindow", u"x", None))
-        self.export_to_label.setText(QCoreApplication.translate("MainWindow", u"Export to...", None))
-        self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy to clipboard", None))
+        self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy preview to clipboard", None))
         self.export_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Export Thumbnail", None))
         self.export_logo_button.setText(QCoreApplication.translate("MainWindow", u"Export Logo", None))
         self.export_background_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Export Background/Jacket", None))
-        self.export_options_tab_widget.setTabText(self.export_options_tab_widget.indexOf(self.export_options_image_tab), QCoreApplication.translate("MainWindow", u"Image", None))
-        self.song_id_label.setText(QCoreApplication.translate("MainWindow", u"Song ID:", None))
-        self.export_bg_jk_logo_farc_button.setText(QCoreApplication.translate("MainWindow", u"Export BG/JK/Logo Farc", None))
-        self.export_thumbnail_farc_button.setText(QCoreApplication.translate("MainWindow", u"Export Thumbnail Farc", None))
         self.generate_spr_db_button.setText(QCoreApplication.translate("MainWindow", u"Generate Sprite Database", None))
-        self.export_options_tab_widget.setTabText(self.export_options_tab_widget.indexOf(self.export_options_game_tab), QCoreApplication.translate("MainWindow", u"Game", None))
         pass
     # retranslateUi
 

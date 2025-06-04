@@ -4,13 +4,12 @@ from time import sleep
 
 import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
-from PySide6.QtWidgets import QApplication, QLabel, QMessageBox, QSizePolicy, QMainWindow
-from PySide6.QtGui import QPixmap
-from PIL import Image, ImageOps, ImageQt, ImageFilter
-from PIL.Image import Resampling
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow
+from PIL import Image
+
 from copykitten import copy_image
 from filedialpy import openFile
-from decimal import Decimal, getcontext, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP
 
 #from FarcCreator import FarcCreator
 from ui_SpriteHelper import Ui_MainWindow
@@ -21,13 +20,11 @@ from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.allowed_file_types = ["*.png *.jpg"]
+        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"]
         self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
         self.last_used_directory = self.script_directory
 
 def texture_filtering_fix(image,opacity):
-    #TODO need to apply mask so only outer edges of the image are changed.
-
     #Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
     t_edge = Image.new(image.mode,(image.size[0],image.size[1]))
     t_edge.alpha_composite(image)
@@ -116,15 +113,15 @@ class MainWindow(QMainWindow):
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
-        self.main_box.export_bg_jk_logo_farc_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
-        self.main_box.export_thumbnail_farc_button.clicked.connect(self.export_thumbnail_farc_button_callback)
+        #self.main_box.export_bg_jk_logo_farc_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
+        #self.main_box.export_thumbnail_farc_button.clicked.connect(self.export_thumbnail_farc_button_callback)
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
 
         #Disable functionality that's not implemented / doesn't work right now
-        self.main_box.export_thumbnail_farc_button.setDisabled(True)
-        self.main_box.export_bg_jk_logo_farc_button.setDisabled(True)
+        #self.main_box.export_thumbnail_farc_button.setDisabled(True)
+        #self.main_box.export_bg_jk_logo_farc_button.setDisabled(True)
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
@@ -422,15 +419,15 @@ class MainWindow(QMainWindow):
         thumbnail_texture = Image.new('RGBA', (128, 64))
         thumbnail_texture.alpha_composite(SceneComposer.thumbnail)
         return thumbnail_texture
-    def get_song_id(self):
-        song_id = int(self.main_box.song_id_spinbox.value())
-        if song_id <= 9:
-            song_id = f'00{song_id}'
-        elif song_id <= 99:
-            song_id = f'0{song_id}'
-        else:
-            song_id = str(song_id)
-        return song_id
+    #def get_song_id(self):
+    #    song_id = int(self.main_box.song_id_spinbox.value())
+    #    if song_id <= 9:
+    #        song_id = f'00{song_id}'
+    #    elif song_id <= 99:
+    #        song_id = f'0{song_id}'
+    #    else:
+    #        song_id = str(song_id)
+    #    return song_id
 
     @Slot()
     def has_logo_checkbox_callback(self):
@@ -655,11 +652,4 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
-
-
-
-    #SceneComposer.jacket_location = "/home/jitterglitch/PycharmProjects/Jacket.png"
-    #main_window.main_box.jacket_rotation_spinbox.setValue(45)
-    #SceneComposer.jacket_post_processing(main_window.main_box.jacket_horizontal_offset_spinbox.value(), main_window.main_box.jacket_vertical_offset_spinbox.value(), main_window.main_box.jacket_rotation_spinbox.value(), main_window.main_box.jacket_zoom_spinbox.value())
-    #main_window.create_background_jacket_texture()
     app.exec()
