@@ -18,10 +18,9 @@ class SceneComposer:
     def compose_scene(self,ui_screen):
             self.prepare_scene(ui_screen)
             composite = Image.new('RGBA' ,(1920,1080))
-            iteration=0
             for layer in self.grab_layers(ui_screen):
-                composite.alpha_composite(layer,self.anchor_points[iteration])
-                iteration=iteration+1
+                sprite, position = layer[0], layer[1]
+                composite.alpha_composite(sprite, position)
             return composite
 
     def prepare_scene(self,ui_screen):
@@ -106,89 +105,48 @@ class SceneComposer:
     def grab_layers(self,ui_screen):
         match ui_screen:
             case "mm_song_selector":
-                self.anchor_points = (
-                    (0,0),
-                    (0,0),
-                    self.mm_song_selector_jacket_anchor_point,
-                    (0,0),
-                    self.mm_song_selector_logo_anchor_point,
-                    (0,0),
-                    self.mm_song_selector_thumbnail_1_anchor_point,
-                    self.mm_song_selector_thumbnail_2_anchor_point,
-                    self.mm_song_selector_thumbnail_3_anchor_point,
-                    self.mm_song_selector_selected_thumbnail_anchor_point,
-                    self.mm_song_selector_thumbnail_4_anchor_point,
-                    self.mm_song_selector_thumbnail_5_anchor_point,
-                    self.mm_song_selector_thumbnail_6_anchor_point,
-                    self.mm_song_selector_thumbnail_7_anchor_point,
-                    (0,0)
-
-                )
                 return (
-                    self.backdrop,
-                    self.scaled_background,
-                    self.rotated_jacket,
-                    self.middle_layer,
-                    self.scaled_logo,
-                    self.song_selector,
-                    self.resized_thumbnail,
-                    self.resized_thumbnail,
-                    self.resized_thumbnail,
-                    self.resized_selected_thumbnail,
-                    self.resized_thumbnail,
-                    self.resized_thumbnail,
-                    self.resized_thumbnail,
-                    self.resized_thumbnail,
-                    self.top_layer
+                    (self.backdrop,(0,0)),
+                    (self.scaled_background,(0,0)),
+                    (self.rotated_jacket,self.mm_song_selector_jacket_anchor_point),
+                    (self.middle_layer,(0,0)),
+                    (self.scaled_logo,self.mm_song_selector_logo_anchor_point),
+                    (self.song_selector,(0,0)),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_1_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_2_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_3_anchor_point),
+                    (self.resized_selected_thumbnail,self.mm_song_selector_selected_thumbnail_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_4_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_5_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_6_anchor_point),
+                    (self.resized_thumbnail,self.mm_song_selector_thumbnail_7_anchor_point),
+                    (self.top_layer,(0,0))
                 )
             case "mm_result":
-                self.anchor_points = (
-                    (0,0),
-                    (0,0),
-                    (0,0),
-                    self.mm_result_jacket_anchor_point,
-                    self.mm_result_logo_anchor_point,
-                    (0,0)
-                )
                 return (
-                    self.backdrop,
-                    self.scaled_background,
-                    self.middle_layer,
-                    self.rotated_jacket,
-                    self.scaled_logo,
-                    self.top_layer
+                    (self.backdrop,(0,0)),
+                    (self.scaled_background,(0,0)),
+                    (self.middle_layer,(0,0)),
+                    (self.rotated_jacket,self.mm_result_jacket_anchor_point),
+                    (self.scaled_logo,self.mm_result_logo_anchor_point),
+                    (self.top_layer,(0,0))
                 )
             case "ft_song_selector":
-                self.anchor_points = (
-                    (0,0),
-                    (0,0),
-                    (0,0),
-                    self.ft_song_selector_jacket_anchor_point,
-                    self.ft_song_selector_logo_anchor_point,
-                    (0,0)
-                )
                 return (
-                    self.backdrop,
-                    self.scaled_background,
-                    self.middle_layer,
-                    self.rotated_jacket,
-                    self.scaled_logo,
-                    self.top_layer
+                    (self.backdrop,(0,0)),
+                    (self.scaled_background,(0,0)),
+                    (self.middle_layer,(0,0)),
+                    (self.rotated_jacket,self.ft_song_selector_jacket_anchor_point),
+                    (self.scaled_logo,self.ft_song_selector_logo_anchor_point),
+                    (self.top_layer,(0,0))
                 )
             case "ft_result":
-                self.anchor_points = (
-                    (0,0),
-                    (0,0),
-                    self.ft_result_jacket_anchor_point,
-                    self.ft_result_logo_anchor_point,
-                    (0,0)
-                )
                 return (
-                    self.backdrop,
-                    self.middle_layer,
-                    self.rotated_jacket,
-                    self.scaled_logo,
-                    self.top_layer
+                    (self.backdrop,(0,0)),
+                    (self.middle_layer,(0,0)),
+                    (self.rotated_jacket,self.ft_result_jacket_anchor_point),
+                    (self.scaled_logo,self.ft_result_logo_anchor_point),
+                    (self.top_layer,(0,0))
                 )
 
 
