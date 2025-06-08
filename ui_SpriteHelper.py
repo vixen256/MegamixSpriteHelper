@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelperaHjYkB.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarcWrFQAm.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -35,8 +35,17 @@ class Ui_MainWindow(object):
         MainWindow.setMinimumSize(QSize(1200, 600))
         MainWindow.setSizeIncrement(QSize(0, 0))
         MainWindow.setBaseSize(QSize(1200, 600))
+        font = QFont()
+        font.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
+        font.setPointSize(11)
+        font.setBold(False)
+        font.setKerning(True)
+        MainWindow.setFont(font)
         MainWindow.setAcceptDrops(False)
-        MainWindow.setWindowTitle(u"Megamix Sprite Helper 1.0")
+        MainWindow.setWindowTitle(u"Megamix Sprite Helper")
+        icon = QIcon()
+        icon.addFile(u":/icon/Icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        MainWindow.setWindowIcon(icon)
         MainWindow.setAutoFillBackground(True)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Europe))
         MainWindow.setAnimated(True)
@@ -152,16 +161,24 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addLayout(self.load_buttons_box_row2)
 
+        self.load_buttons_box_row3 = QHBoxLayout()
+        self.load_buttons_box_row3.setSpacing(5)
+        self.load_buttons_box_row3.setObjectName(u"load_buttons_box_row3")
+        self.load_buttons_box_row3.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.load_buttons_box_row3.setContentsMargins(-1, 0, -1, -1)
         self.has_logo_checkbox = QCheckBox(self.grid)
         self.has_logo_checkbox.setObjectName(u"has_logo_checkbox")
         self.has_logo_checkbox.setCheckable(True)
         self.has_logo_checkbox.setChecked(True)
 
-        self.load_buttons_box.addWidget(self.has_logo_checkbox)
+        self.load_buttons_box_row3.addWidget(self.has_logo_checkbox)
 
-        self.load_buttons_box_row3 = QHBoxLayout()
-        self.load_buttons_box_row3.setSpacing(5)
-        self.load_buttons_box_row3.setObjectName(u"load_buttons_box_row3")
+        self.new_classics_checkbox = QCheckBox(self.grid)
+        self.new_classics_checkbox.setObjectName(u"new_classics_checkbox")
+        self.new_classics_checkbox.setChecked(True)
+
+        self.load_buttons_box_row3.addWidget(self.new_classics_checkbox)
+
 
         self.load_buttons_box.addLayout(self.load_buttons_box_row3)
 
@@ -183,7 +200,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
         self.image_edit_area_widget_properties = QWidget()
         self.image_edit_area_widget_properties.setObjectName(u"image_edit_area_widget_properties")
-        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 227, 905))
+        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 181, 905))
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
@@ -197,7 +214,7 @@ class Ui_MainWindow(object):
         self.image_edit_area_widget_properties.setAutoFillBackground(True)
         self.verticalLayoutWidget_3 = QWidget(self.image_edit_area_widget_properties)
         self.verticalLayoutWidget_3.setObjectName(u"verticalLayoutWidget_3")
-        self.verticalLayoutWidget_3.setGeometry(QRect(0, 0, 286, 939))
+        self.verticalLayoutWidget_3.setGeometry(QRect(0, 0, 329, 2082))
         self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget_3)
         self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
@@ -211,9 +228,12 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.jacket_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.jacket_horizontal_offset_label.setSizePolicy(sizePolicy5)
         self.jacket_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        font = QFont()
-        font.setPointSize(9)
-        self.jacket_horizontal_offset_label.setFont(font)
+        font1 = QFont()
+        font1.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
+        font1.setPointSize(9)
+        font1.setBold(False)
+        font1.setKerning(True)
+        self.jacket_horizontal_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.jacket_horizontal_offset_label)
 
@@ -237,7 +257,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.jacket_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.jacket_vertical_offset_label.setSizePolicy(sizePolicy5)
         self.jacket_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.jacket_vertical_offset_label.setFont(font)
+        self.jacket_vertical_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.jacket_vertical_offset_label)
 
@@ -258,7 +278,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.jacket_rotation_label.sizePolicy().hasHeightForWidth())
         self.jacket_rotation_label.setSizePolicy(sizePolicy5)
         self.jacket_rotation_label.setMaximumSize(QSize(16777215, 16777215))
-        self.jacket_rotation_label.setFont(font)
+        self.jacket_rotation_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.jacket_rotation_label)
 
@@ -280,7 +300,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.jacket_zoom_label.sizePolicy().hasHeightForWidth())
         self.jacket_zoom_label.setSizePolicy(sizePolicy5)
         self.jacket_zoom_label.setMaximumSize(QSize(16777215, 16777215))
-        self.jacket_zoom_label.setFont(font)
+        self.jacket_zoom_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.jacket_zoom_label)
 
@@ -305,7 +325,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.background_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.background_horizontal_offset_label.setSizePolicy(sizePolicy5)
         self.background_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.background_horizontal_offset_label.setFont(font)
+        self.background_horizontal_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.background_horizontal_offset_label)
 
@@ -326,7 +346,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.background_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.background_vertical_offset_label.setSizePolicy(sizePolicy5)
         self.background_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.background_vertical_offset_label.setFont(font)
+        self.background_vertical_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.background_vertical_offset_label)
 
@@ -346,7 +366,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.background_rotation_label.sizePolicy().hasHeightForWidth())
         self.background_rotation_label.setSizePolicy(sizePolicy5)
         self.background_rotation_label.setMaximumSize(QSize(16777215, 16777215))
-        self.background_rotation_label.setFont(font)
+        self.background_rotation_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.background_rotation_label)
 
@@ -370,7 +390,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.background_zoom_label.sizePolicy().hasHeightForWidth())
         self.background_zoom_label.setSizePolicy(sizePolicy5)
         self.background_zoom_label.setMaximumSize(QSize(16777215, 16777215))
-        self.background_zoom_label.setFont(font)
+        self.background_zoom_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.background_zoom_label)
 
@@ -396,7 +416,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.logo_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.logo_horizontal_offset_label.setSizePolicy(sizePolicy5)
         self.logo_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.logo_horizontal_offset_label.setFont(font)
+        self.logo_horizontal_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.logo_horizontal_offset_label)
 
@@ -418,7 +438,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.logo_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.logo_vertical_offset_label.setSizePolicy(sizePolicy5)
         self.logo_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.logo_vertical_offset_label.setFont(font)
+        self.logo_vertical_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.logo_vertical_offset_label)
 
@@ -440,7 +460,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.logo_rotation_label.sizePolicy().hasHeightForWidth())
         self.logo_rotation_label.setSizePolicy(sizePolicy5)
         self.logo_rotation_label.setMaximumSize(QSize(16777215, 16777215))
-        self.logo_rotation_label.setFont(font)
+        self.logo_rotation_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.logo_rotation_label)
 
@@ -464,7 +484,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.logo_zoom_label.sizePolicy().hasHeightForWidth())
         self.logo_zoom_label.setSizePolicy(sizePolicy5)
         self.logo_zoom_label.setMaximumSize(QSize(16777215, 16777215))
-        self.logo_zoom_label.setFont(font)
+        self.logo_zoom_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.logo_zoom_label)
 
@@ -489,7 +509,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.thumbnail_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_horizontal_offset_label.setSizePolicy(sizePolicy5)
         self.thumbnail_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.thumbnail_horizontal_offset_label.setFont(font)
+        self.thumbnail_horizontal_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.thumbnail_horizontal_offset_label)
 
@@ -508,7 +528,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.thumbnail_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_vertical_offset_label.setSizePolicy(sizePolicy5)
         self.thumbnail_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
-        self.thumbnail_vertical_offset_label.setFont(font)
+        self.thumbnail_vertical_offset_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.thumbnail_vertical_offset_label)
 
@@ -528,7 +548,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.thumbnail_rotation_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_rotation_label.setSizePolicy(sizePolicy5)
         self.thumbnail_rotation_label.setMaximumSize(QSize(16777215, 16777215))
-        self.thumbnail_rotation_label.setFont(font)
+        self.thumbnail_rotation_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.thumbnail_rotation_label)
 
@@ -550,7 +570,7 @@ class Ui_MainWindow(object):
         sizePolicy5.setHeightForWidth(self.thumbnail_zoom_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_zoom_label.setSizePolicy(sizePolicy5)
         self.thumbnail_zoom_label.setMaximumSize(QSize(16777215, 16777215))
-        self.thumbnail_zoom_label.setFont(font)
+        self.thumbnail_zoom_label.setFont(font1)
 
         self.verticalLayout_2.addWidget(self.thumbnail_zoom_label)
 
@@ -647,6 +667,7 @@ class Ui_MainWindow(object):
         self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
         self.has_logo_checkbox.setText(QCoreApplication.translate("MainWindow", u"Has logo?", None))
+        self.new_classics_checkbox.setText(QCoreApplication.translate("MainWindow", u"New Classics?", None))
         self.jacket_horizontal_offset_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Horizontal Offset", None))
         self.jacket_vertical_offset_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Vertical Offset", None))
         self.jacket_rotation_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Rotation", None))

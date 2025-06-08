@@ -15,15 +15,15 @@ class SceneComposer:
         self.logo_location = self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png'
         self.thumbnail_location = self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
 
-    def compose_scene(self,ui_screen):
-            self.prepare_scene(ui_screen)
+    def compose_scene(self,ui_screen,new_classics_state):
+            self.prepare_scene(ui_screen,new_classics_state)
             composite = Image.new('RGBA' ,(1920,1080))
             for layer in self.grab_layers(ui_screen):
                 sprite, position = layer[0], layer[1]
                 composite.alpha_composite(sprite, position)
             return composite
 
-    def prepare_scene(self,ui_screen):
+    def prepare_scene(self,ui_screen,new_classics_state):
         match ui_screen:
             case "mm_song_selector":
                 # Anchor points and tweaks
@@ -53,7 +53,10 @@ class SceneComposer:
                 self.backdrop = Image.open(self.script_directory / 'Images/MM UI - Song Select/Backdrop.png').convert('RGBA')
                 self.song_selector = Image.open(self.script_directory / 'Images/MM UI - Song Select/Song Selector.png').convert('RGBA')
                 self.middle_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Middle Layer.png').convert('RGBA')
-                self.top_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Top Layer.png').convert('RGBA')
+                if new_classics_state:
+                    self.top_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Top Layer - New Classics.png').convert('RGBA')
+                else:
+                    self.top_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Top Layer.png').convert('RGBA')
             case "mm_result":
                 # Anchor points and tweaks
                 self.mm_result_jacket_anchor_point = (108, 387)
@@ -69,7 +72,10 @@ class SceneComposer:
                 # Load images needed
                 self.backdrop = ImageOps.scale(Image.open((self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')), 1.5)
                 self.middle_layer = Image.open((self.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png'))
-                self.top_layer = Image.open((self.script_directory / 'Images/MM UI - Results Screen/Top Layer.png'))
+                if new_classics_state:
+                    self.top_layer = Image.open((self.script_directory / 'Images/MM UI - Results Screen/Top Layer - New Classics.png'))
+                else:
+                    self.top_layer = Image.open((self.script_directory / 'Images/MM UI - Results Screen/Top Layer.png'))
 
             case "ft_song_selector":
                 # Anchor points and tweaks
@@ -86,7 +92,10 @@ class SceneComposer:
                 # Load images needed
                 self.backdrop = Image.open((self.script_directory / 'Images/FT UI - Song Select/Base.png'))
                 self.middle_layer = Image.open((self.script_directory / 'Images/FT UI - Song Select/Middle Layer.png'))
-                self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Song Select/Top Layer.png'))
+                if new_classics_state:
+                    self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Song Select/Top Layer - New Classics.png'))
+                else:
+                    self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Song Select/Top Layer.png'))
 
             case "ft_result":
                 # Anchor points and tweaks
@@ -100,7 +109,10 @@ class SceneComposer:
 
                 self.backdrop = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Base.png'))
                 self.middle_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png'))
-                self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'))
+                if new_classics_state:
+                    self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'))
+                else:
+                    self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'))
 
     def grab_layers(self,ui_screen):
         match ui_screen:

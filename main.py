@@ -48,14 +48,18 @@ def check_for_files():
         config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
         config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
         config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
+        config.script_directory / 'Images/MM UI - Song Select/Top Layer - New Classics.png',
         config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
         config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
+        config.script_directory / 'Images/MM UI - Results Screen/Top Layer - New Classics.png',
         config.script_directory / 'Images/FT UI - Song Select/Base.png',
         config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
         config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
+        config.script_directory / 'Images/FT UI - Song Select/Top Layer - New Classics.png',
         config.script_directory / 'Images/FT UI - Results Screen/Base.png',
         config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png'
+        config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png',
+        config.script_directory / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'
     ]
 
     for file_path in required_files:
@@ -126,7 +130,7 @@ class MainWindow(QMainWindow):
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
-
+        self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
 
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
@@ -141,15 +145,16 @@ class MainWindow(QMainWindow):
         self.resize(size)
 
     def draw_image_grid(self,ui_scene):
+        new_classics_state = self.main_box.new_classics_checkbox.isChecked()
         match ui_scene:
             case "mm_song_selector":
-                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
+                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
             case "ft_song_selector":
-                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
+                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
             case "mm_result":
-                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
+                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
             case "ft_result":
-                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene).toqpixmap())
+                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
     def jacket_value_edit_trigger(self):
         SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
         self.change_spinbox_offset_range("jacket")
@@ -429,6 +434,11 @@ class MainWindow(QMainWindow):
     #    else:
     #        song_id = str(song_id)
     #    return song_id
+
+    @Slot()
+    def refresh_image_grid(self):
+        for scene in config.scenes_to_draw:
+            self.draw_image_grid(scene)
 
     @Slot()
     def has_logo_checkbox_callback(self):
