@@ -395,9 +395,9 @@ class MainWindow(QMainWindow):
             self.draw_image_grid(scene)
 
     def create_background_jacket_texture(self):
-        jacket_fixed = texture_filtering_fix(SceneComposer.jacket,102) #502x502 image
+        #jacket_fixed = texture_filtering_fix(SceneComposer.jacket,102) #502x502 image
         jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(jacket_fixed, (1286, 2)) #TODO need to re-check positions of the sprites after applying fixes to texture filtering
+        jacket_composite.alpha_composite(SceneComposer.jacket, (1286, 2)) #TODO need to re-check positions of the sprites after applying fixes to texture filtering
 
         background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
         background_composite.alpha_composite(SceneComposer.background, (1, 1), (0, 0, 1280, 720))

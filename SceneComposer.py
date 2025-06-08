@@ -5,6 +5,19 @@ from PySide6.QtCore import Qt
 from PIL import Image, ImageOps, ImageQt
 from PIL.Image import Resampling
 
+
+def texture_filtering_fix(image, opacity):
+    # Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
+    t_edge = Image.new(image.mode, (image.size[0], image.size[1]))
+    t_edge.alpha_composite(image)
+    t_edge = t_edge.resize((image.size[0] + 2, image.size[1] + 2))
+    r, g, b, a = t_edge.split()
+    a = a.point(lambda x: opacity if x > 0 else 0)  # Set 102 opacity, that is 40% from 256. For Background 100% is recommended
+    t_edge = Image.merge(image.mode, (r, g, b, a))
+    t_edge.alpha_composite(image, (1, 1))
+    return t_edge
+
+
 class SceneComposer:
     def __init__(self):
         self.script_directory = Path.cwd()
@@ -169,6 +182,7 @@ class SceneComposer:
             self.jacket = Image.new('RGBA',(500,500))
             self.jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
             self.jacket.alpha_composite(self.jacket_image,(horizontal_offset,vertical_offset))
+            self.jacket = texture_filtering_fix(self.jacket, 102)
         #TODO Fix zoom
     def background_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("background")
