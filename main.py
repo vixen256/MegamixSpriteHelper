@@ -82,11 +82,12 @@ def show_message_box(title,contents):
 
 @Slot()
 def copy_to_clipboard_button_callback():
+    new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
     composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
-    composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector"), (0, 0))
-    composite.alpha_composite(SceneComposer.compose_scene("mm_result"), (0, 1080))
-    composite.alpha_composite(SceneComposer.compose_scene("ft_song_selector"), (1920, 0))
-    composite.alpha_composite(SceneComposer.compose_scene("ft_result"), (1920, 1080))
+    composite.alpha_composite(SceneComposer.compose_scene("mm_song_selector",new_classics_state), (0, 0))
+    composite.alpha_composite(SceneComposer.compose_scene("mm_result",new_classics_state), (0, 1080))
+    composite.alpha_composite(SceneComposer.compose_scene("ft_song_selector",new_classics_state), (1920, 0))
+    composite.alpha_composite(SceneComposer.compose_scene("ft_result",new_classics_state), (1920, 1080))
     pixels = composite.tobytes()
     copy_image(pixels, composite.width, composite.height)
 
