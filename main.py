@@ -486,21 +486,26 @@ class MainWindow(QMainWindow):
 
         if open_background == '':
             print("Background image wasn't chosen")
-
-        elif Image.open(open_background).width < 1280 or Image.open(open_background).height < 720:
-            config.last_used_directory = Path(open_background).parent
-            show_message_box("Image is too small","Image is too small. Image needs to be at least 1280x720")
         else:
-            config.last_used_directory = Path(open_background).parent
-            self.watcher.removePath(str(SceneComposer.background_location))
-            SceneComposer.background_location = open_background
-            self.change_spinbox_zoom_range("background_zoom", Image.open(open_background).width, Image.open(open_background).height)
-            self.watcher.addPath(str(SceneComposer.background_location))
-            self.background_spinbox_values_reset()
-            SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-            self.change_spinbox_offset_range("background")
-            for scene in config.scenes_to_draw:
-                self.draw_image_grid(scene)
+            with Image.open(open_background) as background_image:
+                left, upper, right, lower = Image.Image.getbbox(background_image)
+                real_width = right - left
+                real_height = lower - upper
+
+            if real_width < 1280 or real_height < 720:
+                config.last_used_directory = Path(open_background).parent
+                show_message_box("Image is too small","Image is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area")
+            else:
+                config.last_used_directory = Path(open_background).parent
+                self.watcher.removePath(str(SceneComposer.background_location))
+                SceneComposer.background_location = open_background
+                self.change_spinbox_zoom_range("background_zoom", real_width, real_height)
+                self.watcher.addPath(str(SceneComposer.background_location))
+                self.background_spinbox_values_reset()
+                SceneComposer.background_post_processing(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+                self.change_spinbox_offset_range("background")
+                for scene in config.scenes_to_draw:
+                    self.draw_image_grid(scene)
     @Slot()
     def load_jacket_button_callback(self):
         if os.name == "nt":
@@ -510,28 +515,33 @@ class MainWindow(QMainWindow):
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
-        elif Image.open(open_jacket).width < 500 or Image.open(open_jacket).height < 500:
-            config.last_used_directory = Path(open_jacket).parent
-            show_message_box("Image is too small", "Image is too small. Image needs to be at least 500x500")
         else:
-            config.last_used_directory = Path(open_jacket).parent
-            self.watcher.removePath(str(SceneComposer.jacket_location))
-            SceneComposer.jacket_location = open_jacket
-            self.change_spinbox_zoom_range("jacket_zoom", Image.open(open_jacket).width, Image.open(open_jacket).height)
-            self.watcher.addPath(str(SceneComposer.jacket_location))
-            self.jacket_spinbox_values_reset()
-            #if Image.open(open_jacket).size in ((500,500),(501,501)):
-            #    print(f"{Image.open(open_jacket).size} jacket loaded.")
-            #    self.change_spinbox_zoom_range("jacket_zoom", 502, 502)
-            if Image.open(open_jacket).width == Image.open(open_jacket).height:
-                print(f"Image is {Image.open(open_jacket).width}x{Image.open(open_jacket).height}. Imported jacket is 1:1 aspect ratio.")
-                zoom = 500 / Image.open(open_jacket).width
-                self.main_box.jacket_zoom_spinbox.setValue(zoom)
-                print(f"Set jacket's zoom to {zoom}.")
-            SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
-            self.change_spinbox_offset_range("jacket")
-            for scene in config.scenes_to_draw:
-                self.draw_image_grid(scene)
+            with Image.open(open_jacket) as jacket_image:
+                left, upper, right, lower = Image.Image.getbbox(jacket_image)
+                real_width = right - left
+                real_height = lower - upper
+
+            if real_width < 500 or real_height < 500:
+                config.last_used_directory = Path(open_jacket).parent
+                show_message_box("Image is too small", "Image is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area")
+            else:
+                config.last_used_directory = Path(open_jacket).parent
+                self.watcher.removePath(str(SceneComposer.jacket_location))
+                SceneComposer.jacket_location = open_jacket
+                self.change_spinbox_zoom_range("jacket_zoom", real_width, real_height)
+                self.watcher.addPath(str(SceneComposer.jacket_location))
+                self.jacket_spinbox_values_reset()
+
+                if real_width == real_height:
+                    print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
+                    zoom = 500 / real_width
+                    self.main_box.jacket_zoom_spinbox.setValue(zoom)
+                    print(f"Set jacket's zoom to {zoom}.")
+
+                SceneComposer.jacket_post_processing(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
+                self.change_spinbox_offset_range("jacket")
+                for scene in config.scenes_to_draw:
+                    self.draw_image_grid(scene)
     @Slot()
     def load_logo_button_callback(self):
         if os.name == "nt":
@@ -540,9 +550,6 @@ class MainWindow(QMainWindow):
             open_logo = openFile(title="Open logo image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_logo == '':
             print("Logo image wasn't chosen")
-        #elif Image.open(open_logo).size < (435,150):
-        #    config.last_used_directory = Path(open_logo).parent
-        #    show_message_box("Image is too small", "Image is too small. Image needs to be at least 435x150")
         else:
             config.last_used_directory = Path(open_logo).parent
             self.watcher.removePath(str(SceneComposer.logo_location))

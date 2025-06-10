@@ -179,15 +179,17 @@ class SceneComposer:
     def jacket_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("jacket")
         with Image.open(self.jacket_location).convert('RGBA') as jacket:
+            cropped_jacket = Image.Image.crop(jacket,Image.Image.getbbox(jacket))
             self.jacket = Image.new('RGBA',(500,500))
-            self.jacket_image = ImageOps.scale(jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
+            self.jacket_image = ImageOps.scale(cropped_jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
             self.jacket.alpha_composite(self.jacket_image,(horizontal_offset,vertical_offset))
             self.jacket = texture_filtering_fix(self.jacket, 102)
         #TODO Fix zoom
     def background_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("background")
         with Image.open(self.background_location).convert('RGBA') as background:
-            self.background_image = ImageOps.scale(background.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+            cropped_background = Image.Image.crop(background,Image.Image.getbbox(background))
+            self.background_image = ImageOps.scale(cropped_background.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
             self.background = Image.new('RGBA', (1280, 720))
             self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
             self.scaled_background = ImageOps.scale(self.background,1.5)
