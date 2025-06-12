@@ -184,7 +184,7 @@ class SceneComposer:
             self.jacket_image = ImageOps.scale(cropped_jacket.rotate(rotation, Resampling.BILINEAR,expand=True),zoom)
             self.jacket.alpha_composite(self.jacket_image,(horizontal_offset,vertical_offset))
             self.jacket = texture_filtering_fix(self.jacket, 102)
-        #TODO Fix zoom
+
     def background_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("background")
         with Image.open(self.background_location).convert('RGBA') as background:
@@ -193,7 +193,7 @@ class SceneComposer:
             self.background = Image.new('RGBA', (1280, 720))
             self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
             self.scaled_background = ImageOps.scale(self.background,1.5)
-        #TODO Fix zoom
+
     def logo_post_processing(self,state,horizontal_offset,vertical_offset,rotation,zoom):
         print("logo")
         if state == Qt.CheckState.Checked:
@@ -203,12 +203,13 @@ class SceneComposer:
                 self.logo.alpha_composite(self.logo_image, (horizontal_offset, vertical_offset))
         else:
             self.logo = Image.new('RGBA', (870, 330))
-        #TODO Fix zoom
+
     def thumbnail_post_processing(self,horizontal_offset,vertical_offset,rotation,zoom):
         print("thumbnail")
-        with Image.open(self.thumbnail_location).convert('RGBA') as thumbnail ,Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Mask.png').convert('L') as mask:
-            self.thumbnail_image = ImageOps.scale(thumbnail.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
+        with Image.open(self.thumbnail_location).convert('RGBA') as thumbnail ,Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
+            cropped_thumbnail = Image.Image.crop(thumbnail,Image.Image.getbbox(thumbnail))
+            self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation,Resampling.BILINEAR,expand=True),zoom)
             self.thumbnail = Image.new('RGBA',(128,64))
-            self.thumbnail.alpha_composite(self.thumbnail_image,(horizontal_offset,vertical_offset))
-            self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask)
-        #TODO Fix zoom
+            self.thumbnail.alpha_composite(self.thumbnail_image,(horizontal_offset + 28,vertical_offset + 1))
+            #self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) # This makes edges darker than intended but allows for other shapes
+            self.thumbnail.putalpha(mask) # This only allows exact shape of thumb but doesn't discolor edges

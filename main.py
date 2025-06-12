@@ -323,13 +323,13 @@ class MainWindow(QMainWindow):
                     self.main_box.logo_horizontal_offset_spinbox.setRange(-left,logo_max_width_offset)
                     self.main_box.logo_vertical_offset_spinbox.setRange(-upper,logo_max_height_offset)
             case "thumbnail":
-                minimum_horizontal = (SceneComposer.thumbnail_image.width * -1) +128
-                minimum_vertical = (SceneComposer.thumbnail_image.height * -1) + 64
-                self.main_box.thumbnail_horizontal_offset_spinbox.setRange(minimum_horizontal ,27)
+                minimum_horizontal = (SceneComposer.thumbnail_image.width * -1) + 100
+                minimum_vertical = (SceneComposer.thumbnail_image.height * -1) + 61
+                self.main_box.thumbnail_horizontal_offset_spinbox.setRange(minimum_horizontal ,0)
                 self.main_box.thumbnail_vertical_offset_spinbox.setRange(minimum_vertical,0)
 
                 if minimum_horizontal == 0:
-                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(True)
+                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(False)
                 else:
                     self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(True)
 
@@ -372,8 +372,8 @@ class MainWindow(QMainWindow):
                     self.main_box.background_zoom_spinbox.setEnabled(False)
                     self.main_box.background_zoom_spinbox.setRange(1.00, 1.00)
             case "thumbnail_zoom":
-                width_factor = Decimal(128 / image_width)
-                height_factor = Decimal(64 / image_height)
+                width_factor = Decimal(100 / image_width)
+                height_factor = Decimal(61 / image_height)
                 if width_factor > height_factor:
                     self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
                     self.main_box.thumbnail_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
@@ -569,19 +569,25 @@ class MainWindow(QMainWindow):
             open_thumbnail = openFile(title="Open thumbnail image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
-        elif Image.open(open_thumbnail).width < 100 or Image.open(open_thumbnail).height < 64:
-            config.last_used_directory = Path(open_thumbnail).parent
-            show_message_box("Image is too small", "Image is too small. Image needs to be at least 100x64")
         else:
-            config.last_used_directory = Path(open_thumbnail).parent
-            self.watcher.removePath(str(SceneComposer.thumbnail_location))
-            SceneComposer.thumbnail_location = open_thumbnail
-            self.change_spinbox_zoom_range("thumbnail_zoom", Image.open(open_thumbnail).width, Image.open(open_thumbnail).height)
-            self.watcher.addPath(str(SceneComposer.thumbnail_location))
-            self.thumbnail_spinbox_values_reset()
-            SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-            self.change_spinbox_offset_range("thumbnail")
-            self.draw_image_grid("mm_song_selector")
+            with Image.open(open_thumbnail) as thumbnail_image:
+                left, upper, right, lower = Image.Image.getbbox(thumbnail_image)
+                real_width = right - left
+                real_height = lower - upper
+
+            if real_width < 100 or real_height < 61:
+                config.last_used_directory = Path(open_thumbnail).parent
+                show_message_box("Image is too small", "Image is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area")
+            else:
+                config.last_used_directory = Path(open_thumbnail).parent
+                self.watcher.removePath(str(SceneComposer.thumbnail_location))
+                SceneComposer.thumbnail_location = open_thumbnail
+                self.change_spinbox_zoom_range("thumbnail_zoom", real_width, real_height)
+                self.watcher.addPath(str(SceneComposer.thumbnail_location))
+                self.thumbnail_spinbox_values_reset()
+                SceneComposer.thumbnail_post_processing(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+                self.change_spinbox_offset_range("thumbnail")
+                self.draw_image_grid("mm_song_selector")
 
     @Slot()
     def export_background_jacket_logo_farc_button_callback(self):
