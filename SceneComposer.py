@@ -23,6 +23,7 @@ class Sprite:
         self.script_directory = Path.cwd()
         self.type = sprite_type
         self.location = image_location
+        self.dummy_location = image_location
         with Image.open(self.location) as open_image:
             left, upper, right, lower = open_image.getbbox()
             self.edges = (left, upper, right, lower)

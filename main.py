@@ -377,17 +377,55 @@ class MainWindow(QMainWindow):
 
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
+        keep_watching_path = False
         if path == SceneComposer.Jacket.location:
             print("Jacket image was changed")
-        elif path == SceneComposer.Logo.location:
+            result = SceneComposer.Jacket.update_sprite(path)
+            if result["Outcome"] == "Fallback":
+                print("Jacket image no longer meets requirements. Falling back to Dummy sprite")
+                self.watcher.addPath(str(SceneComposer.Jacket.dummy_location))
+            elif result["Outcome"] == "Updated":
+                keep_watching_path = True
+
+                if result["Jacket Force Fit"]:
+                    real_width = SceneComposer.Jacket.edges[2] - SceneComposer.Jacket.edges[0]
+                    real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
+
+                    print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
+                    self.main_box.jacket_zoom_spinbox.setValue(result["Zoom"])
+                    print(f"Set jacket's zoom to {result["Zoom"]}.")
+
+        if path == SceneComposer.Logo.location:
             print("Logo image was changed")
-        elif path == SceneComposer.Background.location:
+            result = SceneComposer.Logo.update_sprite(path)
+            if result["Outcome"] == "Updated":
+                keep_watching_path = True
+
+        if path == SceneComposer.Background.location:
             print("Background image was changed")
-        elif path == SceneComposer.Thumbnail.location:
+            result = SceneComposer.Background.update_sprite(path)
+            if result["Outcome"] == "Fallback":
+                print("Background image no longer meets requirements. Falling back to Dummy sprite")
+                self.watcher.addPath(str(SceneComposer.Background.dummy_location))
+            elif result["Outcome"] == "Updated":
+                keep_watching_path = True
+
+        if path == SceneComposer.Thumbnail.location:
             print("Thumbnail image was changed")
-        self.watcher.removePath(path)
+            result = SceneComposer.Thumbnail.update_sprite(path)
+            if result["Outcome"] == "Fallback":
+                print("Thumbnail image no longer meets requirements. Falling back to Dummy sprite")
+                self.watcher.addPath(str(SceneComposer.Thumbnail.dummy_location))
+            elif result["Outcome"] == "Updated":
+                keep_watching_path = True
+
+        if keep_watching_path:
+            self.watcher.removePath(path)
+            self.watcher.addPath(path)
+        else:
+            self.watcher.removePath(path)
+
         self.reload_images()
-        self.watcher.addPath(path)
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
 
