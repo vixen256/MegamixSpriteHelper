@@ -11,7 +11,6 @@ from copykitten import copy_image
 from filedialpy import openFile
 from decimal import Decimal, ROUND_HALF_UP
 
-#from FarcCreator import FarcCreator
 from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
@@ -119,15 +118,9 @@ class MainWindow(QMainWindow):
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
-        #self.main_box.export_bg_jk_logo_farc_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
-        #self.main_box.export_thumbnail_farc_button.clicked.connect(self.export_thumbnail_farc_button_callback)
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
-
-        #Disable functionality that's not implemented / doesn't work right now
-        #self.main_box.export_thumbnail_farc_button.setDisabled(True)
-        #self.main_box.export_bg_jk_logo_farc_button.setDisabled(True)
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
@@ -266,7 +259,6 @@ class MainWindow(QMainWindow):
             left, upper, right, lower = Image.Image.getbbox(logo)
             image_width = right - left
             image_height = lower - upper
-            #print(f'{330 / image_height} than {870 / image_width}')
 
             if image_height > 330 or image_width > 870:
                 if (330 / image_height) <= (870 / image_width):
@@ -275,7 +267,6 @@ class MainWindow(QMainWindow):
                     max_scale = 870 / image_width
             else:
                 max_scale = 1
-        #print(max_scale)
         self.main_box.logo_zoom_spinbox.setMaximum(max_scale)
 
     def change_spinbox_offset_range(self,spinbox):
@@ -313,13 +304,10 @@ class MainWindow(QMainWindow):
             case "logo":
                 with SceneComposer.Logo.logo_image as logo:
                     left, upper, right , lower = Image.Image.getbbox(logo)
-                    #print(f"Left:{left} Upper:{upper} Lower:{lower} Right:{right}")
-                    image_width = right-left
-                    image_height = lower-upper
-                    #print(f"Width:{image_width} Height:{image_height}")
+
                     logo_max_width_offset = 870 - right
                     logo_max_height_offset = 330 - lower
-                    #print(f"Logo offset limits: Height: {logo_max_height_offset} Width:{logo_max_width_offset}")
+
                     self.main_box.logo_horizontal_offset_spinbox.setRange(-left,logo_max_width_offset)
                     self.main_box.logo_vertical_offset_spinbox.setRange(-upper,logo_max_height_offset)
             case "thumbnail":
@@ -404,9 +392,8 @@ class MainWindow(QMainWindow):
             self.draw_image_grid(scene)
 
     def create_background_jacket_texture(self):
-        #jacket_fixed = texture_filtering_fix(SceneComposer.jacket,102) #502x502 image
         jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(SceneComposer.Jacket.jacket, (1286, 2)) #TODO need to re-check positions of the sprites after applying fixes to texture filtering
+        jacket_composite.alpha_composite(SceneComposer.Jacket.jacket, (1286, 2))
 
         background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
         background_composite.alpha_composite(SceneComposer.Background.background, (1, 1), (0, 0, 1280, 720))
@@ -415,7 +402,7 @@ class MainWindow(QMainWindow):
         background_jacket_texture = Image.new('RGBA', (2048, 1024))
         background_jacket_texture.alpha_composite(background_composite)
         background_jacket_texture.alpha_composite(jacket_composite)
-        #background_jacket_texture.show()
+
         return background_jacket_texture
     def create_logo_texture(self):
         logo_fix_status = False
@@ -434,15 +421,6 @@ class MainWindow(QMainWindow):
         thumbnail_texture = Image.new('RGBA', (128, 64))
         thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
         return thumbnail_texture
-    #def get_song_id(self):
-    #    song_id = int(self.main_box.song_id_spinbox.value())
-    #    if song_id <= 9:
-    #        song_id = f'00{song_id}'
-    #    elif song_id <= 99:
-    #        song_id = f'0{song_id}'
-    #    else:
-    #        song_id = str(song_id)
-    #    return song_id
 
     @Slot()
     def refresh_image_grid(self):
@@ -601,25 +579,7 @@ class MainWindow(QMainWindow):
                 config.last_used_directory = Path(open_thumbnail).parent
                 show_message_box(result["Window Title"], result["Description"])
 
-    @Slot()
-    def export_background_jacket_logo_farc_button_callback(self):
-        Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
-        Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
-        song_id = self.get_song_id()
 
-        if os.name == "nt":
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
-        else:
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to", initial_dir=config.last_used_directory)
-        if output_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(output_location)
-            output_location = output_location
-            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location)
-
-        Path.unlink(config.script_directory / 'Images/Background Texture.png',True)
-        Path.unlink(config.script_directory / 'Images/Logo Texture.png', True)
     @Slot()
     def export_background_jacket_button_callback(self):
         background_jacket_texture = self.create_background_jacket_texture()
@@ -644,23 +604,7 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture.save(save_location, "png")
-    @Slot()
-    def export_thumbnail_farc_button_callback(self):
-        Image.Image.save(self.create_thumbnail_texture(),(config.script_directory / 'Images/Thumbnail Texture.png'))
-        song_id = self.get_song_id()
 
-        if os.name == "nt":
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
-        else:
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to",initial_dir=config.last_used_directory)
-        if output_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(output_location)
-            output_location = output_location + "/"
-            FarcCreator.create_thumbnail_farc(song_id,str(config.script_directory / 'Images/Thumbnail Texture.png'),output_location)
-
-        Path.unlink(config.script_directory / 'Images/Thumbnail Texture.png', True)
     @Slot()
     def export_logo_button_callback(self):
         logo_texture = self.create_logo_texture()
@@ -713,7 +657,6 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     config = Configurable()
     SceneComposer = SceneComposer()
-    #FarcCreator = FarcCreator()
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     main_window = MainWindow()
