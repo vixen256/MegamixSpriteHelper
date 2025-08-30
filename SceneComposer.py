@@ -202,6 +202,7 @@ class ThumbnailSprite(Sprite):
         with Image.open(self.location).convert('RGBA') as thumbnail, Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
             cropped_thumbnail = Image.Image.crop(thumbnail, Image.Image.getbbox(thumbnail))
             self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
+            print(f"Thumbnail Size = {self.thumbnail_image.size}")
             self.thumbnail = Image.new('RGBA', (128, 64))
             self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
             # self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) # This makes edges darker than intended but allows for other shapes

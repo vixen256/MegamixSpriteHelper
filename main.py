@@ -19,7 +19,7 @@ from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"]
+        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"] #TODO get supported file types in smarter way
         self.scenes_to_draw = ["mm_song_selector","ft_song_selector","mm_result","ft_result"]
         self.last_used_directory = self.script_directory
 
@@ -362,15 +362,14 @@ class MainWindow(QMainWindow):
             case "thumbnail_zoom":
                 width_factor = Decimal(100 / image_width)
                 height_factor = Decimal(61 / image_height)
+                print(f"Width Factor= {width_factor}")
+                print(f"Height Factor= {height_factor}")
                 if width_factor > height_factor:
                     self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
                     self.main_box.thumbnail_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                elif height_factor > width_factor:
+                elif width_factor < height_factor:
                     self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
                     self.main_box.thumbnail_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                elif height_factor == width_factor:
-                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
-                    self.main_box.thumbnail_zoom_spinbox.setRange(height_factor, 1.00)
                 else:
                     self.main_box.thumbnail_zoom_spinbox.setEnabled(False)
                     self.main_box.thumbnail_zoom_spinbox.setRange(1.00, 1.00)
@@ -601,11 +600,12 @@ class MainWindow(QMainWindow):
             result = SceneComposer.Thumbnail.update_sprite(open_thumbnail,False)
 
             if result["Outcome"] == "Updated":
-                real_width = SceneComposer.Jacket.edges[2] - SceneComposer.Jacket.edges[0]
-                real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
+                real_width = SceneComposer.Thumbnail.edges[2] - SceneComposer.Thumbnail.edges[0]
+                real_height = SceneComposer.Thumbnail.edges[3] - SceneComposer.Thumbnail.edges[1]
 
                 config.last_used_directory = Path(open_thumbnail).parent
                 self.watcher.removePath(str(SceneComposer.Thumbnail.location))
+                print(f"W= {real_width} H= {real_height}")
                 self.change_spinbox_zoom_range("thumbnail_zoom", real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Thumbnail.location))
                 self.thumbnail_spinbox_values_reset()
