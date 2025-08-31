@@ -126,6 +126,10 @@ class MainWindow(QMainWindow):
         self.main_box.ft_song_selector_preview.clicked.connect(lambda scene="ft_song_selector": self.view_pixmap_external(scene))
         self.main_box.mm_result_preview.clicked.connect(lambda scene="mm_result": self.view_pixmap_external(scene))
         self.main_box.ft_result_preview.clicked.connect(lambda scene="mm_result": self.view_pixmap_external(scene))
+        self.main_box.mm_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.main_box.ft_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.main_box.mm_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.main_box.ft_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
