@@ -152,21 +152,25 @@ class MainWindow(QMainWindow):
     def jacket_value_edit_trigger(self):
         SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
         self.change_spinbox_offset_range("jacket")
+        SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
     def logo_value_edit_trigger(self):
         SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
         self.change_spinbox_offset_range("logo")
+        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
     def background_value_edit_trigger(self):
         SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
         self.change_spinbox_offset_range("background")
+        SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
         for scene in config.scenes_to_draw:
             self.draw_image_grid(scene)
     def thumbnail_value_edit_trigger(self):
         SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
         self.change_spinbox_offset_range("thumbnail")
+        SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
         self.draw_image_grid("mm_song_selector")
 
     def reload_images(self):
