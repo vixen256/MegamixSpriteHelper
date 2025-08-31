@@ -5,7 +5,7 @@ from time import sleep
 import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow
-from PIL import Image
+from PIL import Image,ImageShow
 
 from copykitten import copy_image
 from filedialpy import openFile
@@ -121,6 +121,11 @@ class MainWindow(QMainWindow):
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
+        #Allow previews to be opened in external viewer
+        self.main_box.mm_song_selector_preview.clicked.connect(lambda scene="mm_song_selector" : self.view_pixmap_external(scene))
+        self.main_box.ft_song_selector_preview.clicked.connect(lambda scene="ft_song_selector": self.view_pixmap_external(scene))
+        self.main_box.mm_result_preview.clicked.connect(lambda scene="mm_result": self.view_pixmap_external(scene))
+        self.main_box.ft_result_preview.clicked.connect(lambda scene="mm_result": self.view_pixmap_external(scene))
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
@@ -137,6 +142,21 @@ class MainWindow(QMainWindow):
         new_height = int(new_width / 2)
         size = QSize(new_width,new_height)
         self.resize(size)
+
+    @Slot()
+    def view_pixmap_external(self,scene):
+        #TODO make it not re-render scene
+        new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
+        match (scene):
+            case "mm_song_selector":
+                ImageShow.show(SceneComposer.compose_scene("mm_song_selector",new_classics_state))
+            case "ft_song_selector":
+                ImageShow.show(SceneComposer.compose_scene("ft_song_selector", new_classics_state))
+            case "mm_result":
+                ImageShow.show(SceneComposer.compose_scene("mm_result", new_classics_state))
+            case "ft_result":
+                ImageShow.show(SceneComposer.compose_scene("ft_result", new_classics_state))
+
 
     def draw_image_grid(self,ui_scene):
         new_classics_state = self.main_box.new_classics_checkbox.isChecked()

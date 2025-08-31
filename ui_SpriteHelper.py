@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcWrFQAm.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarcXGDGgC.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -20,6 +20,8 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplicati
     QLabel, QLayout, QMainWindow, QPushButton,
     QScrollArea, QSizePolicy, QSpacerItem, QSpinBox,
     QVBoxLayout, QWidget)
+
+from widgets import QLabel_clickable
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -71,7 +73,7 @@ class Ui_MainWindow(object):
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
-        self.ft_song_selector_preview = QLabel(self.grid)
+        self.ft_song_selector_preview = QLabel_clickable(self.grid)
         self.ft_song_selector_preview.setObjectName(u"ft_song_selector_preview")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy2.setHorizontalStretch(1)
@@ -86,7 +88,7 @@ class Ui_MainWindow(object):
 
         self.image_grid.addWidget(self.ft_song_selector_preview, 0, 1, 1, 1)
 
-        self.mm_result_preview = QLabel(self.grid)
+        self.mm_result_preview = QLabel_clickable(self.grid)
         self.mm_result_preview.setObjectName(u"mm_result_preview")
         sizePolicy2.setHeightForWidth(self.mm_result_preview.sizePolicy().hasHeightForWidth())
         self.mm_result_preview.setSizePolicy(sizePolicy2)
@@ -98,7 +100,7 @@ class Ui_MainWindow(object):
 
         self.image_grid.addWidget(self.mm_result_preview, 1, 0, 1, 1)
 
-        self.mm_song_selector_preview = QLabel(self.grid)
+        self.mm_song_selector_preview = QLabel_clickable(self.grid)
         self.mm_song_selector_preview.setObjectName(u"mm_song_selector_preview")
         sizePolicy2.setHeightForWidth(self.mm_song_selector_preview.sizePolicy().hasHeightForWidth())
         self.mm_song_selector_preview.setSizePolicy(sizePolicy2)
@@ -110,7 +112,7 @@ class Ui_MainWindow(object):
 
         self.image_grid.addWidget(self.mm_song_selector_preview, 0, 0, 1, 1)
 
-        self.ft_result_preview = QLabel(self.grid)
+        self.ft_result_preview = QLabel_clickable(self.grid)
         self.ft_result_preview.setObjectName(u"ft_result_preview")
         sizePolicy2.setHeightForWidth(self.ft_result_preview.sizePolicy().hasHeightForWidth())
         self.ft_result_preview.setSizePolicy(sizePolicy2)
