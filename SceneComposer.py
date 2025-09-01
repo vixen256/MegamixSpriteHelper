@@ -1,9 +1,14 @@
 from pathlib import Path, PurePath
 
 from PySide6.QtCore import Qt
-
-from PIL import Image, ImageOps, ImageQt
+from enum import Enum
+from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
+
+class ThumbnailCheck(Enum):
+    FULLY_OPAQUE = [15293.325646817684]
+    SPRITE_HELPER_EXPORTED = [15409.511583194137]
+    SPRITE_HELPER_EXPORTED_OLD = [15403.198932036757]
 
 
 def texture_filtering_fix(image, opacity):
@@ -16,7 +21,6 @@ def texture_filtering_fix(image, opacity):
     t_edge = Image.merge(image.mode, (r, g, b, a))
     t_edge.alpha_composite(image, (1, 1))
     return t_edge
-
 
 class Sprite:
     def __init__(self,sprite_type,image_location):
@@ -133,6 +137,7 @@ class JacketSprite(Sprite):
             self.jacket = Image.new('RGBA', (500, 500))
             self.jacket_image = ImageOps.scale(cropped_jacket.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
             self.jacket.alpha_composite(self.jacket_image, (horizontal_offset, vertical_offset))
+            self.jacket_test = self.jacket
             self.jacket = texture_filtering_fix(self.jacket, 102)
 
 class LogoSprite(Sprite):
@@ -205,13 +210,14 @@ class ThumbnailSprite(Sprite):
             print(f"Thumbnail Size = {self.thumbnail_image.size}")
             self.thumbnail = Image.new('RGBA', (128, 64))
             self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
-            # self.thumbnail = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) # This makes edges darker than intended but allows for other shapes
-            self.thumbnail.putalpha(mask)  # This only allows exact shape of thumb but doesn't discolor edges
-
+            self.thumbnail_test = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) #This doesn't fill in transparent area with black. Used only to get info what pixels are filled in.
+            self.thumbnail.putalpha(mask) #Used for final image, forces exact same transparency as mask.
 
 class SceneComposer:
     def __init__(self):
         self.script_directory = Path.cwd()
+
+
 
         #Create objects storing information about images
         self.Background = BackgroundSprite("Background",self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')
@@ -364,3 +370,27 @@ class SceneComposer:
                     (self.scaled_logo,self.ft_result_logo_anchor_point),
                     (self.top_layer,(0,0))
                 )
+
+    def check_sprite(self,sprite):
+        match sprite:
+            case "Jacket":
+                if ImageStat.Stat(self.Jacket.jacket_test).extrema[3] == (255,255):
+                    print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
+                    return True
+                else:
+                    print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
+                    return False
+            case "Background":
+                if ImageStat.Stat(self.Background.scaled_background).extrema[3] == (255,255):
+                    return True
+                else:
+                    return False
+            case "Thumbnail":
+                thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
+                print(thumbnail_area_covered)
+                if thumbnail_area_covered == ThumbnailCheck.FULLY_OPAQUE.value or thumbnail_area_covered == ThumbnailCheck.SPRITE_HELPER_EXPORTED.value or thumbnail_area_covered == ThumbnailCheck.SPRITE_HELPER_EXPORTED_OLD.value :
+                    return True
+                else:
+                    return False
+
+
