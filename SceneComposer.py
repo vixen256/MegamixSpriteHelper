@@ -1,7 +1,7 @@
 from pathlib import Path, PurePath
 
 from PySide6.QtCore import Qt
-from enum import Enum
+from enum import Enum, auto
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
 
@@ -9,6 +9,23 @@ class ThumbnailCheck(Enum):
     FULLY_OPAQUE = [15293.325646817684]
     SPRITE_HELPER_EXPORTED = [15409.511583194137]
     SPRITE_HELPER_EXPORTED_OLD = [15403.198932036757]
+
+class State(Enum):
+    FALLBACK = auto()
+    IMAGE_TOO_SMALL = auto()
+    UPDATED = auto()
+
+class SpriteType(Enum):
+    Jacket = auto()
+    Background = auto()
+    Logo = auto()
+    Thumbnail = auto()
+
+class Scene(Enum):
+    MEGAMIX_SONG_SELECT = auto()
+    MEGAMIX_RESULT = auto()
+    FUTURE_TONE_SONG_SELECT = auto()
+    FUTURE_TONE_RESULT = auto()
 
 
 def texture_filtering_fix(image, opacity):
@@ -50,13 +67,13 @@ class BackgroundSprite(Sprite):
                         self.size = dummy_image.size
 
                         state = {
-                            "Outcome": "Fallback"
+                            "Outcome": State.FALLBACK
                         }
                         return state
                 else:
 
                     state = {
-                        "Outcome": "Image too small",
+                        "Outcome": State.IMAGE_TOO_SMALL,
                         "Window Title": f"{self.type} image is too small",
                         "Description": f"{self.type} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
                     }
@@ -67,7 +84,7 @@ class BackgroundSprite(Sprite):
                 self.size = new_image.size
 
                 state = {
-                    "Outcome": "Updated"
+                    "Outcome": State.UPDATED
                 }
                 return state
 
@@ -97,13 +114,13 @@ class JacketSprite(Sprite):
                     self.size = dummy_image.size
 
                     state = {
-                        "Outcome": "Fallback"
+                        "Outcome": State.FALLBACK
                     }
                     return state
             else:
 
                 state = {
-                    "Outcome": "Image too small",
+                    "Outcome": State.IMAGE_TOO_SMALL,
                     "Window Title": f"{self.type} image is too small",
                     "Description": f"{self.type} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
                 }
@@ -117,7 +134,7 @@ class JacketSprite(Sprite):
                 zoom = 500 / new_real_width
 
                 state = {
-                    "Outcome": "Updated",
+                    "Outcome": State.UPDATED,
                     "Jacket Force Fit": True,
                     "Zoom": zoom
                 }
@@ -125,7 +142,7 @@ class JacketSprite(Sprite):
             else:
 
                 state = {
-                    "Outcome": "Updated",
+                    "Outcome": State.UPDATED,
                     "Jacket Force Fit": False
                 }
                 return state
@@ -150,7 +167,7 @@ class LogoSprite(Sprite):
             self.size = new_image.size
 
             state = {
-                "Outcome": "Updated"
+                "Outcome": State.UPDATED
             }
             return state
 
@@ -181,13 +198,13 @@ class ThumbnailSprite(Sprite):
                         self.size = dummy_image.size
 
                         state = {
-                            "Outcome": "Fallback"
+                            "Outcome": State.FALLBACK
                         }
                         return state
                 else:
 
                     state = {
-                        "Outcome": "Image too small",
+                        "Outcome": State.IMAGE_TOO_SMALL,
                         "Window Title": f"{self.type} image is too small",
                         "Description": f"{self.type} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
                     }
@@ -198,7 +215,7 @@ class ThumbnailSprite(Sprite):
                 self.size = new_image.size
 
                 state = {
-                    "Outcome": "Updated"
+                    "Outcome": State.UPDATED
                 }
                 return state
 
@@ -207,7 +224,6 @@ class ThumbnailSprite(Sprite):
         with Image.open(self.location).convert('RGBA') as thumbnail, Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
             cropped_thumbnail = Image.Image.crop(thumbnail, Image.Image.getbbox(thumbnail))
             self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
-            print(f"Thumbnail Size = {self.thumbnail_image.size}")
             self.thumbnail = Image.new('RGBA', (128, 64))
             self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
             self.thumbnail_test = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) #This doesn't fill in transparent area with black. Used only to get info what pixels are filled in.
@@ -220,10 +236,10 @@ class SceneComposer:
 
 
         #Create objects storing information about images
-        self.Background = BackgroundSprite("Background",self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')
-        self.Jacket = JacketSprite("Jacket", self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')
-        self.Logo = LogoSprite("Logo", self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png')
-        self.Thumbnail = ThumbnailSprite("Thumbnail", self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')
+        self.Background = BackgroundSprite(SpriteType.Background,self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')
+        self.Jacket = JacketSprite(SpriteType.Jacket, self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')
+        self.Logo = LogoSprite(SpriteType.Logo, self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png')
+        self.Thumbnail = ThumbnailSprite(SpriteType.Thumbnail, self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')
 
     def compose_scene(self,ui_screen,new_classics_state):
             self.prepare_scene(ui_screen,new_classics_state)
@@ -235,7 +251,7 @@ class SceneComposer:
 
     def prepare_scene(self,ui_screen,new_classics_state):
         match ui_screen:
-            case "mm_song_selector":
+            case Scene.MEGAMIX_SONG_SELECT:
                 # Anchor points and tweaks
                 self.mm_song_selector_jacket_anchor_point = (1284, 130)
                 mm_song_selector_jacket_angle = -7
@@ -267,7 +283,7 @@ class SceneComposer:
                     self.top_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Top Layer - New Classics.png').convert('RGBA')
                 else:
                     self.top_layer = Image.open(self.script_directory / 'Images/MM UI - Song Select/Top Layer.png').convert('RGBA')
-            case "mm_result":
+            case Scene.MEGAMIX_RESULT:
                 # Anchor points and tweaks
                 self.mm_result_jacket_anchor_point = (108, 387)
                 mm_result_jacket_angle = -7
@@ -287,7 +303,7 @@ class SceneComposer:
                 else:
                     self.top_layer = Image.open((self.script_directory / 'Images/MM UI - Results Screen/Top Layer.png'))
 
-            case "ft_song_selector":
+            case Scene.FUTURE_TONE_SONG_SELECT:
                 # Anchor points and tweaks
                 self.ft_song_selector_jacket_anchor_point = (1331, 205)
                 ft_song_selector_jacket_scale = 0.97
@@ -307,7 +323,7 @@ class SceneComposer:
                 else:
                     self.top_layer = Image.open((self.script_directory / 'Images/FT UI - Song Select/Top Layer.png'))
 
-            case "ft_result":
+            case Scene.FUTURE_TONE_RESULT:
                 # Anchor points and tweaks
                 self.ft_result_jacket_anchor_point = (164, 303)
                 ft_result_jacket_angle = 5
@@ -326,7 +342,7 @@ class SceneComposer:
 
     def grab_layers(self,ui_screen):
         match ui_screen:
-            case "mm_song_selector":
+            case Scene.MEGAMIX_SONG_SELECT:
                 return (
                     (self.backdrop,(0,0)),
                     (self.Background.scaled_background,(0,0)),
@@ -344,7 +360,7 @@ class SceneComposer:
                     (self.resized_thumbnail,self.mm_song_selector_thumbnail_7_anchor_point),
                     (self.top_layer,(0,0))
                 )
-            case "mm_result":
+            case Scene.MEGAMIX_RESULT:
                 return (
                     (self.backdrop,(0,0)),
                     (self.Background.scaled_background,(0,0)),
@@ -353,7 +369,7 @@ class SceneComposer:
                     (self.scaled_logo,self.mm_result_logo_anchor_point),
                     (self.top_layer,(0,0))
                 )
-            case "ft_song_selector":
+            case Scene.FUTURE_TONE_SONG_SELECT:
                 return (
                     (self.backdrop,(0,0)),
                     (self.Background.scaled_background,(0,0)),
@@ -362,7 +378,7 @@ class SceneComposer:
                     (self.scaled_logo,self.ft_song_selector_logo_anchor_point),
                     (self.top_layer,(0,0))
                 )
-            case "ft_result":
+            case Scene.FUTURE_TONE_RESULT:
                 return (
                     (self.backdrop,(0,0)),
                     (self.middle_layer,(0,0)),
@@ -373,19 +389,19 @@ class SceneComposer:
 
     def check_sprite(self,sprite):
         match sprite:
-            case "Jacket":
+            case SpriteType.Jacket:
                 if ImageStat.Stat(self.Jacket.jacket_test).extrema[3] == (255,255):
                     print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return True
                 else:
                     print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return False
-            case "Background":
+            case SpriteType.Background:
                 if ImageStat.Stat(self.Background.scaled_background).extrema[3] == (255,255):
                     return True
                 else:
                     return False
-            case "Thumbnail":
+            case SpriteType.Thumbnail:
                 thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
                 print(thumbnail_area_covered)
                 if thumbnail_area_covered in ThumbnailCheck:
