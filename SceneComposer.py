@@ -388,7 +388,7 @@ class SceneComposer:
             case "Thumbnail":
                 thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
                 print(thumbnail_area_covered)
-                if thumbnail_area_covered == ThumbnailCheck.FULLY_OPAQUE.value or thumbnail_area_covered == ThumbnailCheck.SPRITE_HELPER_EXPORTED.value or thumbnail_area_covered == ThumbnailCheck.SPRITE_HELPER_EXPORTED_OLD.value :
+                if thumbnail_area_covered in ThumbnailCheck:
                     return True
                 else:
                     return False
