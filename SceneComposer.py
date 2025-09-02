@@ -16,10 +16,10 @@ class State(Enum):
     UPDATED = auto()
 
 class SpriteType(Enum):
-    Jacket = auto()
-    Background = auto()
-    Logo = auto()
-    Thumbnail = auto()
+    JACKET = auto()
+    BACKGROUND = auto()
+    THUMBNAIL = auto()
+    LOGO = auto()
 
 class Scene(Enum):
     MEGAMIX_SONG_SELECT = auto()
@@ -74,8 +74,8 @@ class BackgroundSprite(Sprite):
 
                     state = {
                         "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{self.type} image is too small",
-                        "Description": f"{self.type} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
+                        "Window Title": f"{(self.type).name} image is too small",
+                        "Description": f"{(self.type).name} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
                     }
                     return state
             else:
@@ -121,8 +121,8 @@ class JacketSprite(Sprite):
 
                 state = {
                     "Outcome": State.IMAGE_TOO_SMALL,
-                    "Window Title": f"{self.type} image is too small",
-                    "Description": f"{self.type} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
+                    "Window Title": f"{(self.type).name} image is too small",
+                    "Description": f"{(self.type).name} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
                 }
                 return state
         else:
@@ -205,8 +205,8 @@ class ThumbnailSprite(Sprite):
 
                     state = {
                         "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{self.type} image is too small",
-                        "Description": f"{self.type} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
+                        "Window Title": f"{(self.type).name} image is too small",
+                        "Description": f"{(self.type).name} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
                     }
                     return state
             else:
@@ -236,10 +236,10 @@ class SceneComposer:
 
 
         #Create objects storing information about images
-        self.Background = BackgroundSprite(SpriteType.Background,self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')
-        self.Jacket = JacketSprite(SpriteType.Jacket, self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')
-        self.Logo = LogoSprite(SpriteType.Logo, self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png')
-        self.Thumbnail = ThumbnailSprite(SpriteType.Thumbnail, self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')
+        self.Background = BackgroundSprite(SpriteType.BACKGROUND,self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')
+        self.Jacket = JacketSprite(SpriteType.JACKET, self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')
+        self.Logo = LogoSprite(SpriteType.LOGO, self.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png')
+        self.Thumbnail = ThumbnailSprite(SpriteType.THUMBNAIL, self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')
 
     def compose_scene(self,ui_screen,new_classics_state):
             self.prepare_scene(ui_screen,new_classics_state)
@@ -389,19 +389,19 @@ class SceneComposer:
 
     def check_sprite(self,sprite):
         match sprite:
-            case SpriteType.Jacket:
+            case SpriteType.JACKET:
                 if ImageStat.Stat(self.Jacket.jacket_test).extrema[3] == (255,255):
                     print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return True
                 else:
                     print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return False
-            case SpriteType.Background:
+            case SpriteType.BACKGROUND:
                 if ImageStat.Stat(self.Background.scaled_background).extrema[3] == (255,255):
                     return True
                 else:
                     return False
-            case SpriteType.Thumbnail:
+            case SpriteType.THUMBNAIL:
                 thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
                 print(thumbnail_area_covered)
                 if thumbnail_area_covered in ThumbnailCheck:

@@ -13,9 +13,13 @@ from filedialpy import openFile
 from decimal import Decimal, ROUND_HALF_UP
 
 from ui_SpriteHelper import Ui_MainWindow
-from SceneComposer import SceneComposer, ThumbnailCheck, State, SpriteType, Scene
+from SceneComposer import SceneComposer, State, SpriteType, Scene
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
+class OutputTarget(Enum):
+    CLIPBOARD = auto()
+    IMAGE_VIEWER = auto()
+    IMAGE = auto()
 
 class Configurable:
     def __init__(self):
@@ -81,15 +85,21 @@ def show_message_box(title,contents):
     message_box.exec()
 
 @Slot()
-def copy_to_clipboard_button_callback():
+def draw_combined_preview_to(target):
     new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
     composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
     composite.alpha_composite(SceneComposer.compose_scene(Scene.MEGAMIX_SONG_SELECT,new_classics_state), (0, 0))
     composite.alpha_composite(SceneComposer.compose_scene(Scene.MEGAMIX_RESULT,new_classics_state), (0, 1080))
     composite.alpha_composite(SceneComposer.compose_scene(Scene.FUTURE_TONE_SONG_SELECT,new_classics_state), (1920, 0))
     composite.alpha_composite(SceneComposer.compose_scene(Scene.FUTURE_TONE_RESULT,new_classics_state), (1920, 1080))
-    pixels = composite.tobytes()
-    copy_image(pixels, composite.width, composite.height)
+
+    match target:
+        case OutputTarget.CLIPBOARD:
+            pixels = composite.tobytes()
+            copy_image(pixels, composite.width, composite.height)
+
+        case OutputTarget.IMAGE_VIEWER:
+            ImageShow.show(composite)
 
 class MainWindow(QMainWindow):
 
@@ -115,7 +125,8 @@ class MainWindow(QMainWindow):
         self.main_box.load_thumbnail_button.clicked.connect(self.load_thumbnail_button_callback)
         self.main_box.load_logo_button.clicked.connect(self.load_logo_button_callback)
         self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
-        self.main_box.copy_to_clipboard_button.clicked.connect(copy_to_clipboard_button_callback)
+        self.main_box.copy_to_clipboard_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.CLIPBOARD))
+        self.main_box.open_preview_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.IMAGE_VIEWER))
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
@@ -123,19 +134,22 @@ class MainWindow(QMainWindow):
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
         #Allow previews to be opened in external viewer
-        self.main_box.mm_song_selector_preview.clicked.connect(lambda scene=Scene.MEGAMIX_SONG_SELECT : self.view_pixmap_external(scene))
-        self.main_box.ft_song_selector_preview.clicked.connect(lambda scene=Scene.FUTURE_TONE_SONG_SELECT: self.view_pixmap_external(scene))
-        self.main_box.mm_result_preview.clicked.connect(lambda scene=Scene.MEGAMIX_RESULT: self.view_pixmap_external(scene))
-        self.main_box.ft_result_preview.clicked.connect(lambda scene=Scene.FUTURE_TONE_RESULT: self.view_pixmap_external(scene))
+        self.main_box.mm_song_selector_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.MEGAMIX_SONG_SELECT))
+        self.main_box.ft_song_selector_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.FUTURE_TONE_SONG_SELECT))
+        self.main_box.mm_result_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.MEGAMIX_RESULT))
+        self.main_box.ft_result_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.FUTURE_TONE_RESULT))
         self.main_box.mm_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
         self.main_box.ft_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
         self.main_box.mm_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
         self.main_box.ft_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
 
+        self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
+
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
         self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
 
+        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
         self.draw_image_grid()
 
     def resizeEvent(self,event):
@@ -146,6 +160,9 @@ class MainWindow(QMainWindow):
         new_height = int(new_width / 2)
         size = QSize(new_width,new_height)
         self.resize(size)
+    @Slot()
+    def current_sprite_tab_switcher(self,tab):
+        self.main_box.sprite_controls.setCurrentIndex(tab)
 
     @Slot()
     def view_pixmap_external(self,scene):
@@ -176,8 +193,8 @@ class MainWindow(QMainWindow):
         for scene in config.scenes_to_draw:
             self.draw_scene(scene)
 
-        Jacket_state = SceneComposer.check_sprite(SpriteType.Jacket)
-        Background_state = SceneComposer.check_sprite(SpriteType.Background)
+        Jacket_state = SceneComposer.check_sprite(SpriteType.JACKET)
+        Background_state = SceneComposer.check_sprite(SpriteType.BACKGROUND)
 
         if Jacket_state == False or Background_state == False:
             failed_check = []
@@ -194,13 +211,17 @@ class MainWindow(QMainWindow):
 
             self.main_box.export_background_jacket_button.setEnabled(False)
             self.main_box.export_background_jacket_button.setToolTip(f"{' and '.join(failed_check)} area isn't fully filled by opaque image!")
+            self.main_box.farc_export_button.setEnabled(False)
+            self.main_box.farc_export_button.setToolTip(f"{' and '.join(failed_check)} area isn't fully filled by opaque image!")
         else:
             print("Jacket is fine")
             print("Background is fine")
             self.main_box.export_background_jacket_button.setEnabled(True)
             self.main_box.export_background_jacket_button.setToolTip("")
+            self.main_box.farc_export_button.setEnabled(True)
+            self.main_box.farc_export_button.setToolTip("")
 
-        Thumbnail_state = SceneComposer.check_sprite(SpriteType.Thumbnail)
+        Thumbnail_state = SceneComposer.check_sprite(SpriteType.THUMBNAIL)
 
         if Thumbnail_state == False:
             print("Thumbnail is fucked up")
@@ -213,22 +234,22 @@ class MainWindow(QMainWindow):
 
     def jacket_value_edit_trigger(self):
         SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.Jacket)
+        self.change_spinbox_offset_range(SpriteType.JACKET)
         SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
         self.draw_image_grid()
     def logo_value_edit_trigger(self):
         SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.Logo)
+        self.change_spinbox_offset_range(SpriteType.LOGO)
         SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
         self.draw_image_grid()
     def background_value_edit_trigger(self):
         SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.Background)
+        self.change_spinbox_offset_range(SpriteType.BACKGROUND)
         SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
         self.draw_image_grid()
     def thumbnail_value_edit_trigger(self):
         SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.Background)
+        self.change_spinbox_offset_range(SpriteType.THUMBNAIL)
         SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
         self.draw_image_grid()
 
@@ -334,7 +355,7 @@ class MainWindow(QMainWindow):
 
     def change_spinbox_offset_range(self,spinbox):
         match spinbox:
-            case SpriteType.Jacket:
+            case SpriteType.JACKET:
                 minimum_horizontal = (SceneComposer.Jacket.jacket_image.width * -1) + 500
                 minimum_vertical = (SceneComposer.Jacket.jacket_image.height * -1) + 500
                 self.main_box.jacket_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
@@ -349,7 +370,7 @@ class MainWindow(QMainWindow):
                     self.main_box.jacket_vertical_offset_spinbox.setEnabled(False)
                 else:
                     self.main_box.jacket_vertical_offset_spinbox.setEnabled(True)
-            case SpriteType.Background:
+            case SpriteType.BACKGROUND:
                 minimum_horizontal = (SceneComposer.Background.background_image.width * -1) + 1280
                 minimum_vertical = (SceneComposer.Background.background_image.height * -1) + 720
                 self.main_box.background_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
@@ -364,7 +385,7 @@ class MainWindow(QMainWindow):
                     self.main_box.background_vertical_offset_spinbox.setEnabled(False)
                 else:
                     self.main_box.background_vertical_offset_spinbox.setEnabled(True)
-            case SpriteType.Logo:
+            case SpriteType.LOGO:
                 with SceneComposer.Logo.logo_image as logo:
                     left, upper, right , lower = Image.Image.getbbox(logo)
 
@@ -373,7 +394,7 @@ class MainWindow(QMainWindow):
 
                     self.main_box.logo_horizontal_offset_spinbox.setRange(-left,logo_max_width_offset)
                     self.main_box.logo_vertical_offset_spinbox.setRange(-upper,logo_max_height_offset)
-            case SpriteType.Thumbnail:
+            case SpriteType.THUMBNAIL:
                 minimum_horizontal = (SceneComposer.Thumbnail.thumbnail_image.width * -1) + 100
                 minimum_vertical = (SceneComposer.Thumbnail.thumbnail_image.height * -1) + 61
                 self.main_box.thumbnail_horizontal_offset_spinbox.setRange(minimum_horizontal ,0)
@@ -391,7 +412,7 @@ class MainWindow(QMainWindow):
 
     def change_spinbox_zoom_range(self,spinbox,image_width,image_height):
         match spinbox:
-            case SpriteType.Jacket:
+            case SpriteType.JACKET:
                 width_factor =  Decimal(500 / image_width)
                 height_factor = Decimal(500 / image_height)
                 if width_factor > height_factor:
@@ -407,7 +428,7 @@ class MainWindow(QMainWindow):
                     self.main_box.jacket_zoom_spinbox.setEnabled(False)
                     self.main_box.jacket_zoom_spinbox.setRange(1.00, 1.00)
 
-            case SpriteType.Background:
+            case SpriteType.BACKGROUND:
                 width_factor = Decimal(1280 / image_width)
                 height_factor = Decimal(720 / image_height)
                 if width_factor > height_factor:
@@ -422,7 +443,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.main_box.background_zoom_spinbox.setEnabled(False)
                     self.main_box.background_zoom_spinbox.setRange(1.00, 1.00)
-            case SpriteType.Thumbnail:
+            case SpriteType.THUMBNAIL:
                 width_factor = Decimal(100 / image_width)
                 height_factor = Decimal(61 / image_height)
                 print(f"Width Factor= {width_factor}")
@@ -530,6 +551,7 @@ class MainWindow(QMainWindow):
     def has_logo_checkbox_callback(self):
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             #Make options to tweak logo visible
+            self.main_box.current_sprite_combobox.addItem("Logo")
             self.main_box.logo_horizontal_offset_label.setEnabled(True)
             self.main_box.logo_horizontal_offset_spinbox.setEnabled(True)
             self.main_box.logo_vertical_offset_label.setEnabled(True)
@@ -547,6 +569,7 @@ class MainWindow(QMainWindow):
                 self.draw_scene(scene)
         else:
             # Make options to tweak logo invisible
+            self.main_box.current_sprite_combobox.removeItem(3)
             self.main_box.logo_horizontal_offset_label.setDisabled(True)
             self.main_box.logo_horizontal_offset_spinbox.setDisabled(True)
             self.main_box.logo_vertical_offset_label.setDisabled(True)
@@ -580,11 +603,11 @@ class MainWindow(QMainWindow):
 
                 config.last_used_directory = Path(open_background).parent
                 self.watcher.removePath(str(SceneComposer.Background.location))
-                self.change_spinbox_zoom_range(SpriteType.Background, real_width, real_height)
+                self.change_spinbox_zoom_range(SpriteType.BACKGROUND, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Background.location))
                 self.background_spinbox_values_reset()
                 SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.Background)
+                self.change_spinbox_offset_range(SpriteType.BACKGROUND)
 
                 self.draw_image_grid()
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
@@ -610,7 +633,7 @@ class MainWindow(QMainWindow):
 
                 config.last_used_directory = Path(open_jacket).parent
                 self.watcher.removePath(str(SceneComposer.Jacket.location))
-                self.change_spinbox_zoom_range(SpriteType.Jacket, real_width, real_height)
+                self.change_spinbox_zoom_range(SpriteType.JACKET, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Jacket.location))
                 self.jacket_spinbox_values_reset()
 
@@ -620,7 +643,7 @@ class MainWindow(QMainWindow):
                     print(f"Set jacket's zoom to {result["Zoom"]}.")
 
                 SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.Jacket)
+                self.change_spinbox_offset_range(SpriteType.JACKET)
                 self.draw_image_grid()
 
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
@@ -645,7 +668,7 @@ class MainWindow(QMainWindow):
                 self.watcher.addPath(str(SceneComposer.Logo.location))
                 self.logo_spinbox_values_reset()
                 SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.Logo)
+                self.change_spinbox_offset_range(SpriteType.LOGO)
                 self.draw_image_grid()
     @Slot()
     def load_thumbnail_button_callback(self):
@@ -665,11 +688,11 @@ class MainWindow(QMainWindow):
                 config.last_used_directory = Path(open_thumbnail).parent
                 self.watcher.removePath(str(SceneComposer.Thumbnail.location))
                 print(f"W= {real_width} H= {real_height}")
-                self.change_spinbox_zoom_range(SpriteType.Thumbnail, real_width, real_height)
+                self.change_spinbox_zoom_range(SpriteType.THUMBNAIL, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Thumbnail.location))
                 self.thumbnail_spinbox_values_reset()
                 SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.Thumbnail)
+                self.change_spinbox_offset_range(SpriteType.THUMBNAIL)
                 self.draw_image_grid()
 
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
