@@ -1633,7 +1633,7 @@
            <enum>QTabWidget::TabPosition::North</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="elideMode">
            <enum>Qt::TextElideMode::ElideNone</enum>
@@ -1790,7 +1790,7 @@
              <item>
               <widget class="QPushButton" name="open_preview_button">
                <property name="text">
-                <string>Open preview in image viewer</string>
+                <string>Open preview externally</string>
                </property>
               </widget>
              </item>

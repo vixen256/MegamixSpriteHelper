@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcKKtRtb.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarczjeryq.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -796,7 +796,7 @@ class Ui_MainWindow(object):
 
         self.current_sprite_combobox.setCurrentIndex(2)
         self.sprite_controls.setCurrentIndex(3)
-        self.export_controls.setCurrentIndex(0)
+        self.export_controls.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -847,7 +847,7 @@ class Ui_MainWindow(object):
         self.farc_create_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Create Thumbnail Farc", None))
         self.generate_spr_db_button.setText(QCoreApplication.translate("MainWindow", u"Generate Sprite Database", None))
         self.export_controls.setTabText(self.export_controls.indexOf(self.to_farc_tab), QCoreApplication.translate("MainWindow", u"To Farc", None))
-        self.open_preview_button.setText(QCoreApplication.translate("MainWindow", u"Open preview in image viewer", None))
+        self.open_preview_button.setText(QCoreApplication.translate("MainWindow", u"Open preview externally", None))
         self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy preview to clipboard", None))
         self.export_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Export Thumbnail", None))
         self.export_logo_button.setText(QCoreApplication.translate("MainWindow", u"Export Logo", None))
