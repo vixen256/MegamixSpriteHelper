@@ -761,11 +761,14 @@ class MainWindow(QMainWindow):
                 for farc_file in farc_list:
                     if farc_file.name == "spr_sel_pvtmb.farc":
                         has_old_tmb_farc = True
-                    elif farc_file.name[:11] == "spr_sel_tmb":
+                    elif farc_file.name[:14] == "spr_sel_pvtmb_":
                         has_new_tmb_farc = True
                 if has_new_tmb_farc == True:
                     if has_old_tmb_farc == True:
                         farc_list.remove(Path(spr_path+"/spr_sel_pvtmb.farc"))
+                        show_message_box("Warning","You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
+                                                   "\n"
+                                                   "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to avoid issues.")
                         print("Separate thumbnail farc files found , not including old combined thumbnail farc in generated database!")
                     else:
                         print("Only separate thumbnail farc files found.")
