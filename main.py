@@ -482,6 +482,7 @@ class MainWindow(QMainWindow):
             print("Logo image was changed")
             result = SceneComposer.Logo.update_sprite(path)
             if result["Outcome"] == State.UPDATED:
+                self.fit_logo(path)
                 keep_watching_path = True
 
         if path == SceneComposer.Background.location:
