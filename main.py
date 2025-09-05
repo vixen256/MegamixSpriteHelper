@@ -25,6 +25,27 @@ class OutputTarget(Enum):
     IMAGE_VIEWER = auto()
     IMAGE = auto()
 
+class Configurable:
+    def __init__(self):
+        self.script_directory = Path.cwd()
+        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"] #TODO get supported file types in smarter way
+        self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
+        self.last_used_directory = self.script_directory
+
+class ThumbnailIDFieldWidget(QWidget):
+    additionalRequested = Signal(QWidget)
+    removeRequested = Signal(QWidget)
+
+    def __init__(self,parent=None):
+
+        super(ThumbnailIDFieldWidget, self).__init__(parent)
+        self.type = "Base" #Base cannot be removed, spawns with button to add more id fields
+        #self.type = "Additional" #Additional can be removed, spawns with button to remove itself.
+
+        self.value = None #This should contain Song ID , needs to check if it's under ID limit.
+
+
+
 class ThumbnailWidget(QWidget):
     removeRequested = Signal(QWidget)
 
@@ -35,6 +56,7 @@ class ThumbnailWidget(QWidget):
         self.ui = Ui_ThumbnailWidget()
         self.ui.setupUi(self)
         self.ui.remove_thumbnail_button.clicked.connect(self.remove_thumb)
+        #self.image_path = None
 
     def remove_thumb(self):
 
@@ -46,16 +68,18 @@ class ThumbnailWindow(QWidget):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
+        self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.thumbnail_widgets = []
-        self.add_thumbnail(1,1)
-        self.add_thumbnail(1, 2)
+        #TODO Thumbnail image should be re-usable for multiple ID's to save space
 
     def add_thumbnail(self,row, column, image_path=None):
         thumbnail_widget = ThumbnailWidget()
+        #todo needs to check if image is already loaded and skip it
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
 
         if image_path:
+           # thumbnail_widget.image_path = image_path
             pixmap = QPixmap(image_path)
             thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
             thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
@@ -64,22 +88,54 @@ class ThumbnailWindow(QWidget):
         self.thumbnail_widgets.append(thumbnail_widget)
         return thumbnail_widget
 
+    def space_out_thumbnails(self):
+        #TODO
+        #Activates each time thumbnail is added, Window size changed, thumbnail removed
+        #Using widgets size calculates amount of columns it can fit
+        #Loops trough widget list and changes it's location based on calculations
+
+        #TODO need to find out how to get info where to place new thumb
+        pass
+    def add_id_field(self):
+        #TODO
+        #Adds text field , button to remove it and extends size of the widget
+        #Should allow for any number of fields
+
+
+    def remove_id_field(self):
+        #TODO
+        #Removes text field , button to remove it and shrinks size of the widget
+
     def remove_thumbnail_widget(self, widget):
         self.main_box.gridLayout.removeWidget(widget)
-
-        if widget in self.thumbnail_widgets:
-            self.thumbnail_widgets.remove(widget)
+        self.thumbnail_widgets.remove(widget)
 
         widget.deleteLater()
 
+    def scan_folder_for_thumbnails(self):
+        if os.name == "nt":
+            selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails")
+        else:
+            selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails", initial_dir=config.last_used_directory)
 
-
-class Configurable:
-    def __init__(self):
-        self.script_directory = Path.cwd()
-        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"] #TODO get supported file types in smarter way
-        self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
-        self.last_used_directory = self.script_directory
+            if selected_folder == "":
+                print("Folder wasn't selected")
+            else:
+                x=0
+                for path in Path(selected_folder).rglob('*.png'):
+                    with Image.open(path) as open_image:
+                        if open_image.size == (128,64):
+                #             if not self.thumbnail_widgets:
+                            self.add_thumbnail(x, 0, path)
+                            x = x + 1
+                #                 for thumb in self.thumbnail_widgets:
+                #                     print(path)
+                #                     print(thumb.image_path)
+                #                     if path in thumb.image_path:
+                #                         print(f"{path} == {thumb.image_path}")
+                #                     else:
+                #                         self.add_thumbnail(x,0,path)
+                #                         x = x+1
 
 
 def texture_filtering_fix(image,opacity):
@@ -139,6 +195,7 @@ def show_message_box(title,contents):
 
 @Slot()
 def draw_combined_preview_to(target):
+    #TODO use pixmap.save to avoid re-rendering the scenes
     new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
     composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
     composite.alpha_composite(SceneComposer.compose_scene(Scene.MEGAMIX_SONG_SELECT,new_classics_state), (0, 0))
@@ -223,7 +280,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def view_pixmap_external(self,scene):
-        #TODO make it not re-render scene
+        #TODO use pixmap.save to not re-render scene
         new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
         match scene:
             case Scene.MEGAMIX_SONG_SELECT:
