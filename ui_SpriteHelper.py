@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarczjeryq.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarctmicpi.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -29,7 +29,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModality.NonModal)
-        MainWindow.resize(1200, 600)
+        MainWindow.resize(1200, 637)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -132,34 +132,33 @@ class Ui_MainWindow(object):
         self.load_buttons_box.setSpacing(5)
         self.load_buttons_box.setObjectName(u"load_buttons_box")
         self.load_buttons_box.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.load_buttons_box_row1 = QHBoxLayout()
-        self.load_buttons_box_row1.setSpacing(5)
-        self.load_buttons_box_row1.setObjectName(u"load_buttons_box_row1")
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.load_background_button = QPushButton(self.grid)
         self.load_background_button.setObjectName(u"load_background_button")
 
-        self.load_buttons_box_row1.addWidget(self.load_background_button)
+        self.horizontalLayout.addWidget(self.load_background_button)
 
         self.load_logo_button = QPushButton(self.grid)
         self.load_logo_button.setObjectName(u"load_logo_button")
 
-        self.load_buttons_box_row1.addWidget(self.load_logo_button)
+        self.horizontalLayout.addWidget(self.load_logo_button)
 
 
-        self.load_buttons_box.addLayout(self.load_buttons_box_row1)
+        self.load_buttons_box.addLayout(self.horizontalLayout)
 
         self.load_buttons_box_row2 = QHBoxLayout()
         self.load_buttons_box_row2.setSpacing(5)
         self.load_buttons_box_row2.setObjectName(u"load_buttons_box_row2")
-        self.load_thumbnail_button = QPushButton(self.grid)
-        self.load_thumbnail_button.setObjectName(u"load_thumbnail_button")
-
-        self.load_buttons_box_row2.addWidget(self.load_thumbnail_button)
-
         self.load_jacket_button = QPushButton(self.grid)
         self.load_jacket_button.setObjectName(u"load_jacket_button")
 
         self.load_buttons_box_row2.addWidget(self.load_jacket_button)
+
+        self.load_thumbnail_button = QPushButton(self.grid)
+        self.load_thumbnail_button.setObjectName(u"load_thumbnail_button")
+
+        self.load_buttons_box_row2.addWidget(self.load_thumbnail_button)
 
 
         self.load_buttons_box.addLayout(self.load_buttons_box_row2)
@@ -213,7 +212,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
         self.image_edit_area_widget_properties = QWidget()
         self.image_edit_area_widget_properties.setObjectName(u"image_edit_area_widget_properties")
-        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 195, 227))
+        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 196, 227))
         sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
@@ -225,26 +224,20 @@ class Ui_MainWindow(object):
         self.image_edit_area_widget_properties.setBaseSize(QSize(0, -31072))
         self.image_edit_area_widget_properties.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
         self.image_edit_area_widget_properties.setAutoFillBackground(True)
-        self.verticalLayoutWidget_3 = QWidget(self.image_edit_area_widget_properties)
-        self.verticalLayoutWidget_3.setObjectName(u"verticalLayoutWidget_3")
-        self.verticalLayoutWidget_3.setGeometry(QRect(0, 0, 329, 2082))
-        self.image_edit_area_layout = QVBoxLayout(self.verticalLayoutWidget_3)
-        self.image_edit_area_layout.setSpacing(6)
-        self.image_edit_area_layout.setObjectName(u"image_edit_area_layout")
-        self.image_edit_area_layout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.image_edit_area_layout.setContentsMargins(0, 0, 0, 0)
-        self.sprite_controls = QStackedWidget(self.verticalLayoutWidget_3)
+        self.verticalLayout = QVBoxLayout(self.image_edit_area_widget_properties)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.sprite_controls = QStackedWidget(self.image_edit_area_widget_properties)
         self.sprite_controls.setObjectName(u"sprite_controls")
+        sizePolicy3.setHeightForWidth(self.sprite_controls.sizePolicy().hasHeightForWidth())
+        self.sprite_controls.setSizePolicy(sizePolicy3)
         self.sprite_controls.setMaximumSize(QSize(16777215, 25000))
         self.jacket_tab = QWidget()
         self.jacket_tab.setObjectName(u"jacket_tab")
-        self.verticalLayoutWidget = QWidget(self.jacket_tab)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayoutWidget.setGeometry(QRect(0, 0, 181, 571))
-        self.jacket_tab_layout = QVBoxLayout(self.verticalLayoutWidget)
-        self.jacket_tab_layout.setObjectName(u"jacket_tab_layout")
-        self.jacket_tab_layout.setContentsMargins(0, 0, 0, 0)
-        self.jacket_horizontal_offset_label = QLabel(self.verticalLayoutWidget)
+        self.verticalLayout_5 = QVBoxLayout(self.jacket_tab)
+        self.verticalLayout_5.setSpacing(0)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
+        self.jacket_horizontal_offset_label = QLabel(self.jacket_tab)
         self.jacket_horizontal_offset_label.setObjectName(u"jacket_horizontal_offset_label")
         sizePolicy3.setHeightForWidth(self.jacket_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.jacket_horizontal_offset_label.setSizePolicy(sizePolicy3)
@@ -256,9 +249,9 @@ class Ui_MainWindow(object):
         font1.setKerning(True)
         self.jacket_horizontal_offset_label.setFont(font1)
 
-        self.jacket_tab_layout.addWidget(self.jacket_horizontal_offset_label)
+        self.verticalLayout_5.addWidget(self.jacket_horizontal_offset_label)
 
-        self.jacket_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget)
+        self.jacket_horizontal_offset_spinbox = QSpinBox(self.jacket_tab)
         self.jacket_horizontal_offset_spinbox.setObjectName(u"jacket_horizontal_offset_spinbox")
         self.jacket_horizontal_offset_spinbox.setEnabled(False)
         sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
@@ -271,18 +264,18 @@ class Ui_MainWindow(object):
         self.jacket_horizontal_offset_spinbox.setMinimum(0)
         self.jacket_horizontal_offset_spinbox.setMaximum(0)
 
-        self.jacket_tab_layout.addWidget(self.jacket_horizontal_offset_spinbox)
+        self.verticalLayout_5.addWidget(self.jacket_horizontal_offset_spinbox)
 
-        self.jacket_vertical_offset_label = QLabel(self.verticalLayoutWidget)
+        self.jacket_vertical_offset_label = QLabel(self.jacket_tab)
         self.jacket_vertical_offset_label.setObjectName(u"jacket_vertical_offset_label")
         sizePolicy3.setHeightForWidth(self.jacket_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.jacket_vertical_offset_label.setSizePolicy(sizePolicy3)
         self.jacket_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.jacket_vertical_offset_label.setFont(font1)
 
-        self.jacket_tab_layout.addWidget(self.jacket_vertical_offset_label)
+        self.verticalLayout_5.addWidget(self.jacket_vertical_offset_label)
 
-        self.jacket_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget)
+        self.jacket_vertical_offset_spinbox = QSpinBox(self.jacket_tab)
         self.jacket_vertical_offset_spinbox.setObjectName(u"jacket_vertical_offset_spinbox")
         self.jacket_vertical_offset_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.jacket_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -292,18 +285,18 @@ class Ui_MainWindow(object):
         self.jacket_vertical_offset_spinbox.setMinimum(0)
         self.jacket_vertical_offset_spinbox.setMaximum(0)
 
-        self.jacket_tab_layout.addWidget(self.jacket_vertical_offset_spinbox)
+        self.verticalLayout_5.addWidget(self.jacket_vertical_offset_spinbox)
 
-        self.jacket_rotation_label = QLabel(self.verticalLayoutWidget)
+        self.jacket_rotation_label = QLabel(self.jacket_tab)
         self.jacket_rotation_label.setObjectName(u"jacket_rotation_label")
         sizePolicy3.setHeightForWidth(self.jacket_rotation_label.sizePolicy().hasHeightForWidth())
         self.jacket_rotation_label.setSizePolicy(sizePolicy3)
         self.jacket_rotation_label.setMaximumSize(QSize(16777215, 16777215))
         self.jacket_rotation_label.setFont(font1)
 
-        self.jacket_tab_layout.addWidget(self.jacket_rotation_label)
+        self.verticalLayout_5.addWidget(self.jacket_rotation_label)
 
-        self.jacket_rotation_spinbox = QSpinBox(self.verticalLayoutWidget)
+        self.jacket_rotation_spinbox = QSpinBox(self.jacket_tab)
         self.jacket_rotation_spinbox.setObjectName(u"jacket_rotation_spinbox")
         sizePolicy5.setHeightForWidth(self.jacket_rotation_spinbox.sizePolicy().hasHeightForWidth())
         self.jacket_rotation_spinbox.setSizePolicy(sizePolicy5)
@@ -314,18 +307,18 @@ class Ui_MainWindow(object):
         self.jacket_rotation_spinbox.setMinimum(-180)
         self.jacket_rotation_spinbox.setMaximum(180)
 
-        self.jacket_tab_layout.addWidget(self.jacket_rotation_spinbox)
+        self.verticalLayout_5.addWidget(self.jacket_rotation_spinbox)
 
-        self.jacket_zoom_label = QLabel(self.verticalLayoutWidget)
+        self.jacket_zoom_label = QLabel(self.jacket_tab)
         self.jacket_zoom_label.setObjectName(u"jacket_zoom_label")
         sizePolicy3.setHeightForWidth(self.jacket_zoom_label.sizePolicy().hasHeightForWidth())
         self.jacket_zoom_label.setSizePolicy(sizePolicy3)
         self.jacket_zoom_label.setMaximumSize(QSize(16777215, 16777215))
         self.jacket_zoom_label.setFont(font1)
 
-        self.jacket_tab_layout.addWidget(self.jacket_zoom_label)
+        self.verticalLayout_5.addWidget(self.jacket_zoom_label)
 
-        self.jacket_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget)
+        self.jacket_zoom_spinbox = QDoubleSpinBox(self.jacket_tab)
         self.jacket_zoom_spinbox.setObjectName(u"jacket_zoom_spinbox")
         self.jacket_zoom_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.jacket_zoom_spinbox.sizePolicy().hasHeightForWidth())
@@ -339,22 +332,16 @@ class Ui_MainWindow(object):
         self.jacket_zoom_spinbox.setSingleStep(0.001000000000000)
         self.jacket_zoom_spinbox.setValue(1.000000000000000)
 
-        self.jacket_tab_layout.addWidget(self.jacket_zoom_spinbox)
-
-        self.jacket_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.jacket_tab_layout.addItem(self.jacket_tab_spacer)
+        self.verticalLayout_5.addWidget(self.jacket_zoom_spinbox)
 
         self.sprite_controls.addWidget(self.jacket_tab)
         self.background_tab = QWidget()
         self.background_tab.setObjectName(u"background_tab")
-        self.verticalLayoutWidget_2 = QWidget(self.background_tab)
-        self.verticalLayoutWidget_2.setObjectName(u"verticalLayoutWidget_2")
-        self.verticalLayoutWidget_2.setGeometry(QRect(0, 0, 181, 501))
-        self.background_tab_layout = QVBoxLayout(self.verticalLayoutWidget_2)
-        self.background_tab_layout.setObjectName(u"background_tab_layout")
-        self.background_tab_layout.setContentsMargins(0, 0, 0, 0)
-        self.background_horizontal_offset_label = QLabel(self.verticalLayoutWidget_2)
+        self.verticalLayout_2 = QVBoxLayout(self.background_tab)
+        self.verticalLayout_2.setSpacing(0)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.background_horizontal_offset_label = QLabel(self.background_tab)
         self.background_horizontal_offset_label.setObjectName(u"background_horizontal_offset_label")
         sizePolicy3.setHeightForWidth(self.background_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.background_horizontal_offset_label.setSizePolicy(sizePolicy3)
@@ -362,9 +349,9 @@ class Ui_MainWindow(object):
         self.background_horizontal_offset_label.setFont(font1)
         self.background_horizontal_offset_label.setFrameShape(QFrame.Shape.NoFrame)
 
-        self.background_tab_layout.addWidget(self.background_horizontal_offset_label)
+        self.verticalLayout_2.addWidget(self.background_horizontal_offset_label)
 
-        self.background_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget_2)
+        self.background_horizontal_offset_spinbox = QSpinBox(self.background_tab)
         self.background_horizontal_offset_spinbox.setObjectName(u"background_horizontal_offset_spinbox")
         self.background_horizontal_offset_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.background_horizontal_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -374,18 +361,18 @@ class Ui_MainWindow(object):
         self.background_horizontal_offset_spinbox.setWrapping(False)
         self.background_horizontal_offset_spinbox.setMaximum(0)
 
-        self.background_tab_layout.addWidget(self.background_horizontal_offset_spinbox)
+        self.verticalLayout_2.addWidget(self.background_horizontal_offset_spinbox)
 
-        self.background_vertical_offset_label = QLabel(self.verticalLayoutWidget_2)
+        self.background_vertical_offset_label = QLabel(self.background_tab)
         self.background_vertical_offset_label.setObjectName(u"background_vertical_offset_label")
         sizePolicy3.setHeightForWidth(self.background_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.background_vertical_offset_label.setSizePolicy(sizePolicy3)
         self.background_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.background_vertical_offset_label.setFont(font1)
 
-        self.background_tab_layout.addWidget(self.background_vertical_offset_label)
+        self.verticalLayout_2.addWidget(self.background_vertical_offset_label)
 
-        self.background_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_2)
+        self.background_vertical_offset_spinbox = QSpinBox(self.background_tab)
         self.background_vertical_offset_spinbox.setObjectName(u"background_vertical_offset_spinbox")
         self.background_vertical_offset_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.background_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -394,18 +381,18 @@ class Ui_MainWindow(object):
         self.background_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.background_vertical_offset_spinbox.setMaximum(0)
 
-        self.background_tab_layout.addWidget(self.background_vertical_offset_spinbox)
+        self.verticalLayout_2.addWidget(self.background_vertical_offset_spinbox)
 
-        self.background_rotation_label = QLabel(self.verticalLayoutWidget_2)
+        self.background_rotation_label = QLabel(self.background_tab)
         self.background_rotation_label.setObjectName(u"background_rotation_label")
         sizePolicy3.setHeightForWidth(self.background_rotation_label.sizePolicy().hasHeightForWidth())
         self.background_rotation_label.setSizePolicy(sizePolicy3)
         self.background_rotation_label.setMaximumSize(QSize(16777215, 16777215))
         self.background_rotation_label.setFont(font1)
 
-        self.background_tab_layout.addWidget(self.background_rotation_label)
+        self.verticalLayout_2.addWidget(self.background_rotation_label)
 
-        self.background_rotation_spinbox = QSpinBox(self.verticalLayoutWidget_2)
+        self.background_rotation_spinbox = QSpinBox(self.background_tab)
         self.background_rotation_spinbox.setObjectName(u"background_rotation_spinbox")
         sizePolicy5.setHeightForWidth(self.background_rotation_spinbox.sizePolicy().hasHeightForWidth())
         self.background_rotation_spinbox.setSizePolicy(sizePolicy5)
@@ -418,18 +405,18 @@ class Ui_MainWindow(object):
         self.background_rotation_spinbox.setMinimum(-180)
         self.background_rotation_spinbox.setMaximum(180)
 
-        self.background_tab_layout.addWidget(self.background_rotation_spinbox)
+        self.verticalLayout_2.addWidget(self.background_rotation_spinbox)
 
-        self.background_zoom_label = QLabel(self.verticalLayoutWidget_2)
+        self.background_zoom_label = QLabel(self.background_tab)
         self.background_zoom_label.setObjectName(u"background_zoom_label")
         sizePolicy3.setHeightForWidth(self.background_zoom_label.sizePolicy().hasHeightForWidth())
         self.background_zoom_label.setSizePolicy(sizePolicy3)
         self.background_zoom_label.setMaximumSize(QSize(16777215, 16777215))
         self.background_zoom_label.setFont(font1)
 
-        self.background_tab_layout.addWidget(self.background_zoom_label)
+        self.verticalLayout_2.addWidget(self.background_zoom_label)
 
-        self.background_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_2)
+        self.background_zoom_spinbox = QDoubleSpinBox(self.background_tab)
         self.background_zoom_spinbox.setObjectName(u"background_zoom_spinbox")
         self.background_zoom_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.background_zoom_spinbox.sizePolicy().hasHeightForWidth())
@@ -443,31 +430,25 @@ class Ui_MainWindow(object):
         self.background_zoom_spinbox.setSingleStep(0.001000000000000)
         self.background_zoom_spinbox.setValue(1.000000000000000)
 
-        self.background_tab_layout.addWidget(self.background_zoom_spinbox)
-
-        self.background_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.background_tab_layout.addItem(self.background_tab_spacer)
+        self.verticalLayout_2.addWidget(self.background_zoom_spinbox)
 
         self.sprite_controls.addWidget(self.background_tab)
         self.thumbnail_tab = QWidget()
         self.thumbnail_tab.setObjectName(u"thumbnail_tab")
-        self.verticalLayoutWidget_5 = QWidget(self.thumbnail_tab)
-        self.verticalLayoutWidget_5.setObjectName(u"verticalLayoutWidget_5")
-        self.verticalLayoutWidget_5.setGeometry(QRect(0, 0, 191, 241))
-        self.thumbnail_tab_layout = QVBoxLayout(self.verticalLayoutWidget_5)
-        self.thumbnail_tab_layout.setObjectName(u"thumbnail_tab_layout")
-        self.thumbnail_tab_layout.setContentsMargins(0, 0, 0, 0)
-        self.thumbnail_horizontal_offset_label = QLabel(self.verticalLayoutWidget_5)
+        self.verticalLayout_7 = QVBoxLayout(self.thumbnail_tab)
+        self.verticalLayout_7.setSpacing(0)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
+        self.thumbnail_horizontal_offset_label = QLabel(self.thumbnail_tab)
         self.thumbnail_horizontal_offset_label.setObjectName(u"thumbnail_horizontal_offset_label")
         sizePolicy3.setHeightForWidth(self.thumbnail_horizontal_offset_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_horizontal_offset_label.setSizePolicy(sizePolicy3)
         self.thumbnail_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.thumbnail_horizontal_offset_label.setFont(font1)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_horizontal_offset_label)
+        self.verticalLayout_7.addWidget(self.thumbnail_horizontal_offset_label)
 
-        self.thumbnail_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget_5)
+        self.thumbnail_horizontal_offset_spinbox = QSpinBox(self.thumbnail_tab)
         self.thumbnail_horizontal_offset_spinbox.setObjectName(u"thumbnail_horizontal_offset_spinbox")
         sizePolicy5.setHeightForWidth(self.thumbnail_horizontal_offset_spinbox.sizePolicy().hasHeightForWidth())
         self.thumbnail_horizontal_offset_spinbox.setSizePolicy(sizePolicy5)
@@ -475,18 +456,18 @@ class Ui_MainWindow(object):
         self.thumbnail_horizontal_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.thumbnail_horizontal_offset_spinbox.setMaximum(27)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_horizontal_offset_spinbox)
+        self.verticalLayout_7.addWidget(self.thumbnail_horizontal_offset_spinbox)
 
-        self.thumbnail_vertical_offset_label = QLabel(self.verticalLayoutWidget_5)
+        self.thumbnail_vertical_offset_label = QLabel(self.thumbnail_tab)
         self.thumbnail_vertical_offset_label.setObjectName(u"thumbnail_vertical_offset_label")
         sizePolicy3.setHeightForWidth(self.thumbnail_vertical_offset_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_vertical_offset_label.setSizePolicy(sizePolicy3)
         self.thumbnail_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.thumbnail_vertical_offset_label.setFont(font1)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_vertical_offset_label)
+        self.verticalLayout_7.addWidget(self.thumbnail_vertical_offset_label)
 
-        self.thumbnail_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_5)
+        self.thumbnail_vertical_offset_spinbox = QSpinBox(self.thumbnail_tab)
         self.thumbnail_vertical_offset_spinbox.setObjectName(u"thumbnail_vertical_offset_spinbox")
         self.thumbnail_vertical_offset_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.thumbnail_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -495,18 +476,18 @@ class Ui_MainWindow(object):
         self.thumbnail_vertical_offset_spinbox.setFocusPolicy(Qt.FocusPolicy.WheelFocus)
         self.thumbnail_vertical_offset_spinbox.setMaximum(0)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_vertical_offset_spinbox)
+        self.verticalLayout_7.addWidget(self.thumbnail_vertical_offset_spinbox)
 
-        self.thumbnail_rotation_label = QLabel(self.verticalLayoutWidget_5)
+        self.thumbnail_rotation_label = QLabel(self.thumbnail_tab)
         self.thumbnail_rotation_label.setObjectName(u"thumbnail_rotation_label")
         sizePolicy3.setHeightForWidth(self.thumbnail_rotation_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_rotation_label.setSizePolicy(sizePolicy3)
         self.thumbnail_rotation_label.setMaximumSize(QSize(16777215, 16777215))
         self.thumbnail_rotation_label.setFont(font1)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_rotation_label)
+        self.verticalLayout_7.addWidget(self.thumbnail_rotation_label)
 
-        self.thumbnail_rotation_spinbox = QSpinBox(self.verticalLayoutWidget_5)
+        self.thumbnail_rotation_spinbox = QSpinBox(self.thumbnail_tab)
         self.thumbnail_rotation_spinbox.setObjectName(u"thumbnail_rotation_spinbox")
         sizePolicy5.setHeightForWidth(self.thumbnail_rotation_spinbox.sizePolicy().hasHeightForWidth())
         self.thumbnail_rotation_spinbox.setSizePolicy(sizePolicy5)
@@ -517,18 +498,18 @@ class Ui_MainWindow(object):
         self.thumbnail_rotation_spinbox.setMinimum(-180)
         self.thumbnail_rotation_spinbox.setMaximum(180)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_rotation_spinbox)
+        self.verticalLayout_7.addWidget(self.thumbnail_rotation_spinbox)
 
-        self.thumbnail_zoom_label = QLabel(self.verticalLayoutWidget_5)
+        self.thumbnail_zoom_label = QLabel(self.thumbnail_tab)
         self.thumbnail_zoom_label.setObjectName(u"thumbnail_zoom_label")
         sizePolicy3.setHeightForWidth(self.thumbnail_zoom_label.sizePolicy().hasHeightForWidth())
         self.thumbnail_zoom_label.setSizePolicy(sizePolicy3)
         self.thumbnail_zoom_label.setMaximumSize(QSize(16777215, 16777215))
         self.thumbnail_zoom_label.setFont(font1)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_zoom_label)
+        self.verticalLayout_7.addWidget(self.thumbnail_zoom_label)
 
-        self.thumbnail_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_5)
+        self.thumbnail_zoom_spinbox = QDoubleSpinBox(self.thumbnail_tab)
         self.thumbnail_zoom_spinbox.setObjectName(u"thumbnail_zoom_spinbox")
         self.thumbnail_zoom_spinbox.setEnabled(False)
         sizePolicy5.setHeightForWidth(self.thumbnail_zoom_spinbox.sizePolicy().hasHeightForWidth())
@@ -542,22 +523,16 @@ class Ui_MainWindow(object):
         self.thumbnail_zoom_spinbox.setSingleStep(0.001000000000000)
         self.thumbnail_zoom_spinbox.setValue(1.000000000000000)
 
-        self.thumbnail_tab_layout.addWidget(self.thumbnail_zoom_spinbox)
-
-        self.thumbnail_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.thumbnail_tab_layout.addItem(self.thumbnail_tab_spacer)
+        self.verticalLayout_7.addWidget(self.thumbnail_zoom_spinbox)
 
         self.sprite_controls.addWidget(self.thumbnail_tab)
         self.logo_tab = QWidget()
         self.logo_tab.setObjectName(u"logo_tab")
-        self.verticalLayoutWidget_4 = QWidget(self.logo_tab)
-        self.verticalLayoutWidget_4.setObjectName(u"verticalLayoutWidget_4")
-        self.verticalLayoutWidget_4.setGeometry(QRect(0, 0, 191, 471))
-        self.logo_tab_layout = QVBoxLayout(self.verticalLayoutWidget_4)
-        self.logo_tab_layout.setObjectName(u"logo_tab_layout")
-        self.logo_tab_layout.setContentsMargins(0, 0, 0, 0)
-        self.logo_horizontal_offset_label = QLabel(self.verticalLayoutWidget_4)
+        self.verticalLayout_6 = QVBoxLayout(self.logo_tab)
+        self.verticalLayout_6.setSpacing(0)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
+        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.logo_horizontal_offset_label = QLabel(self.logo_tab)
         self.logo_horizontal_offset_label.setObjectName(u"logo_horizontal_offset_label")
         self.logo_horizontal_offset_label.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.logo_horizontal_offset_label.sizePolicy().hasHeightForWidth())
@@ -565,9 +540,9 @@ class Ui_MainWindow(object):
         self.logo_horizontal_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.logo_horizontal_offset_label.setFont(font1)
 
-        self.logo_tab_layout.addWidget(self.logo_horizontal_offset_label)
+        self.verticalLayout_6.addWidget(self.logo_horizontal_offset_label)
 
-        self.logo_horizontal_offset_spinbox = QSpinBox(self.verticalLayoutWidget_4)
+        self.logo_horizontal_offset_spinbox = QSpinBox(self.logo_tab)
         self.logo_horizontal_offset_spinbox.setObjectName(u"logo_horizontal_offset_spinbox")
         self.logo_horizontal_offset_spinbox.setEnabled(True)
         sizePolicy5.setHeightForWidth(self.logo_horizontal_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -577,9 +552,9 @@ class Ui_MainWindow(object):
         self.logo_horizontal_offset_spinbox.setMinimum(-435)
         self.logo_horizontal_offset_spinbox.setMaximum(435)
 
-        self.logo_tab_layout.addWidget(self.logo_horizontal_offset_spinbox)
+        self.verticalLayout_6.addWidget(self.logo_horizontal_offset_spinbox)
 
-        self.logo_vertical_offset_label = QLabel(self.verticalLayoutWidget_4)
+        self.logo_vertical_offset_label = QLabel(self.logo_tab)
         self.logo_vertical_offset_label.setObjectName(u"logo_vertical_offset_label")
         self.logo_vertical_offset_label.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.logo_vertical_offset_label.sizePolicy().hasHeightForWidth())
@@ -587,9 +562,9 @@ class Ui_MainWindow(object):
         self.logo_vertical_offset_label.setMaximumSize(QSize(16777215, 16777215))
         self.logo_vertical_offset_label.setFont(font1)
 
-        self.logo_tab_layout.addWidget(self.logo_vertical_offset_label)
+        self.verticalLayout_6.addWidget(self.logo_vertical_offset_label)
 
-        self.logo_vertical_offset_spinbox = QSpinBox(self.verticalLayoutWidget_4)
+        self.logo_vertical_offset_spinbox = QSpinBox(self.logo_tab)
         self.logo_vertical_offset_spinbox.setObjectName(u"logo_vertical_offset_spinbox")
         self.logo_vertical_offset_spinbox.setEnabled(True)
         sizePolicy5.setHeightForWidth(self.logo_vertical_offset_spinbox.sizePolicy().hasHeightForWidth())
@@ -599,9 +574,9 @@ class Ui_MainWindow(object):
         self.logo_vertical_offset_spinbox.setMinimum(-150)
         self.logo_vertical_offset_spinbox.setMaximum(150)
 
-        self.logo_tab_layout.addWidget(self.logo_vertical_offset_spinbox)
+        self.verticalLayout_6.addWidget(self.logo_vertical_offset_spinbox)
 
-        self.logo_rotation_label = QLabel(self.verticalLayoutWidget_4)
+        self.logo_rotation_label = QLabel(self.logo_tab)
         self.logo_rotation_label.setObjectName(u"logo_rotation_label")
         self.logo_rotation_label.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.logo_rotation_label.sizePolicy().hasHeightForWidth())
@@ -609,9 +584,9 @@ class Ui_MainWindow(object):
         self.logo_rotation_label.setMaximumSize(QSize(16777215, 16777215))
         self.logo_rotation_label.setFont(font1)
 
-        self.logo_tab_layout.addWidget(self.logo_rotation_label)
+        self.verticalLayout_6.addWidget(self.logo_rotation_label)
 
-        self.logo_rotation_spinbox = QSpinBox(self.verticalLayoutWidget_4)
+        self.logo_rotation_spinbox = QSpinBox(self.logo_tab)
         self.logo_rotation_spinbox.setObjectName(u"logo_rotation_spinbox")
         self.logo_rotation_spinbox.setEnabled(True)
         sizePolicy5.setHeightForWidth(self.logo_rotation_spinbox.sizePolicy().hasHeightForWidth())
@@ -623,9 +598,9 @@ class Ui_MainWindow(object):
         self.logo_rotation_spinbox.setMinimum(-180)
         self.logo_rotation_spinbox.setValue(0)
 
-        self.logo_tab_layout.addWidget(self.logo_rotation_spinbox)
+        self.verticalLayout_6.addWidget(self.logo_rotation_spinbox)
 
-        self.logo_zoom_label = QLabel(self.verticalLayoutWidget_4)
+        self.logo_zoom_label = QLabel(self.logo_tab)
         self.logo_zoom_label.setObjectName(u"logo_zoom_label")
         self.logo_zoom_label.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.logo_zoom_label.sizePolicy().hasHeightForWidth())
@@ -633,9 +608,9 @@ class Ui_MainWindow(object):
         self.logo_zoom_label.setMaximumSize(QSize(16777215, 16777215))
         self.logo_zoom_label.setFont(font1)
 
-        self.logo_tab_layout.addWidget(self.logo_zoom_label)
+        self.verticalLayout_6.addWidget(self.logo_zoom_label)
 
-        self.logo_zoom_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_4)
+        self.logo_zoom_spinbox = QDoubleSpinBox(self.logo_tab)
         self.logo_zoom_spinbox.setObjectName(u"logo_zoom_spinbox")
         self.logo_zoom_spinbox.setEnabled(True)
         sizePolicy5.setHeightForWidth(self.logo_zoom_spinbox.sizePolicy().hasHeightForWidth())
@@ -649,15 +624,11 @@ class Ui_MainWindow(object):
         self.logo_zoom_spinbox.setSingleStep(0.001000000000000)
         self.logo_zoom_spinbox.setValue(1.000000000000000)
 
-        self.logo_tab_layout.addWidget(self.logo_zoom_spinbox)
-
-        self.logo_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.logo_tab_layout.addItem(self.logo_tab_spacer)
+        self.verticalLayout_6.addWidget(self.logo_zoom_spinbox)
 
         self.sprite_controls.addWidget(self.logo_tab)
 
-        self.image_edit_area_layout.addWidget(self.sprite_controls)
+        self.verticalLayout.addWidget(self.sprite_controls)
 
         self.image_edit_scroll_area.setWidget(self.image_edit_area_widget_properties)
 
@@ -678,18 +649,11 @@ class Ui_MainWindow(object):
         self.export_controls.setDocumentMode(False)
         self.to_farc_tab = QWidget()
         self.to_farc_tab.setObjectName(u"to_farc_tab")
-        self.verticalLayoutWidget_7 = QWidget(self.to_farc_tab)
-        self.verticalLayoutWidget_7.setObjectName(u"verticalLayoutWidget_7")
-        self.verticalLayoutWidget_7.setGeometry(QRect(0, 0, 191, 199))
-        self.to_farc_tab_layout = QVBoxLayout(self.verticalLayoutWidget_7)
-        self.to_farc_tab_layout.setSpacing(4)
-        self.to_farc_tab_layout.setObjectName(u"to_farc_tab_layout")
-        self.to_farc_tab_layout.setContentsMargins(4, 0, 7, 20)
-        self.to_farc_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
-
-        self.to_farc_tab_layout.addItem(self.to_farc_tab_spacer)
-
-        self.song_id_label = QLabel(self.verticalLayoutWidget_7)
+        self.verticalLayout_3 = QVBoxLayout(self.to_farc_tab)
+        self.verticalLayout_3.setSpacing(4)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
+        self.song_id_label = QLabel(self.to_farc_tab)
         self.song_id_label.setObjectName(u"song_id_label")
         sizePolicy7 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         sizePolicy7.setHorizontalStretch(0)
@@ -697,88 +661,89 @@ class Ui_MainWindow(object):
         sizePolicy7.setHeightForWidth(self.song_id_label.sizePolicy().hasHeightForWidth())
         self.song_id_label.setSizePolicy(sizePolicy7)
 
-        self.to_farc_tab_layout.addWidget(self.song_id_label)
+        self.verticalLayout_3.addWidget(self.song_id_label)
 
-        self.farc_song_id_spinbox = QDoubleSpinBox(self.verticalLayoutWidget_7)
+        self.farc_song_id_spinbox = QDoubleSpinBox(self.to_farc_tab)
         self.farc_song_id_spinbox.setObjectName(u"farc_song_id_spinbox")
         self.farc_song_id_spinbox.setDecimals(0)
         self.farc_song_id_spinbox.setMinimum(1.000000000000000)
         self.farc_song_id_spinbox.setMaximum(4294967295.000000000000000)
         self.farc_song_id_spinbox.setValue(1.000000000000000)
 
-        self.to_farc_tab_layout.addWidget(self.farc_song_id_spinbox)
+        self.verticalLayout_3.addWidget(self.farc_song_id_spinbox)
 
-        self.farc_export_button = QPushButton(self.verticalLayoutWidget_7)
+        self.farc_export_button = QPushButton(self.to_farc_tab)
         self.farc_export_button.setObjectName(u"farc_export_button")
 
-        self.to_farc_tab_layout.addWidget(self.farc_export_button)
+        self.verticalLayout_3.addWidget(self.farc_export_button)
 
-        self.farc_create_thumbnail_button = QPushButton(self.verticalLayoutWidget_7)
+        self.farc_create_thumbnail_button = QPushButton(self.to_farc_tab)
         self.farc_create_thumbnail_button.setObjectName(u"farc_create_thumbnail_button")
 
-        self.to_farc_tab_layout.addWidget(self.farc_create_thumbnail_button)
+        self.verticalLayout_3.addWidget(self.farc_create_thumbnail_button)
 
-        self.generate_spr_db_button = QPushButton(self.verticalLayoutWidget_7)
+        self.generate_spr_db_button = QPushButton(self.to_farc_tab)
         self.generate_spr_db_button.setObjectName(u"generate_spr_db_button")
         self.generate_spr_db_button.setMaximumSize(QSize(195, 16777215))
         self.generate_spr_db_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.to_farc_tab_layout.addWidget(self.generate_spr_db_button)
+        self.verticalLayout_3.addWidget(self.generate_spr_db_button)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_3.addItem(self.verticalSpacer)
 
         self.export_controls.addTab(self.to_farc_tab, "")
         self.to_image_tab = QWidget()
         self.to_image_tab.setObjectName(u"to_image_tab")
-        self.verticalLayoutWidget_6 = QWidget(self.to_image_tab)
-        self.verticalLayoutWidget_6.setObjectName(u"verticalLayoutWidget_6")
-        self.verticalLayoutWidget_6.setGeometry(QRect(0, 0, 192, 191))
-        self.to_image_tab_layout = QVBoxLayout(self.verticalLayoutWidget_6)
-        self.to_image_tab_layout.setSpacing(4)
-        self.to_image_tab_layout.setObjectName(u"to_image_tab_layout")
-        self.to_image_tab_layout.setContentsMargins(4, 0, 8, 12)
-        self.to_image_tab_spacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Maximum)
-
-        self.to_image_tab_layout.addItem(self.to_image_tab_spacer)
-
-        self.open_preview_button = QPushButton(self.verticalLayoutWidget_6)
+        self.verticalLayout_4 = QVBoxLayout(self.to_image_tab)
+        self.verticalLayout_4.setSpacing(4)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(4, 4, 4, 4)
+        self.open_preview_button = QPushButton(self.to_image_tab)
         self.open_preview_button.setObjectName(u"open_preview_button")
 
-        self.to_image_tab_layout.addWidget(self.open_preview_button)
+        self.verticalLayout_4.addWidget(self.open_preview_button)
 
-        self.copy_to_clipboard_button = QPushButton(self.verticalLayoutWidget_6)
+        self.copy_to_clipboard_button = QPushButton(self.to_image_tab)
         self.copy_to_clipboard_button.setObjectName(u"copy_to_clipboard_button")
         sizePolicy.setHeightForWidth(self.copy_to_clipboard_button.sizePolicy().hasHeightForWidth())
         self.copy_to_clipboard_button.setSizePolicy(sizePolicy)
         self.copy_to_clipboard_button.setMaximumSize(QSize(195, 16777215))
         self.copy_to_clipboard_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.to_image_tab_layout.addWidget(self.copy_to_clipboard_button)
+        self.verticalLayout_4.addWidget(self.copy_to_clipboard_button)
 
-        self.export_thumbnail_button = QPushButton(self.verticalLayoutWidget_6)
+        self.export_thumbnail_button = QPushButton(self.to_image_tab)
         self.export_thumbnail_button.setObjectName(u"export_thumbnail_button")
         sizePolicy.setHeightForWidth(self.export_thumbnail_button.sizePolicy().hasHeightForWidth())
         self.export_thumbnail_button.setSizePolicy(sizePolicy)
         self.export_thumbnail_button.setMaximumSize(QSize(195, 16777215))
         self.export_thumbnail_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.to_image_tab_layout.addWidget(self.export_thumbnail_button)
+        self.verticalLayout_4.addWidget(self.export_thumbnail_button)
 
-        self.export_logo_button = QPushButton(self.verticalLayoutWidget_6)
+        self.export_logo_button = QPushButton(self.to_image_tab)
         self.export_logo_button.setObjectName(u"export_logo_button")
         sizePolicy.setHeightForWidth(self.export_logo_button.sizePolicy().hasHeightForWidth())
         self.export_logo_button.setSizePolicy(sizePolicy)
         self.export_logo_button.setMaximumSize(QSize(195, 16777215))
         self.export_logo_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.to_image_tab_layout.addWidget(self.export_logo_button)
+        self.verticalLayout_4.addWidget(self.export_logo_button)
 
-        self.export_background_jacket_button = QPushButton(self.verticalLayoutWidget_6)
+        self.export_background_jacket_button = QPushButton(self.to_image_tab)
         self.export_background_jacket_button.setObjectName(u"export_background_jacket_button")
         sizePolicy.setHeightForWidth(self.export_background_jacket_button.sizePolicy().hasHeightForWidth())
         self.export_background_jacket_button.setSizePolicy(sizePolicy)
         self.export_background_jacket_button.setMaximumSize(QSize(195, 16777215))
         self.export_background_jacket_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
 
-        self.to_image_tab_layout.addWidget(self.export_background_jacket_button)
+        self.verticalLayout_4.addWidget(self.export_background_jacket_button)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout_4.addItem(self.verticalSpacer_2)
 
         self.export_controls.addTab(self.to_image_tab, "")
 
@@ -794,9 +759,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.current_sprite_combobox.setCurrentIndex(2)
-        self.sprite_controls.setCurrentIndex(3)
-        self.export_controls.setCurrentIndex(1)
+        self.current_sprite_combobox.setCurrentIndex(1)
+        self.sprite_controls.setCurrentIndex(1)
+        self.export_controls.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -809,8 +774,8 @@ class Ui_MainWindow(object):
         self.ft_song_selector_preview.setText("")
         self.load_background_button.setText(QCoreApplication.translate("MainWindow", u"Load Background", None))
         self.load_logo_button.setText(QCoreApplication.translate("MainWindow", u"Load Logo", None))
-        self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
+        self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.has_logo_checkbox.setText(QCoreApplication.translate("MainWindow", u"Has logo?", None))
         self.new_classics_checkbox.setText(QCoreApplication.translate("MainWindow", u"New Classics?", None))
         self.current_sprite_combobox.setItemText(0, QCoreApplication.translate("MainWindow", u"Jacket", None))
