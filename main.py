@@ -4,8 +4,9 @@ from time import sleep
 from enum import Enum, auto
 
 import filedialpy
-from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow
+from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget
 from PIL import Image,ImageShow,ImageStat
 
 from copykitten import copy_image
@@ -16,10 +17,62 @@ from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer, State, SpriteType, Scene
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
+from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
+from ui_ThumbnailWidget import Ui_ThumbnailWidget
+
 class OutputTarget(Enum):
     CLIPBOARD = auto()
     IMAGE_VIEWER = auto()
     IMAGE = auto()
+
+class ThumbnailWidget(QWidget):
+    removeRequested = Signal(QWidget)
+
+    def __init__(self, parent=None):
+
+        super(ThumbnailWidget, self).__init__(parent)
+
+        self.ui = Ui_ThumbnailWidget()
+        self.ui.setupUi(self)
+        self.ui.remove_thumbnail_button.clicked.connect(self.remove_thumb)
+
+    def remove_thumb(self):
+
+        self.removeRequested.emit(self)
+
+
+class ThumbnailWindow(QWidget):
+    def __init__(self):
+        super(ThumbnailWindow, self).__init__()
+        self.main_box = Ui_ThumbnailTextureCreator()
+        self.main_box.setupUi(self)
+        self.thumbnail_widgets = []
+        self.add_thumbnail(1,1)
+        self.add_thumbnail(1, 2)
+
+    def add_thumbnail(self,row, column, image_path=None):
+        thumbnail_widget = ThumbnailWidget()
+
+        thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
+
+        if image_path:
+            pixmap = QPixmap(image_path)
+            thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
+            thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
+
+        self.main_box.gridLayout.addWidget(thumbnail_widget, row, column)
+        self.thumbnail_widgets.append(thumbnail_widget)
+        return thumbnail_widget
+
+    def remove_thumbnail_widget(self, widget):
+        self.main_box.gridLayout.removeWidget(widget)
+
+        if widget in self.thumbnail_widgets:
+            self.thumbnail_widgets.remove(widget)
+
+        widget.deleteLater()
+
+
 
 class Configurable:
     def __init__(self):
@@ -112,6 +165,9 @@ class MainWindow(QMainWindow):
         check_for_files()
         self.reload_images()
 
+        #Prepare new window
+        self.thumbnail_creator = ThumbnailWindow()
+
         #Start watching for file updates of loaded files
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
@@ -131,6 +187,7 @@ class MainWindow(QMainWindow):
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
+        self.main_box.farc_create_thumbnail_button.clicked.connect(self.farc_create_thumbnail_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
         #Allow previews to be opened in external viewer
@@ -149,7 +206,7 @@ class MainWindow(QMainWindow):
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
         self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
 
-        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
+        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()) # Make sure that tab matches options shown on start
         self.draw_image_grid()
 
     def resizeEvent(self,event):
@@ -548,6 +605,9 @@ class MainWindow(QMainWindow):
         for scene in config.scenes_to_draw:
             self.draw_scene(scene)
 
+    @Slot()
+    def farc_create_thumbnail_button_callback(self):
+        self.thumbnail_creator.show()
     @Slot()
     def has_logo_checkbox_callback(self):
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
