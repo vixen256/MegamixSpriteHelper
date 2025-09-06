@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'ThumbnailWidgetdmlYwO.ui'
+## Form generated from reading UI file 'ThumbnailWidgetbFoIyy.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -16,15 +16,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QHBoxLayout, QLabel,
-    QLayout, QLineEdit, QPushButton, QScrollArea,
-    QSizePolicy, QVBoxLayout, QWidget)
+    QLayout, QPushButton, QScrollArea, QSizePolicy,
+    QVBoxLayout, QWidget)
 
 class Ui_ThumbnailWidget(object):
     def setupUi(self, ThumbnailWidget):
         if not ThumbnailWidget.objectName():
             ThumbnailWidget.setObjectName(u"ThumbnailWidget")
         ThumbnailWidget.setEnabled(True)
-        ThumbnailWidget.resize(365, 150)
+        ThumbnailWidget.resize(365, 95)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -34,7 +34,9 @@ class Ui_ThumbnailWidget(object):
         ThumbnailWidget.setMaximumSize(QSize(365, 150))
         ThumbnailWidget.setBaseSize(QSize(310, 90))
         self.horizontalLayout = QHBoxLayout(ThumbnailWidget)
+        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.thumbnail_h_layout = QHBoxLayout()
         self.thumbnail_h_layout.setObjectName(u"thumbnail_h_layout")
         self.thumbnail_image = QLabel(ThumbnailWidget)
@@ -66,7 +68,7 @@ class Ui_ThumbnailWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 206, 91))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 206, 54))
         self.formLayout = QFormLayout(self.scrollAreaWidgetContents)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
@@ -74,66 +76,6 @@ class Ui_ThumbnailWidget(object):
         self.formLayout.setHorizontalSpacing(0)
         self.formLayout.setVerticalSpacing(0)
         self.formLayout.setContentsMargins(0, 4, 0, 0)
-        self.song_id_lineedit = QLineEdit(self.scrollAreaWidgetContents)
-        self.song_id_lineedit.setObjectName(u"song_id_lineedit")
-        sizePolicy1.setHeightForWidth(self.song_id_lineedit.sizePolicy().hasHeightForWidth())
-        self.song_id_lineedit.setSizePolicy(sizePolicy1)
-        self.song_id_lineedit.setMinimumSize(QSize(154, 27))
-        self.song_id_lineedit.setMaximumSize(QSize(154, 27))
-        self.song_id_lineedit.setFrame(True)
-        self.song_id_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.song_id_lineedit.setClearButtonEnabled(False)
-
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.song_id_lineedit)
-
-        self.add_additional_id_line_button = QPushButton(self.scrollAreaWidgetContents)
-        self.add_additional_id_line_button.setObjectName(u"add_additional_id_line_button")
-        self.add_additional_id_line_button.setMinimumSize(QSize(30, 27))
-        self.add_additional_id_line_button.setMaximumSize(QSize(30, 27))
-        palette = QPalette()
-        brush = QBrush(QColor(87, 227, 137, 255))
-        brush.setStyle(Qt.BrushStyle.SolidPattern)
-        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
-        palette.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ButtonText, brush)
-        self.add_additional_id_line_button.setPalette(palette)
-        font = QFont()
-        font.setPointSize(11)
-        self.add_additional_id_line_button.setFont(font)
-
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.add_additional_id_line_button)
-
-        self.song_id_lineedit_1 = QLineEdit(self.scrollAreaWidgetContents)
-        self.song_id_lineedit_1.setObjectName(u"song_id_lineedit_1")
-        sizePolicy1.setHeightForWidth(self.song_id_lineedit_1.sizePolicy().hasHeightForWidth())
-        self.song_id_lineedit_1.setSizePolicy(sizePolicy1)
-        self.song_id_lineedit_1.setMinimumSize(QSize(154, 27))
-        self.song_id_lineedit_1.setMaximumSize(QSize(154, 27))
-        self.song_id_lineedit_1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.song_id_lineedit_1)
-
-        self.remove_additional_id_line_button = QPushButton(self.scrollAreaWidgetContents)
-        self.remove_additional_id_line_button.setObjectName(u"remove_additional_id_line_button")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.remove_additional_id_line_button.sizePolicy().hasHeightForWidth())
-        self.remove_additional_id_line_button.setSizePolicy(sizePolicy3)
-        self.remove_additional_id_line_button.setMinimumSize(QSize(30, 27))
-        self.remove_additional_id_line_button.setMaximumSize(QSize(30, 27))
-        palette1 = QPalette()
-        brush1 = QBrush(QColor(191, 64, 64, 255))
-        brush1.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, brush1)
-        brush2 = QBrush(QColor(237, 51, 59, 255))
-        brush2.setStyle(Qt.BrushStyle.SolidPattern)
-        palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush2)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Text, brush1)
-        palette1.setBrush(QPalette.ColorGroup.Inactive, QPalette.ColorRole.ButtonText, brush2)
-        self.remove_additional_id_line_button.setPalette(palette1)
-
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.remove_additional_id_line_button)
-
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.scrollArea)
@@ -167,14 +109,6 @@ class Ui_ThumbnailWidget(object):
     def retranslateUi(self, ThumbnailWidget):
         ThumbnailWidget.setWindowTitle(QCoreApplication.translate("ThumbnailWidget", u"Thumbnail Widget", None))
         self.thumbnail_image.setText("")
-        self.song_id_lineedit.setInputMask(QCoreApplication.translate("ThumbnailWidget", u"0000000000", None))
-        self.song_id_lineedit.setText("")
-        self.song_id_lineedit.setPlaceholderText(QCoreApplication.translate("ThumbnailWidget", u"Enter Song ID here", None))
-        self.add_additional_id_line_button.setText(QCoreApplication.translate("ThumbnailWidget", u"+", None))
-        self.song_id_lineedit_1.setInputMask(QCoreApplication.translate("ThumbnailWidget", u"0000000000", None))
-        self.song_id_lineedit_1.setText("")
-        self.song_id_lineedit_1.setPlaceholderText(QCoreApplication.translate("ThumbnailWidget", u"Enter Song ID here", None))
-        self.remove_additional_id_line_button.setText(QCoreApplication.translate("ThumbnailWidget", u"-", None))
         self.remove_thumbnail_button.setText(QCoreApplication.translate("ThumbnailWidget", u"Remove Thumbnail", None))
     # retranslateUi
 

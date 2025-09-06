@@ -19,6 +19,7 @@ from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
 from ui_ThumbnailWidget import Ui_ThumbnailWidget
+from ui_ThumbnailIDField import  Ui_ThumbnailIDField
 
 class OutputTarget(Enum):
     CLIPBOARD = auto()
@@ -32,21 +33,32 @@ class Configurable:
         self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
         self.last_used_directory = self.script_directory
 
+
 class ThumbnailIDFieldWidget(QWidget):
+
     additionalRequested = Signal(QWidget)
     removeRequested = Signal(QWidget)
 
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,variant=False):
 
         super(ThumbnailIDFieldWidget, self).__init__(parent)
-        self.type = "Base" #Base cannot be removed, spawns with button to add more id fields
-        #self.type = "Additional" #Additional can be removed, spawns with button to remove itself.
+        self.variant = variant    #False cannot be removed, spawns with button to add more id fields
+                                                #True can be removed, spawns with button to remove itself.
 
         self.value = None #This should contain Song ID , needs to check if it's under ID limit.
+        self.ui = Ui_ThumbnailIDField()
+        self.ui.setupUi(self,variant)
+
+        if variant:
+            self.ui.id_line_button.clicked.connect(lambda: self.additionalRequested.emit(self))
+        else:
+            self.ui.id_line_button.clicked.connect(lambda: self.removeRequested.emit(self))
+
 
 
 
 class ThumbnailWidget(QWidget):
+
     removeRequested = Signal(QWidget)
 
     def __init__(self, parent=None):
@@ -56,7 +68,33 @@ class ThumbnailWidget(QWidget):
         self.ui = Ui_ThumbnailWidget()
         self.ui.setupUi(self)
         self.ui.remove_thumbnail_button.clicked.connect(self.remove_thumb)
-        #self.image_path = None
+        self.id_field_list = []
+        self.add_id_field(False)
+        self.image_path = None
+    def add_id_field(self, can_be_removed=False):
+        print("called add")
+        if can_be_removed:
+            id_field = ThumbnailIDFieldWidget(variant=False)
+        else:
+            id_field = ThumbnailIDFieldWidget(variant=True)
+        id_field.removeRequested.connect(self.remove_id_field)
+        id_field.additionalRequested.connect(self.add_id_field)
+        self.id_field_list.append(id_field)
+        self.ui.formLayout.addRow(id_field)
+
+        #TODO
+        #Adds id field to layout
+        #Adds id field to list to keep track of them
+        pass
+    def remove_id_field(self,widget):
+        print("remove")
+        self.ui.formLayout.removeRow(widget)
+        self.id_field_list.remove(widget)
+
+        #TODO
+        #Removes id field from layout
+        #Removes id field from list
+        pass
 
     def remove_thumb(self):
 
@@ -96,15 +134,6 @@ class ThumbnailWindow(QWidget):
 
         #TODO need to find out how to get info where to place new thumb
         pass
-    def add_id_field(self):
-        #TODO
-        #Adds text field , button to remove it and extends size of the widget
-        #Should allow for any number of fields
-
-
-    def remove_id_field(self):
-        #TODO
-        #Removes text field , button to remove it and shrinks size of the widget
 
     def remove_thumbnail_widget(self, widget):
         self.main_box.gridLayout.removeWidget(widget)
@@ -137,6 +166,8 @@ class ThumbnailWindow(QWidget):
                 #                         self.add_thumbnail(x,0,path)
                 #                         x = x+1
 
+
+###################################################################################################
 
 def texture_filtering_fix(image,opacity):
     #Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
