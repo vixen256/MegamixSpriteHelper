@@ -1,5 +1,6 @@
 from pathlib import Path, PurePath
 import sys , os
+import math
 from time import sleep
 from enum import Enum, auto
 
@@ -200,11 +201,46 @@ class ThumbnailWindow(QWidget):
             thumb_data.append(image_path)
             all_thumb_data.append(thumb_data)
 
+        thumb_count = 0
         for thumb in all_thumb_data:
-            print(thumb)
+            for id in thumb[0]:
+                thumb_count = thumb_count + 1
+
+
+        print(self.calculate_texture_grid(thumb_count))
 
         #create list
         #Need to send over thumbnail id + image_path as ([id,id,id...] , image.png)
+
+    def next_power_of_two(self,n):
+        if n <= 0:
+            return 1
+        p = 1
+        while p < n:
+            p *= 2
+        return p
+
+    def calculate_texture_grid(self,thumb_amount):
+        if thumb_amount <= 0:
+            return (0, 0)
+
+        if thumb_amount == 1:
+            tex_width = 256
+            tex_height = 128
+            return [tex_width,tex_height]
+        elif thumb_amount <= 3:
+            tex_width = 512
+            tex_height = 128
+            return [tex_width, tex_height]
+        else:
+            tex_width = 1024
+
+            rows = math.ceil(thumb_amount / 7) # there will be 7 columns
+
+            total_height = rows * 66
+            tex_height = self.next_power_of_two(total_height)
+            area = [tex_width , tex_height]
+        return area
 
 
 ###################################################################################################
