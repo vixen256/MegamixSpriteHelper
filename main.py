@@ -4,11 +4,13 @@ import math
 from time import sleep
 from enum import Enum, auto
 
+import PIL.ImageShow
 import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget
 from PIL import Image,ImageShow,ImageStat
+from PIL.ImageShow import Viewer
 
 from copykitten import copy_image
 from filedialpy import openFile
@@ -16,6 +18,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer, State, SpriteType, Scene
+from FarcCreator import FarcCreator
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
@@ -206,7 +209,39 @@ class ThumbnailWindow(QWidget):
             thumb_unique_count = thumb_unique_count + 1
 
         texture_size = self.calculate_texture_grid(thumb_unique_count)
+        self.create_thumbnail_texture(texture_size,all_thumb_data)
 
+    def create_thumbnail_texture(self,texture_size,all_thumb_data):
+        thumbnail_texture = Image.new('RGBA', texture_size)
+        x=2
+        y=2
+        thumb = 0
+        thumbnail_positions = []
+
+        for thumb_data in all_thumb_data:
+        #[id,id...],image
+            thumb= thumb + 1
+            thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
+
+            for thumb_id in thumb_data[0]:
+                thumbnail_positions.append([thumb_id, (x, y)])
+
+            if thumb == 7:
+                x = 2
+                y = y + 64 + 2
+                thumb = 0
+            else:
+                x = x + 128 + 2
+
+        thumbnail_positions.sort()
+
+        for data in thumbnail_positions:
+            print(data)
+
+        print(ImageShow.show(thumbnail_texture))
+        thumbnail_texture.save(str(config.script_directory) + "/tmp/thumbnail_texture.png","png")
+
+        FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/tmp/thumbnail_texture.png",config.script_directory)
 
     def next_power_of_two(self,n):
         if n <= 0:
@@ -222,12 +257,12 @@ class ThumbnailWindow(QWidget):
 
         if thumb_amount == 1:
             tex_width = 256
-            tex_height = 128
-            return [tex_width,tex_height]
+            tex_height = 256
+            return (tex_width,tex_height)
         elif thumb_amount <= 3:
             tex_width = 512
-            tex_height = 128
-            return [tex_width, tex_height]
+            tex_height = 256
+            return (tex_width, tex_height)
         else:
             tex_width = 1024
 
@@ -235,7 +270,7 @@ class ThumbnailWindow(QWidget):
 
             total_height = rows * 66
             tex_height = self.next_power_of_two(total_height)
-            area = [tex_width , tex_height]
+            area = (tex_width , tex_height)
         return area
 
 
@@ -755,10 +790,7 @@ class MainWindow(QMainWindow):
         logo_texture = Image.new('RGBA', (1024, 512))
         logo_texture.alpha_composite(logo,(x,y))
         return logo_texture
-    def create_thumbnail_texture(self):
-        thumbnail_texture = Image.new('RGBA', (128, 64))
-        thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
-        return thumbnail_texture
+
 
     @Slot()
     def refresh_image_grid(self):
@@ -1001,6 +1033,7 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     config = Configurable()
     SceneComposer = SceneComposer()
+    FarcCreator = FarcCreator()
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     main_window = MainWindow()
