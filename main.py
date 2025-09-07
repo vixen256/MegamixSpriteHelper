@@ -201,16 +201,12 @@ class ThumbnailWindow(QWidget):
             thumb_data.append(image_path)
             all_thumb_data.append(thumb_data)
 
-        thumb_count = 0
+        thumb_unique_count = 0
         for thumb in all_thumb_data:
-            for id in thumb[0]:
-                thumb_count = thumb_count + 1
+            thumb_unique_count = thumb_unique_count + 1
 
+        texture_size = self.calculate_texture_grid(thumb_unique_count)
 
-        print(self.calculate_texture_grid(thumb_count))
-
-        #create list
-        #Need to send over thumbnail id + image_path as ([id,id,id...] , image.png)
 
     def next_power_of_two(self,n):
         if n <= 0:
