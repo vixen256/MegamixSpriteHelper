@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'ThumbnailWidgetbFoIyy.ui'
+## Form generated from reading UI file 'ThumbnailWidgethvrEQy.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -24,14 +24,14 @@ class Ui_ThumbnailWidget(object):
         if not ThumbnailWidget.objectName():
             ThumbnailWidget.setObjectName(u"ThumbnailWidget")
         ThumbnailWidget.setEnabled(True)
-        ThumbnailWidget.resize(365, 95)
+        ThumbnailWidget.resize(365, 133)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(ThumbnailWidget.sizePolicy().hasHeightForWidth())
         ThumbnailWidget.setSizePolicy(sizePolicy)
         ThumbnailWidget.setMinimumSize(QSize(365, 95))
-        ThumbnailWidget.setMaximumSize(QSize(365, 150))
+        ThumbnailWidget.setMaximumSize(QSize(365, 133))
         ThumbnailWidget.setBaseSize(QSize(310, 90))
         self.horizontalLayout = QHBoxLayout(ThumbnailWidget)
         self.horizontalLayout.setSpacing(0)
@@ -68,14 +68,14 @@ class Ui_ThumbnailWidget(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 206, 54))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 206, 92))
         self.formLayout = QFormLayout(self.scrollAreaWidgetContents)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.formLayout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         self.formLayout.setHorizontalSpacing(0)
         self.formLayout.setVerticalSpacing(0)
-        self.formLayout.setContentsMargins(0, 4, 0, 0)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.scrollArea)

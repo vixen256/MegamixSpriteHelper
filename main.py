@@ -102,13 +102,20 @@ class ThumbnailWidget(QWidget):
 
 
 class ThumbnailWindow(QWidget):
+    resized = Signal()
     def __init__(self):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.thumbnail_widgets = []
+        self.resized.connect(self.space_out_thumbnails)
         #TODO Thumbnail image should be re-usable for multiple ID's to save space
+
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+
+        self.resized.emit()
 
     def add_thumbnail(self,row, column, image_path=None):
         thumbnail_widget = ThumbnailWidget()
@@ -127,6 +134,25 @@ class ThumbnailWindow(QWidget):
         return thumbnail_widget
 
     def space_out_thumbnails(self):
+        width = self.main_box.verticalLayout.geometry().width()
+        widget_width = 365
+        columns = (width // widget_width) - 1
+        print(width)
+        print(f"{columns} available")
+        x = 0
+        y = 0
+        for thumbnail in self.thumbnail_widgets:
+            self.main_box.gridLayout.removeWidget(thumbnail)
+
+            self.main_box.gridLayout.addWidget(thumbnail,y,x)
+            if x == columns:
+                y = y + 1
+                x = 0
+            else:
+                x = x + 1
+
+
+
         #TODO
         #Activates each time thumbnail is added, Window size changed, thumbnail removed
         #Using widgets size calculates amount of columns it can fit
@@ -142,6 +168,7 @@ class ThumbnailWindow(QWidget):
         widget.deleteLater()
 
     def scan_folder_for_thumbnails(self):
+        self.space_out_thumbnails()
         if os.name == "nt":
             selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails")
         else:
