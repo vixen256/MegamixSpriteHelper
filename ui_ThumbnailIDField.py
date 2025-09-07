@@ -6,8 +6,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QFormLayout, QHBoxLayout, QLabel,
-    QLayout, QLineEdit, QPushButton, QScrollArea,
-    QSizePolicy, QVBoxLayout, QWidget)
+                               QLayout, QLineEdit, QPushButton, QScrollArea,
+                               QSizePolicy, QVBoxLayout, QWidget, QDoubleSpinBox)
 
 class Ui_ThumbnailIDField(object):
         def setupUi(self, Form, variant):
@@ -17,18 +17,22 @@ class Ui_ThumbnailIDField(object):
                 self.formLayout = QFormLayout(Form)
                 self.formLayout.setObjectName(u"formLayout")
                 self.formLayout.setContentsMargins(0, 0, 0, 0)
-                self.song_id_lineedit = QLineEdit(Form)
-                self.song_id_lineedit.setObjectName(u"song_id_lineedit")
+
+                self.song_id_spinbox = QDoubleSpinBox(Form)
+                self.song_id_spinbox.setObjectName(u"song_id_spinbox")
+                self.song_id_spinbox.setMinimumSize(QSize(154, 0))
+                self.song_id_spinbox.setDecimals(0)
+                self.song_id_spinbox.setMaximum(4294967295.000000000000000)
                 sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
                 sizePolicy.setHorizontalStretch(0)
                 sizePolicy.setVerticalStretch(0)
-                sizePolicy.setHeightForWidth(self.song_id_lineedit.sizePolicy().hasHeightForWidth())
-                self.song_id_lineedit.setSizePolicy(sizePolicy)
-                self.song_id_lineedit.setMinimumSize(QSize(154, 27))
-                self.song_id_lineedit.setMaximumSize(QSize(154, 27))
-                self.song_id_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                sizePolicy.setHeightForWidth(self.song_id_spinbox.sizePolicy().hasHeightForWidth())
+                self.song_id_spinbox.setSizePolicy(sizePolicy)
+                self.song_id_spinbox.setMinimumSize(QSize(154, 27))
+                self.song_id_spinbox.setMaximumSize(QSize(154, 27))
+                self.song_id_spinbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-                self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.song_id_lineedit)
+                self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.song_id_spinbox)
 
                 match variant:
                         case False:
@@ -75,9 +79,7 @@ class Ui_ThumbnailIDField(object):
 
         def retranslateUi(self, Form,variant):
                 Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
-                self.song_id_lineedit.setInputMask(QCoreApplication.translate("Form", u"0000000000", None))
-                self.song_id_lineedit.setText("")
-                self.song_id_lineedit.setPlaceholderText(QCoreApplication.translate("Form", u"Enter Song ID here", None))
+                self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Enter Song ID", None))
                 match variant:
                     case False:#Remove
                         self.id_line_button.setText(QCoreApplication.translate("Form", u"-", None))
