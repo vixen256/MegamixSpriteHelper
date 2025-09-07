@@ -77,23 +77,16 @@ class ThumbnailWidget(QWidget):
             id_field = ThumbnailIDFieldWidget(variant=False)
         else:
             id_field = ThumbnailIDFieldWidget(variant=True)
+
         id_field.removeRequested.connect(self.remove_id_field)
         id_field.additionalRequested.connect(self.add_id_field)
         self.id_field_list.append(id_field)
         self.ui.formLayout.addRow(id_field)
-
-        #TODO
-        #Adds id field to layout
-        #Adds id field to list to keep track of them
         pass
     def remove_id_field(self,widget):
         print("remove")
         self.ui.formLayout.removeRow(widget)
         self.id_field_list.remove(widget)
-
-        #TODO
-        #Removes id field from layout
-        #Removes id field from list
         pass
 
     def remove_thumb(self):
@@ -108,6 +101,7 @@ class ThumbnailWindow(QWidget):
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
+        self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
         #TODO Thumbnail image should be re-usable for multiple ID's to save space
@@ -124,7 +118,7 @@ class ThumbnailWindow(QWidget):
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
 
         if image_path:
-           # thumbnail_widget.image_path = image_path
+            thumbnail_widget.image_path = image_path
             pixmap = QPixmap(image_path)
             thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
             thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
@@ -137,8 +131,6 @@ class ThumbnailWindow(QWidget):
         width = self.main_box.verticalLayout.geometry().width()
         widget_width = 365
         columns = (width // widget_width) - 1
-        print(width)
-        print(f"{columns} available")
         x = 0
         y = 0
         for thumbnail in self.thumbnail_widgets:
@@ -164,11 +156,11 @@ class ThumbnailWindow(QWidget):
     def remove_thumbnail_widget(self, widget):
         self.main_box.gridLayout.removeWidget(widget)
         self.thumbnail_widgets.remove(widget)
-
         widget.deleteLater()
 
-    def scan_folder_for_thumbnails(self):
         self.space_out_thumbnails()
+
+    def scan_folder_for_thumbnails(self):
         if os.name == "nt":
             selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails")
         else:
@@ -192,6 +184,27 @@ class ThumbnailWindow(QWidget):
                 #                     else:
                 #                         self.add_thumbnail(x,0,path)
                 #                         x = x+1
+        self.space_out_thumbnails()
+
+    def create_thumbnail_farc(self):
+        all_thumb_data = []
+        for thumb_widget in self.thumbnail_widgets:
+            thumb_data = []
+            image_path = thumb_widget.image_path
+            ids = []
+
+            for id_list in thumb_widget.id_field_list:
+                ids.append(int(id_list.ui.song_id_spinbox.value()))
+
+            thumb_data.append(ids)
+            thumb_data.append(image_path)
+            all_thumb_data.append(thumb_data)
+
+        for thumb in all_thumb_data:
+            print(thumb)
+
+        #create list
+        #Need to send over thumbnail id + image_path as ([id,id,id...] , image.png)
 
 
 ###################################################################################################
