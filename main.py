@@ -1,6 +1,8 @@
 from pathlib import Path, PurePath
 import sys , os
 import math
+import re
+import string
 from time import sleep
 from enum import Enum, auto
 
@@ -113,6 +115,7 @@ class ThumbnailWindow(QWidget):
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
         self.main_box.generate_spr_db_button.clicked.connect(self.spr_db_button_clicked.emit)
+        #self.main_box.mod_name_lineedit.editingFinished.connect(self.get_song_pack_name)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
 
@@ -220,9 +223,7 @@ class ThumbnailWindow(QWidget):
             thumb_unique_count = thumb_unique_count + 1
 
         texture_size = self.calculate_texture_grid(thumb_unique_count)
-        self.create_thumbnail_texture(texture_size,all_thumb_data)
 
-    def create_thumbnail_texture(self,texture_size,all_thumb_data):
         thumbnail_texture = Image.new('RGBA', texture_size)
         x=2
         y=2
@@ -249,9 +250,19 @@ class ThumbnailWindow(QWidget):
         for data in thumbnail_positions:
             print(data)
 
-        thumbnail_texture.save(str(config.script_directory) + "/tmp/thumbnail_texture.png","png")
+        if os.name == "nt":
+            chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to")
+        else:
+            chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to", initial_dir=config.last_used_directory)
 
-        FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/tmp/thumbnail_texture.png",config.script_directory)
+        if chosen_dir == "":
+            print("Folder wasn't chosen")
+        else:
+            config.last_used_directory = chosen_dir
+
+            thumbnail_texture.save(str(config.script_directory) + "/Images/thumbnail_texture.png","png")
+            mod_name = self.get_song_pack_name()
+            FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/thumbnail_texture.png",chosen_dir,mod_name)
 
     def next_power_of_two(self,n):
         if n <= 0:
@@ -283,6 +294,12 @@ class ThumbnailWindow(QWidget):
             area = (tex_width , tex_height)
         return area
 
+    def get_song_pack_name(self):
+        mod_string = self.main_box.mod_name_lineedit.text()
+        mod_string = mod_string.translate(str.maketrans('', '', string.punctuation)).lower()
+        mod_string = re.sub(r'[^A-Za-z0-9 ]+', '',mod_string)
+
+        return "_".join(mod_string.split())
 
 ###################################################################################################
 

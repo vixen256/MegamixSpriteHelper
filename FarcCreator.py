@@ -53,7 +53,7 @@ class FarcCreator:
     #     files = {"spr_sel_tmb"+song_id+".bin": sprite_set.save_to_raw()}
     #     farc.save(files,output_location+'spr_sel_tmb'+song_id+'.farc',True)
 
-    def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location):
+    def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location,mod_name):
         sprite_set = spr.PySprSet()
         sprite_set.set_texture(('MERGE_D5COMP_0'), spr.PyImage(thumbnail_texture))
 
@@ -69,6 +69,8 @@ class FarcCreator:
 
             sprite_set.set_sprite(str(thumb[0]),thumbnail)
 
-        files = {"spr_sel_pvtmb"+"_your_mod_name"+".bin": sprite_set.save_to_raw()}
-        farc.save(files, str(output_location) + '/spr_sel_pvtmb' + "_your_mod_name" + '.farc', True)
-        print(str(output_location) + '/spr_sel_pvtmb' + "_your_mod_name" + '.farc')
+        files = {"spr_sel_pvtmb_"+mod_name+".bin": sprite_set.save_to_raw()}
+        farc.save(files, str(output_location) + '/spr_sel_pvtmb_' + mod_name + '.farc', True)
+        print(str(output_location) + '/spr_sel_pvtmb_' + mod_name + '.farc')
+
+        #Sorting doesn't work properly. Instead of sorting by number it treats them as strings.
