@@ -41,6 +41,7 @@ class Configurable:
 class ThumbnailIDFieldWidget(QWidget):
     additionalRequested = Signal(QWidget)
     removeRequested = Signal(QWidget)
+    thumb_count_request = Signal()
 
     def __init__(self,parent=None,variant=False):
 
@@ -51,6 +52,8 @@ class ThumbnailIDFieldWidget(QWidget):
         self.value = None #This should contain Song ID , needs to check if it's under ID limit.
         self.ui = Ui_ThumbnailIDField()
         self.ui.setupUi(self,variant)
+
+        self.ui.song_id_spinbox.editingFinished.connect(self.thumb_count_request.emit)
 
         if variant:
             self.ui.id_line_button.clicked.connect(lambda: self.additionalRequested.emit(self))
@@ -83,6 +86,7 @@ class ThumbnailWidget(QWidget):
 
         id_field.removeRequested.connect(self.remove_id_field)
         id_field.additionalRequested.connect(self.add_id_field)
+        id_field.thumb_count_request.connect(lambda: self.thumb_count_request.emit())
         self.id_field_list.append(id_field)
         self.ui.formLayout.addRow(id_field)
         self.thumb_count_request.emit()
