@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>620</width>
-    <height>299</height>
+    <width>740</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>620</width>
-    <height>0</height>
+    <width>740</width>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -36,32 +36,65 @@
     <number>5</number>
    </property>
    <item>
-    <widget class="QPushButton" name="load_folder_button">
-     <property name="text">
-      <string>Load from folder</string>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="topMargin">
+      <number>0</number>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="load_image_button">
-     <property name="text">
-      <string>Load Image</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="thumbnails_loaded_label">
-     <property name="text">
-      <string>Thumbnails loaded: XXX</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="thumbnails_to_fillout_label">
-     <property name="text">
-      <string>Thumbnails that need their ID filled out: XXX</string>
-     </property>
-    </widget>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="search_subfolders_checkbox">
+       <property name="text">
+        <string>Search subfolders?</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLabel" name="thumbnails_to_fillout_label">
+       <property name="text">
+        <string>Thumbnails that need their ID filled out: XXX</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="thumbnails_loaded_label">
+       <property name="text">
+        <string>Thumbnails loaded: XXX</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="load_folder_button">
+       <property name="text">
+        <string>Load from folder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="load_image_button">
+       <property name="text">
+        <string>Load image</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLineEdit" name="mod_name_lineedit">
+       <property name="maxLength">
+        <number>200</number>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>Enter your mod name here</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QPushButton" name="export_farc_button">
@@ -89,8 +122,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>608</width>
-        <height>143</height>
+        <width>728</width>
+        <height>456</height>
        </rect>
       </property>
       <property name="minimumSize">

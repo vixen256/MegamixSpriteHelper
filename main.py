@@ -108,7 +108,6 @@ class ThumbnailWindow(QWidget):
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
-        #TODO Thumbnail image should be re-usable for multiple ID's to save space
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -147,16 +146,6 @@ class ThumbnailWindow(QWidget):
             else:
                 x = x + 1
 
-
-
-        #TODO
-        #Activates each time thumbnail is added, Window size changed, thumbnail removed
-        #Using widgets size calculates amount of columns it can fit
-        #Loops trough widget list and changes it's location based on calculations
-
-        #TODO need to find out how to get info where to place new thumb
-        pass
-
     def remove_thumbnail_widget(self, widget):
         self.main_box.gridLayout.removeWidget(widget)
         self.thumbnail_widgets.remove(widget)
@@ -173,21 +162,17 @@ class ThumbnailWindow(QWidget):
             if selected_folder == "":
                 print("Folder wasn't selected")
             else:
-                x=0
-                for path in Path(selected_folder).rglob('*.png'):
-                    with Image.open(path) as open_image:
-                        if open_image.size == (128,64):
-                #             if not self.thumbnail_widgets:
-                            self.add_thumbnail(x, 0, path)
-                            x = x + 1
-                #                 for thumb in self.thumbnail_widgets:
-                #                     print(path)
-                #                     print(thumb.image_path)
-                #                     if path in thumb.image_path:
-                #                         print(f"{path} == {thumb.image_path}")
-                #                     else:
-                #                         self.add_thumbnail(x,0,path)
-                #                         x = x+1
+                if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
+                    for path in Path(selected_folder).rglob('*.png'):
+                        with Image.open(path) as open_image:
+                            if open_image.size == (128,64):
+                                self.add_thumbnail(0, 0, path)
+                else:
+                    for path in Path(selected_folder).glob('*.png'):
+                        with Image.open(path) as open_image:
+                            if open_image.size == (128, 64):
+                                self.add_thumbnail(0, 0, path)
+
         self.space_out_thumbnails()
 
     def create_thumbnail_farc(self):
@@ -238,7 +223,6 @@ class ThumbnailWindow(QWidget):
         for data in thumbnail_positions:
             print(data)
 
-        print(ImageShow.show(thumbnail_texture))
         thumbnail_texture.save(str(config.script_directory) + "/tmp/thumbnail_texture.png","png")
 
         FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/tmp/thumbnail_texture.png",config.script_directory)
