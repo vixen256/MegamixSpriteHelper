@@ -39,7 +39,6 @@ class Configurable:
 
 
 class ThumbnailIDFieldWidget(QWidget):
-
     additionalRequested = Signal(QWidget)
     removeRequested = Signal(QWidget)
 
@@ -62,8 +61,8 @@ class ThumbnailIDFieldWidget(QWidget):
 
 
 class ThumbnailWidget(QWidget):
-
     removeRequested = Signal(QWidget)
+    thumb_count_request = Signal()
 
     def __init__(self, parent=None):
 
@@ -86,12 +85,13 @@ class ThumbnailWidget(QWidget):
         id_field.additionalRequested.connect(self.add_id_field)
         self.id_field_list.append(id_field)
         self.ui.formLayout.addRow(id_field)
-        pass
+        self.thumb_count_request.emit()
+
     def remove_id_field(self,widget):
         print("remove")
         self.ui.formLayout.removeRow(widget)
         self.id_field_list.remove(widget)
-        pass
+        self.thumb_count_request.emit()
 
     def remove_thumb(self):
 
@@ -100,12 +100,15 @@ class ThumbnailWidget(QWidget):
 
 class ThumbnailWindow(QWidget):
     resized = Signal()
+    spr_db_button_clicked = Signal()
     def __init__(self):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
+        self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
+        self.main_box.generate_spr_db_button.clicked.connect(self.spr_db_button_clicked.emit)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
 
@@ -114,11 +117,25 @@ class ThumbnailWindow(QWidget):
 
         self.resized.emit()
 
+    def update_thumbnail_count_labels(self):
+        loaded_thumbs = len(self.thumbnail_widgets)
+        left_to_fillout = 0
+
+
+        for thumbnail_widget in self.thumbnail_widgets:
+            for id_field in thumbnail_widget.id_field_list:
+                if not id_field.ui.song_id_spinbox.value() > 0:
+                    left_to_fillout = left_to_fillout + 1
+
+        self.main_box.thumbnails_to_fillout_label.setText(f"Thumbnails that need their ID filled out: {left_to_fillout}")
+        self.main_box.thumbnails_loaded_label.setText(f"Thumbnails loaded: {loaded_thumbs}")
+
     def add_thumbnail(self,row, column, image_path=None):
         thumbnail_widget = ThumbnailWidget()
         #todo needs to check if image is already loaded and skip it
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
+        thumbnail_widget.thumb_count_request.connect(self.update_thumbnail_count_labels)
 
         if image_path:
             thumbnail_widget.image_path = image_path
@@ -146,12 +163,14 @@ class ThumbnailWindow(QWidget):
             else:
                 x = x + 1
 
+
     def remove_thumbnail_widget(self, widget):
         self.main_box.gridLayout.removeWidget(widget)
         self.thumbnail_widgets.remove(widget)
         widget.deleteLater()
 
         self.space_out_thumbnails()
+        self.update_thumbnail_count_labels()
 
     def scan_folder_for_thumbnails(self):
         if os.name == "nt":
@@ -162,6 +181,7 @@ class ThumbnailWindow(QWidget):
             if selected_folder == "":
                 print("Folder wasn't selected")
             else:
+                config.last_used_directory = Path(selected_folder)
                 if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
                     for path in Path(selected_folder).rglob('*.png'):
                         with Image.open(path) as open_image:
@@ -173,7 +193,9 @@ class ThumbnailWindow(QWidget):
                             if open_image.size == (128, 64):
                                 self.add_thumbnail(0, 0, path)
 
+
         self.space_out_thumbnails()
+        self.update_thumbnail_count_labels()
 
     def create_thumbnail_farc(self):
         all_thumb_data = []
@@ -336,6 +358,7 @@ def draw_combined_preview_to(target):
 class MainWindow(QMainWindow):
 
 
+
     def __init__(self):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
@@ -384,6 +407,8 @@ class MainWindow(QMainWindow):
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
         self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
+
+        self.thumbnail_creator.spr_db_button_clicked.connect(self.generate_spr_db_button_callback)
 
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()) # Make sure that tab matches options shown on start
         self.draw_image_grid()
@@ -1001,10 +1026,10 @@ class MainWindow(QMainWindow):
                         has_new_tmb_farc = True
                 if has_new_tmb_farc == True:
                     if has_old_tmb_farc == True:
-                        farc_list.remove(Path(spr_path+"/spr_sel_pvtmb.farc"))
-                        show_message_box("Warning","You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
-                                                   "\n"
-                                                   "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to avoid issues.")
+                        farc_list.remove(Path(spr_path + "/spr_sel_pvtmb.farc"))
+                        show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
+                                                    "\n"
+                                                    "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to avoid issues.")
                         print("Separate thumbnail farc files found , not including old combined thumbnail farc in generated database!")
                     else:
                         print("Only separate thumbnail farc files found.")
@@ -1013,6 +1038,9 @@ class MainWindow(QMainWindow):
                     add_farc_to_Manager(farc_reader, spr_db)
             spr_db.write_db(f'{spr_path}/mod_spr_db.bin')
             print(f"Generated mod_spr_db in {spr_path}")
+
+
+
 
 if __name__ == "__main__":
     config = Configurable()

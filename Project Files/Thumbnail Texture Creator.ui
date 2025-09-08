@@ -55,15 +55,21 @@
      </item>
      <item row="2" column="1">
       <widget class="QLabel" name="thumbnails_to_fillout_label">
+       <property name="minimumSize">
+        <size>
+         <width>330</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Thumbnails that need their ID filled out: XXX</string>
+        <string>Thumbnails that need their ID filled out: 0</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
       <widget class="QLabel" name="thumbnails_loaded_label">
        <property name="text">
-        <string>Thumbnails loaded: XXX</string>
+        <string>Thumbnails loaded: 0</string>
        </property>
       </widget>
      </item>
@@ -94,14 +100,21 @@
        </property>
       </widget>
      </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="export_farc_button">
+       <property name="text">
+        <string>Export Farc</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QPushButton" name="generate_spr_db_button">
+       <property name="text">
+        <string>Generate Sprite Database</string>
+       </property>
+      </widget>
+     </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="export_farc_button">
-     <property name="text">
-      <string>Export Farc</string>
-     </property>
-    </widget>
    </item>
    <item>
     <widget class="QScrollArea" name="scrollArea">
@@ -123,7 +136,7 @@
         <x>0</x>
         <y>0</y>
         <width>728</width>
-        <height>456</height>
+        <height>455</height>
        </rect>
       </property>
       <property name="minimumSize">

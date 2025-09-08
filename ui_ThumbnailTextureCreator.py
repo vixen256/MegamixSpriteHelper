@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'Thumbnail Texture CreatorStRvPw.ui'
+## Form generated from reading UI file 'Thumbnail Texture CreatorChMSZv.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -41,6 +41,7 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.thumbnails_to_fillout_label = QLabel(ThumbnailTextureCreator)
         self.thumbnails_to_fillout_label.setObjectName(u"thumbnails_to_fillout_label")
+        self.thumbnails_to_fillout_label.setMinimumSize(QSize(330, 0))
 
         self.gridLayout_2.addWidget(self.thumbnails_to_fillout_label, 2, 1, 1, 1)
 
@@ -66,13 +67,18 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.gridLayout_2.addWidget(self.mod_name_lineedit, 2, 0, 1, 1)
 
-
-        self.verticalLayout.addLayout(self.gridLayout_2)
-
         self.export_farc_button = QPushButton(ThumbnailTextureCreator)
         self.export_farc_button.setObjectName(u"export_farc_button")
 
-        self.verticalLayout.addWidget(self.export_farc_button)
+        self.gridLayout_2.addWidget(self.export_farc_button, 3, 0, 1, 1)
+
+        self.generate_spr_db_button = QPushButton(ThumbnailTextureCreator)
+        self.generate_spr_db_button.setObjectName(u"generate_spr_db_button")
+
+        self.gridLayout_2.addWidget(self.generate_spr_db_button, 3, 1, 1, 1)
+
+
+        self.verticalLayout.addLayout(self.gridLayout_2)
 
         self.scrollArea = QScrollArea(ThumbnailTextureCreator)
         self.scrollArea.setObjectName(u"scrollArea")
@@ -82,7 +88,7 @@ class Ui_ThumbnailTextureCreator(object):
         self.scrollArea.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 728, 456))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 728, 455))
         self.scrollAreaWidgetContents.setMinimumSize(QSize(0, 0))
         self.gridLayout = QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setSpacing(0)
@@ -101,11 +107,12 @@ class Ui_ThumbnailTextureCreator(object):
     def retranslateUi(self, ThumbnailTextureCreator):
         ThumbnailTextureCreator.setWindowTitle(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnail Texture Creator", None))
         self.search_subfolders_checkbox.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Search subfolders?", None))
-        self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails that need their ID filled out: XXX", None))
-        self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails loaded: XXX", None))
+        self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails that need their ID filled out: 0", None))
+        self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails loaded: 0", None))
         self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
         self.mod_name_lineedit.setPlaceholderText(QCoreApplication.translate("ThumbnailTextureCreator", u"Enter your mod name here", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
+        self.generate_spr_db_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Generate Sprite Database", None))
     # retranslateUi
 
