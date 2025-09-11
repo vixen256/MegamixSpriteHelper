@@ -20,6 +20,7 @@ class QLabel_clickable(QLabel):
         self.clicked.emit()
 
 class Stylesheet(Enum):
-    SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid #ff0000;border-radius: 2px;}"
+    SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(255,0,0);border-radius: 2px;}"
+    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(255,155,155);border-radius: 2px;}"
     ID_FIELD_CONFLICT = ".QDoubleSpinBox {color: rgb(255,100,100);}"
     ID_FIELD_PLACEHOLDER = ".QDoubleSpinBox {color: rgb(155,155,155);}"

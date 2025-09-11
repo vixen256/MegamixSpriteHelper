@@ -163,6 +163,7 @@ class ThumbnailWindow(QWidget):
                 id_field.setStyleSheet("")
                 id_seen.append(id_field.ui.song_id_spinbox.value())
                 if  id_field.ui.song_id_spinbox.value() == 0:
+                    thumbnail_widget.setStyleSheet(Stylesheet.SCROLL_AREA_UNFILLED.value)
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_PLACEHOLDER.value)
                     left_to_fillout = left_to_fillout + 1
 
@@ -303,7 +304,7 @@ class ThumbnailWindow(QWidget):
             thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
 
             for thumb_id in thumb_data[0]:
-                thumbnail_positions.append([thumb_id, (x, y)])
+                thumbnail_positions.append([self.pad_number(thumb_id), (x, y)])
 
             if thumb == 7:
                 x = 2
@@ -311,8 +312,9 @@ class ThumbnailWindow(QWidget):
                 thumb = 0
             else:
                 x = x + 128 + 2
-
-        thumbnail_positions.sort()
+        #print(thumbnail_positions[0][0])
+        #TODO fix sorting. Needs to sort by id that's now a string so it shits itself
+        #thumbnail_positions.sort()
 
         for data in thumbnail_positions:
             print(data)
@@ -367,6 +369,14 @@ class ThumbnailWindow(QWidget):
         mod_string = re.sub(r'[^A-Za-z0-9 ]+', '',mod_string)
 
         return "_".join(mod_string.split())
+
+    def pad_number(self,number):
+        if number >= 100:
+            return str(number)
+        elif number >= 10:
+            return "0"+ str(number)
+        else:
+            return "00" + str(number)
 
 ###################################################################################################
 
