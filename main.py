@@ -117,7 +117,6 @@ class ThumbnailWindow(QWidget):
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
         self.main_box.generate_spr_db_button.clicked.connect(self.spr_db_button_clicked.emit)
-        #self.main_box.mod_name_lineedit.editingFinished.connect(self.get_song_pack_name)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
 
@@ -158,7 +157,6 @@ class ThumbnailWindow(QWidget):
                     left_to_fillout = left_to_fillout + 1
 
         # Look for conflicts
-        print(id_seen)
         duplicates = []
         seen = set()
         #keep only duplicates found
@@ -188,18 +186,21 @@ class ThumbnailWindow(QWidget):
             self.main_box.export_farc_button.setDisabled(False)
             self.main_box.export_farc_button.setToolTip("")
 
-    def add_thumbnail(self,row, column, image_path=None):
+    def add_thumbnail(self,row, column, image_path):
+        if self.thumbnail_widgets:
+            for thumbnail in self.thumbnail_widgets:
+                if image_path == thumbnail.image_path:
+                    return
+
         thumbnail_widget = ThumbnailWidget()
-        #todo needs to check if image is already loaded and skip it
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
         thumbnail_widget.thumb_count_request.connect(self.update_thumbnail_count_labels)
 
-        if image_path:
-            thumbnail_widget.image_path = image_path
-            pixmap = QPixmap(image_path)
-            thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
-            thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
+        thumbnail_widget.image_path = image_path
+        pixmap = QPixmap(image_path)
+        thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
+        thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
 
         self.main_box.gridLayout.addWidget(thumbnail_widget, row, column)
         self.thumbnail_widgets.append(thumbnail_widget)
@@ -309,11 +310,11 @@ class ThumbnailWindow(QWidget):
         if chosen_dir == "":
             print("Folder wasn't chosen")
         else:
-            config.last_used_directory = chosen_dir
+            config.last_used_directory = Path(chosen_dir)
 
-            thumbnail_texture.save(str(config.script_directory) + "/Images/thumbnail_texture.png","png")
+            thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
             mod_name = self.get_song_pack_name()
-            FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/thumbnail_texture.png",chosen_dir,mod_name)
+            FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
 
     def next_power_of_two(self,n):
         if n <= 0:
