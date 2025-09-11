@@ -18,7 +18,6 @@ from copykitten import copy_image
 from filedialpy import openFile
 from decimal import Decimal, ROUND_HALF_UP
 
-from ui_SpriteHelper import Ui_MainWindow
 from SceneComposer import SceneComposer, State, SpriteType, Scene
 from FarcCreator import FarcCreator
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
@@ -26,6 +25,9 @@ from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
 from ui_ThumbnailWidget import Ui_ThumbnailWidget
 from ui_ThumbnailIDField import  Ui_ThumbnailIDField
+from ui_SpriteHelper import Ui_MainWindow
+
+from widgets import Stylesheet
 
 class OutputTarget(Enum):
     CLIPBOARD = auto()
@@ -119,9 +121,9 @@ class ThumbnailWindow(QWidget):
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
 
+        self.main_box.export_farc_button.setDisabled(True)
+
         self.id_conflict_palette = QPalette()
-        self.id_conflict_palette.setColor(QPalette.ColorRole.Window, QColor(255, 0, 0, 90))
-        self.id_conflict_palette.setColor(QPalette.ColorRole.WindowText, QColor(255,0,0,90))
         self.id_conflict_palette.setColor(QPalette.ColorRole.Text, QColor(255, 0, 0))
 
         self.placeholder_palette = QPalette()
@@ -132,7 +134,6 @@ class ThumbnailWindow(QWidget):
 
         self.normal_palette = QPalette()
         self.normal_palette.setColor(QPalette.ColorRole.Text, QColor(255,255,255))
-        self.normal_palette.setColor(QPalette.ColorRole.Window, QColor(255, 0, 0, 0))
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -143,31 +144,18 @@ class ThumbnailWindow(QWidget):
         loaded_thumbs = len(self.thumbnail_widgets)
         left_to_fillout = 0
 
-        #TODO - Needs to check for ID conflicts and set their color to red.
-        #########################################################3
-        #Set colors based on source they were inferred from
-
-        # Gather list of already seen ID's if they
-        # Extract duplicates only from the list.
-        #   then loop trough all id fields again this time checking if their values are in the list
-        #       if they are color text red and get their parent and set it's frame border to red
-        #
-
         id_seen = []
 
-        # Apply colors
+        #Gather list of id's, Apply colors
         for thumbnail_widget in self.thumbnail_widgets:
             thumbnail_widget.setStyleSheet("")
 
             for id_field in thumbnail_widget.id_field_list:
+                id_field.setStyleSheet("")
                 id_seen.append(id_field.ui.song_id_spinbox.value())
                 if  id_field.ui.song_id_spinbox.value() == 0:
-                    id_field.setPalette(self.placeholder_palette)
+                    id_field.setStyleSheet(Stylesheet.ID_FIELD_PLACEHOLDER.value)
                     left_to_fillout = left_to_fillout + 1
-                    #print(id_field.parent().parent().parent().parent())
-                else:
-                    id_field.setPalette(self.normal_palette)
-                    thumbnail_widget.setPalette(self.normal_palette)
 
         # Look for conflicts
         print(id_seen)
@@ -180,20 +168,25 @@ class ThumbnailWindow(QWidget):
             else:
                 seen.add(i)
 
+        duplicates = list(filter(lambda a: a != 0, duplicates))
+
         for thumbnail_widget in self.thumbnail_widgets:
             for id_field in thumbnail_widget.id_field_list:
                 if id_field.ui.song_id_spinbox.value() in duplicates:
-                    id_field.parent().parent().parent().parent().setStyleSheet("""
-                                 QScrollArea {
-                                     border: 2px solid #ff0000;
-                                     border-radius: 2px;
-                                 }
-                             """)
-                else:
-                    pass
+                    id_field.setPalette(self.id_conflict_palette)
+                    id_field.parent().parent().parent().parent().setStyleSheet(Stylesheet.SCROLL_AREA_CONFLICT.value)
+                    id_field.setStyleSheet(Stylesheet.ID_FIELD_CONFLICT.value)
+                    left_to_fillout = left_to_fillout + 1
 
         self.main_box.thumbnails_to_fillout_label.setText(f"Thumbnails that need their ID filled out: {left_to_fillout}")
         self.main_box.thumbnails_loaded_label.setText(f"Thumbnails loaded: {loaded_thumbs}")
+
+        if left_to_fillout > 0:
+            self.main_box.export_farc_button.setDisabled(True)
+            self.main_box.export_farc_button.setToolTip("Please fill out all id fields before exporting FARC file.")
+        else:
+            self.main_box.export_farc_button.setDisabled(False)
+            self.main_box.export_farc_button.setToolTip("")
 
     def add_thumbnail(self,row, column, image_path=None):
         thumbnail_widget = ThumbnailWidget()

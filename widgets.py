@@ -1,3 +1,5 @@
+from enum import Enum
+
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
                             QMetaObject, QObject, QPoint, QRect,
                             QSize, QTime, QUrl, Qt, Signal)
@@ -16,3 +18,8 @@ class QLabel_clickable(QLabel):
 
     def mousePressEvent(self, ev):
         self.clicked.emit()
+
+class Stylesheet(Enum):
+    SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid #ff0000;border-radius: 2px;}"
+    ID_FIELD_CONFLICT = ".QDoubleSpinBox {color: rgb(255,100,100);}"
+    ID_FIELD_PLACEHOLDER = ".QDoubleSpinBox {color: rgb(155,155,155);}"
