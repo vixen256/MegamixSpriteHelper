@@ -47,7 +47,7 @@ class ThumbnailIDFieldWidget(QWidget):
     removeRequested = Signal(QWidget)
     thumb_count_request = Signal()
 
-    def __init__(self,parent=None,variant=False):
+    def __init__(self,parent=None,variant=False, inferred_id=None):
 
         super(ThumbnailIDFieldWidget, self).__init__(parent)
         self.variant = variant    #False cannot be removed, spawns with button to add more id fields
@@ -56,7 +56,8 @@ class ThumbnailIDFieldWidget(QWidget):
         self.value = None #This should contain Song ID , needs to check if it's under ID limit.
         self.ui = Ui_ThumbnailIDField()
         self.ui.setupUi(self,variant)
-
+        if inferred_id:
+            self.ui.song_id_spinbox.setValue(float(inferred_id))
         self.ui.song_id_spinbox.editingFinished.connect(self.thumb_count_request.emit)
 
         if variant:
@@ -71,7 +72,7 @@ class ThumbnailWidget(QWidget):
     removeRequested = Signal(QWidget)
     thumb_count_request = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, image_path=None, inferred_id=None):
 
         super(ThumbnailWidget, self).__init__(parent)
 
@@ -79,14 +80,23 @@ class ThumbnailWidget(QWidget):
         self.ui.setupUi(self)
         self.ui.remove_thumbnail_button.clicked.connect(self.remove_thumb)
         self.id_field_list = []
-        self.add_id_field(False)
-        self.image_path = None
-    def add_id_field(self, can_be_removed=False):
+        self.image_path = image_path
+
+        id_count = 0
+        if inferred_id:
+            for i_id in inferred_id:
+                if id_count == 0:
+                    self.add_id_field(False, i_id=i_id)
+                else:
+                    self.add_id_field(True , i_id=i_id)
+        else:
+            self.add_id_field(False)
+    def add_id_field(self, can_be_removed=False, i_id=None):
         print("called add")
         if can_be_removed:
-            id_field = ThumbnailIDFieldWidget(variant=False)
+            id_field = ThumbnailIDFieldWidget(variant=False ,inferred_id = i_id)
         else:
-            id_field = ThumbnailIDFieldWidget(variant=True)
+            id_field = ThumbnailIDFieldWidget(variant=True ,inferred_id = i_id)
 
         id_field.removeRequested.connect(self.remove_id_field)
         id_field.additionalRequested.connect(self.add_id_field)
@@ -192,12 +202,17 @@ class ThumbnailWindow(QWidget):
                 if image_path == thumbnail.image_path:
                     return
 
-        thumbnail_widget = ThumbnailWidget()
+        if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
+            id_list = [Path(image_path).stem]
+            thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
+            print(f"inferring {id_list}")
+        else:
+            thumbnail_widget = ThumbnailWidget(image_path=image_path)
+
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
         thumbnail_widget.thumb_count_request.connect(self.update_thumbnail_count_labels)
 
-        thumbnail_widget.image_path = image_path
         pixmap = QPixmap(image_path)
         thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
         thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
