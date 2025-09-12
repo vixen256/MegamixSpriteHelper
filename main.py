@@ -1,8 +1,10 @@
+import io
 from pathlib import Path, PurePath
 import sys , os
 import math
 import re
 import string
+import yaml
 from time import sleep
 from enum import Enum, auto
 
@@ -89,6 +91,7 @@ class ThumbnailWidget(QWidget):
                     self.add_id_field(False, i_id=i_id)
                 else:
                     self.add_id_field(True , i_id=i_id)
+                id_count = id_count + 1
         else:
             self.add_id_field(False)
     def add_id_field(self, can_be_removed=False, i_id=None):
@@ -203,12 +206,24 @@ class ThumbnailWindow(QWidget):
                 if image_path == thumbnail.image_path:
                     return
 
-        if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
-            id_list = [Path(image_path).stem]
-            thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
-            print(f"inferring {id_list}")
-        else:
-            thumbnail_widget = ThumbnailWidget(image_path=image_path)
+        thumbnail_widget = None
+
+        if Path('remembered_ids.yaml').exists():
+            with io.open('remembered_ids.yaml', 'r') as infile:
+                saved_data = yaml.safe_load(infile)
+                for entry in saved_data:
+                    if str(image_path) == entry[0]:
+                        thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=entry[1])
+                        print(f"inferring {entry[1]} from YAML")
+                        break
+
+        if thumbnail_widget is None:
+            if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
+                id_list = [Path(image_path).stem]
+                thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
+                print(f"inferring {id_list} from file name")
+            else:
+                thumbnail_widget = ThumbnailWidget(image_path=image_path)
 
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
@@ -332,6 +347,56 @@ class ThumbnailWindow(QWidget):
             thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
             mod_name = self.get_song_pack_name()
             FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
+
+            #Remember ID's used for images
+
+            #TODO
+            #Needs to be formatted into:
+            # File path
+            #   [ID,ID,ID...]
+            #Needs to overwrite already existing entries for the file path , but keep others untouched
+            remember_data = []
+            for thumb_widget in self.thumbnail_widgets:
+                image = str(thumb_widget.image_path)
+                ids = []
+                for id_field in thumb_widget.id_field_list:
+                    ids.append(int(id_field.ui.song_id_spinbox.value()))
+                remember_data.append([image,ids])
+
+            if Path('remembered_ids.yaml').exists():
+                with io.open('remembered_ids.yaml', 'r') as infile:
+                    saved_data = yaml.safe_load(infile)
+
+                    saved_paths =  {entry[0] for entry in saved_data}
+                    current_paths = {entry[0] for entry in remember_data}
+
+                    common_paths = saved_paths & current_paths
+                    untouched_saved_paths = saved_paths - common_paths
+
+                    new_data = []
+
+                    #Write new data for common paths and new ones
+                    #Append unchanged data
+                    #dump YAML
+
+                    for entry in remember_data:
+                        new_data.append(entry)
+
+                    for entry in saved_data:
+                        if entry[0] in untouched_saved_paths:
+                            new_data.append(entry)
+
+                with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                    yaml.dump(new_data, outfile, default_flow_style=False, allow_unicode=True)
+
+            else:
+               with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                   yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
+
+
+
+
+
 
     def next_power_of_two(self,n):
         if n <= 0:
