@@ -1,4 +1,5 @@
 import io
+import time
 from pathlib import Path, PurePath
 import sys , os
 import math
@@ -15,6 +16,8 @@ from PySide6.QtGui import QPixmap, QPalette, QColor
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame
 from PIL import Image,ImageShow,ImageStat
 from PIL.ImageShow import Viewer
+
+from concurrent.futures import ThreadPoolExecutor
 
 from copykitten import copy_image
 from filedialpy import openFile
@@ -95,7 +98,7 @@ class ThumbnailWidget(QWidget):
         else:
             self.add_id_field(False)
     def add_id_field(self, can_be_removed=False, i_id=None):
-        print("called add")
+        #print("called add")
         if can_be_removed:
             id_field = ThumbnailIDFieldWidget(variant=False ,inferred_id = i_id)
         else:
@@ -146,6 +149,8 @@ class ThumbnailWindow(QWidget):
 
         self.normal_palette = QPalette()
         self.normal_palette.setColor(QPalette.ColorRole.Text, QColor(255,255,255))
+
+        self.known_ids = self.read_saved_ids()
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -200,30 +205,26 @@ class ThumbnailWindow(QWidget):
             self.main_box.export_farc_button.setDisabled(False)
             self.main_box.export_farc_button.setToolTip("")
 
-    def add_thumbnail(self,row, column, image_path):
+    def add_thumbnail(self,image_path,inferred_id):
         if self.thumbnail_widgets:
             for thumbnail in self.thumbnail_widgets:
                 if image_path == thumbnail.image_path:
                     return
 
-        thumbnail_widget = None
-
-        if Path('remembered_ids.yaml').exists():
-            with io.open('remembered_ids.yaml', 'r') as infile:
-                saved_data = yaml.safe_load(infile)
-                for entry in saved_data:
-                    if str(image_path) == entry[0]:
-                        thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=entry[1])
-                        print(f"inferring {entry[1]} from YAML")
-                        break
-
-        if thumbnail_widget is None:
-            if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
-                id_list = [Path(image_path).stem]
-                thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
-                print(f"inferring {id_list} from file name")
-            else:
-                thumbnail_widget = ThumbnailWidget(image_path=image_path)
+        #
+        # for entry in main_window.thumbnail_creator.known_ids:
+        #     if str(image_path) == entry[0]:
+        #         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=entry[1])
+        #         print(f"inferring {entry[1]} from YAML")
+        #         break
+        #
+        # if thumbnail_widget is None:
+        #     if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
+        #         id_list = [Path(image_path).stem]
+        #         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
+        #         #print(f"inferring {id_list} from file name")
+        #     else:
+        thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=inferred_id)
 
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
@@ -233,9 +234,27 @@ class ThumbnailWindow(QWidget):
         thumbnail_widget.ui.thumbnail_image.setPixmap(pixmap)
         thumbnail_widget.ui.thumbnail_image.setScaledContents(True)
 
-        self.main_box.gridLayout.addWidget(thumbnail_widget, row, column)
+        self.main_box.gridLayout.addWidget(thumbnail_widget, 0, 0)
         self.thumbnail_widgets.append(thumbnail_widget)
         return thumbnail_widget
+
+    def infer_thumbnail_id(self,image_path):
+        inferred_id_list = []
+
+        for entry in main_window.thumbnail_creator.known_ids:
+            if str(image_path) == entry[0]:
+                inferred_id_list.append((image_path,entry[1]))
+                #print(f"inferring {entry[1]} from YAML")
+                break
+
+        if inferred_id_list == []:
+            if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
+                id_list = [Path(image_path).stem]
+                inferred_id_list.append([image_path,id_list])
+                #print(f"inferring {id_list} from file name")
+            else:
+                inferred_id_list.append((image_path,[]))
+        return inferred_id_list
 
     def space_out_thumbnails(self):
         width = self.main_box.verticalLayout.geometry().width()
@@ -252,6 +271,13 @@ class ThumbnailWindow(QWidget):
                 x = 0
             else:
                 x = x + 1
+    def read_saved_ids(self):
+        if Path('remembered_ids.yaml').exists():
+            with io.open('remembered_ids.yaml', 'r') as infile:
+                saved_data = yaml.safe_load(infile)
+                return saved_data
+        else:
+            return []
 
 
     def remove_thumbnail_widget(self, widget):
@@ -272,20 +298,30 @@ class ThumbnailWindow(QWidget):
                 print("Folder wasn't selected")
             else:
                 config.last_used_directory = Path(selected_folder)
-                if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
-                    for path in Path(selected_folder).rglob('*.png'):
-                        with Image.open(path) as open_image:
-                            if open_image.size == (128,64):
-                                self.add_thumbnail(0, 0, path)
-                else:
-                    for path in Path(selected_folder).glob('*.png'):
-                        with Image.open(path) as open_image:
-                            if open_image.size == (128, 64):
-                                self.add_thumbnail(0, 0, path)
+                start_time = time.time()
+
+                with ThreadPoolExecutor(max_workers=1) as executor:  # This was a waste of time to add...
+                    futures = []
+
+                    if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
+                        for path in Path(selected_folder).rglob('*.png'):
+                            with Image.open(path) as open_image:
+                                if open_image.size == (128,64):
+                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+                    else:
+                        for path in Path(selected_folder).glob('*.png'):
+                            with Image.open(path) as open_image:
+                                if open_image.size == (128, 64):
+                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+
+                results = [future.result() for future in futures]
+                for widget in results:
+                    self.add_thumbnail(widget[0][0],widget[0][1])
 
 
-        self.space_out_thumbnails()
-        self.update_thumbnail_count_labels()
+                self.space_out_thumbnails()
+                self.update_thumbnail_count_labels()
+                #print("--- %s seconds ---" % (time.time() - start_time))
 
     def create_thumbnail_farc(self):
         all_thumb_data = []
@@ -389,9 +425,14 @@ class ThumbnailWindow(QWidget):
                 with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
                     yaml.dump(new_data, outfile, default_flow_style=False, allow_unicode=True)
 
+                self.known_ids = self.read_saved_ids()
+
             else:
                with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
                    yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
+
+            self.known_ids = self.read_saved_ids()
+
 
 
 
