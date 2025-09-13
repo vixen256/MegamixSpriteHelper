@@ -35,23 +35,7 @@ class FarcCreator:
         sprite_set.set_sprite(str("SONG_JK"+song_id),jacket)
         sprite_set.set_sprite(str("SONG_LOGO"+song_id),logo)
         files = {"spr_sel_pv"+song_id+".bin": sprite_set.save_to_raw()}
-        farc.save(files,output_location+'spr_sel_pv'+song_id+'.farc', True)
-
-    # def create_thumbnail_farc(self,song_id,thumbnail_texture,output_location):
-    #     sprite_set = spr.PySprSet()
-    #     sprite_set.set_texture(('MERGE_D5COMP_0'), spr.PyImage(thumbnail_texture))
-    #
-    #     thumbnail = spr.PySprite()
-    #     thumbnail.texture = 'MERGE_D5COMP_0'
-    #     thumbnail.screen_mode = spr.ScreenMode.HDTV1080
-    #     thumbnail.x = 0
-    #     thumbnail.y = 0
-    #     thumbnail.width = 128
-    #     thumbnail.height = 64
-    #
-    #     sprite_set.set_sprite("TMB",thumbnail)
-    #     files = {"spr_sel_tmb"+song_id+".bin": sprite_set.save_to_raw()}
-    #     farc.save(files,output_location+'spr_sel_tmb'+song_id+'.farc',True)
+        farc.save(files,output_location+'/spr_sel_pv'+song_id+'.farc', True)
 
     def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location,mod_name):
         sprite_set = spr.PySprSet()

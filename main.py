@@ -122,6 +122,15 @@ class ThumbnailWidget(QWidget):
         self.removeRequested.emit(self)
 
 
+def pad_number(number):
+    if number >= 100:
+        return str(number)
+    elif number >= 10:
+        return "0"+ str(number)
+    else:
+        return "00" + str(number)
+
+
 class ThumbnailWindow(QWidget):
     resized = Signal()
     spr_db_button_clicked = Signal()
@@ -355,7 +364,7 @@ class ThumbnailWindow(QWidget):
             thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
 
             for thumb_id in thumb_data[0]:
-                thumbnail_positions.append([self.pad_number(thumb_id), (x, y)])
+                thumbnail_positions.append([pad_number(thumb_id), (x, y)])
 
             if thumb == 7:
                 x = 2
@@ -476,13 +485,6 @@ class ThumbnailWindow(QWidget):
 
         return "_".join(mod_string.split())
 
-    def pad_number(self,number):
-        if number >= 100:
-            return str(number)
-        elif number >= 10:
-            return "0"+ str(number)
-        else:
-            return "00" + str(number)
 
 ###################################################################################################
 
@@ -594,6 +596,7 @@ class MainWindow(QMainWindow):
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         self.main_box.farc_create_thumbnail_button.clicked.connect(self.farc_create_thumbnail_button_callback)
+        self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
         #Allow previews to be opened in external viewer
@@ -1007,6 +1010,24 @@ class MainWindow(QMainWindow):
         thumbnail_texture = Image.new('RGBA', (128, 64))
         thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
         return thumbnail_texture
+
+    @Slot()
+    def export_background_jacket_logo_farc_button_callback(self):
+        if os.name == "nt":
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
+        else:
+            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to", initial_dir=config.last_used_directory)
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(output_location)
+
+            Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
+            Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+
+            output_location = output_location
+            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location)
 
 
     @Slot()
