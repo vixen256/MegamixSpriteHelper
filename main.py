@@ -300,7 +300,7 @@ class ThumbnailWindow(QWidget):
                 config.last_used_directory = Path(selected_folder)
                 start_time = time.time()
 
-                with ThreadPoolExecutor(max_workers=1) as executor:  # This was a waste of time to add...
+                with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
                     futures = []
 
                     if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
@@ -1003,6 +1003,10 @@ class MainWindow(QMainWindow):
         logo_texture = Image.new('RGBA', (1024, 512))
         logo_texture.alpha_composite(logo,(x,y))
         return logo_texture
+    def create_thumbnail_texture(self):
+        thumbnail_texture = Image.new('RGBA', (128, 64))
+        thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
+        return thumbnail_texture
 
 
     @Slot()
