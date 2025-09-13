@@ -306,6 +306,7 @@ class ThumbnailWindow(QWidget):
             if selected_folder == "":
                 print("Folder wasn't selected")
             else:
+                print(selected_folder)
                 config.last_used_directory = Path(selected_folder)
                 start_time = time.time()
 
@@ -316,11 +317,13 @@ class ThumbnailWindow(QWidget):
                         for path in Path(selected_folder).rglob('*.png'):
                             with Image.open(path) as open_image:
                                 if open_image.size == (128,64):
+                                    print(f"found thumbnail at: {path}")
                                     futures.append(executor.submit(self.infer_thumbnail_id, path))
                     else:
                         for path in Path(selected_folder).glob('*.png'):
                             with Image.open(path) as open_image:
                                 if open_image.size == (128, 64):
+                                    print(f"found thumbnail at: {path}")
                                     futures.append(executor.submit(self.infer_thumbnail_id, path))
 
                 results = [future.result() for future in futures]
