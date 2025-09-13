@@ -303,37 +303,37 @@ class ThumbnailWindow(QWidget):
         else:
             selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails", initial_dir=config.last_used_directory)
 
-            if selected_folder == "":
-                print("Folder wasn't selected")
-            else:
-                print(selected_folder)
-                config.last_used_directory = Path(selected_folder)
-                start_time = time.time()
+        if selected_folder == "":
+            print("Folder wasn't selected")
+        else:
+            print(selected_folder)
+            config.last_used_directory = Path(selected_folder)
+            start_time = time.time()
 
-                with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
-                    futures = []
+            with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
+                futures = []
 
-                    if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
-                        for path in Path(selected_folder).rglob('*.png'):
-                            with Image.open(path) as open_image:
-                                if open_image.size == (128,64):
-                                    print(f"found thumbnail at: {path}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
-                    else:
-                        for path in Path(selected_folder).glob('*.png'):
-                            with Image.open(path) as open_image:
-                                if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {path}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+                if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
+                    for path in Path(selected_folder).rglob('*.png'):
+                        with Image.open(path) as open_image:
+                            if open_image.size == (128,64):
+                                print(f"found thumbnail at: {path}")
+                                futures.append(executor.submit(self.infer_thumbnail_id, path))
+                else:
+                    for path in Path(selected_folder).glob('*.png'):
+                        with Image.open(path) as open_image:
+                            if open_image.size == (128, 64):
+                                print(f"found thumbnail at: {path}")
+                                futures.append(executor.submit(self.infer_thumbnail_id, path))
 
-                results = [future.result() for future in futures]
-                for widget in results:
-                    self.add_thumbnail(widget[0][0],widget[0][1])
+            results = [future.result() for future in futures]
+            for widget in results:
+                self.add_thumbnail(widget[0][0],widget[0][1])
 
 
-                self.space_out_thumbnails()
-                self.update_thumbnail_count_labels()
-                #print("--- %s seconds ---" % (time.time() - start_time))
+            self.space_out_thumbnails()
+            self.update_thumbnail_count_labels()
+            #print("--- %s seconds ---" % (time.time() - start_time))
 
     def create_thumbnail_farc(self):
         all_thumb_data = []
