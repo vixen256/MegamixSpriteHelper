@@ -79,7 +79,7 @@ class Ui_ThumbnailIDField(object):
 
         def retranslateUi(self, Form,variant):
                 Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
-                self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Enter Song ID", None))
+                self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Enter_Song_ID", None))
                 match variant:
                     case False:#Remove
                         self.id_line_button.setText(QCoreApplication.translate("Form", u"-", None))
