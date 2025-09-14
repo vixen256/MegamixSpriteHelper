@@ -323,12 +323,12 @@ class ThumbnailWindow(QWidget):
                     futures = []
                     exts = [".png", ".jpg", ".jpeg", ".webp"]
 
-                    for path in selected_files:
-                        if Path(path).suffix in exts:
-                            with Image.open(path) as open_image:
+                    for file in selected_files:
+                        if Path(file).suffix in exts:
+                            with Image.open(file) as open_image:
                                 if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {path}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+                                    print(f"found thumbnail at: {file}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, file))
 
                 results = [future.result() for future in futures]
                 for widget in results:
@@ -355,19 +355,19 @@ class ThumbnailWindow(QWidget):
                 exts = [".png", ".jpg" ,".jpeg" ,".webp"]
 
                 if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
-                    for path in Path(selected_folder).rglob('*'):
-                        if Path(selected_folder).suffix in exts:
-                            with Image.open(path) as open_image:
+                    for file in Path(selected_folder).rglob('*'):
+                        if Path(file).suffix in exts:
+                            with Image.open(file) as open_image:
                                 if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {path}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+                                    print(f"found thumbnail at: {file}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, file))
                 else:
-                    for path in Path(selected_folder).iterdir():
-                        if Path(selected_folder).suffix in exts:
-                            with Image.open(path) as open_image:
+                    for file in Path(selected_folder).iterdir():
+                        if Path(file).suffix in exts:
+                            with Image.open(file) as open_image:
                                 if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {path}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+                                    print(f"found thumbnail at: {file}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, file))
 
             results = [future.result() for future in futures]
             for widget in results:
