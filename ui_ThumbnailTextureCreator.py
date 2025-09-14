@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'Thumbnail Texture CreatorChMSZv.ui'
+## Form generated from reading UI file 'Thumbnail Texture CreatorfJMJPo.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -23,8 +23,8 @@ class Ui_ThumbnailTextureCreator(object):
     def setupUi(self, ThumbnailTextureCreator):
         if not ThumbnailTextureCreator.objectName():
             ThumbnailTextureCreator.setObjectName(u"ThumbnailTextureCreator")
-        ThumbnailTextureCreator.resize(740, 600)
-        ThumbnailTextureCreator.setMinimumSize(QSize(740, 600))
+        ThumbnailTextureCreator.resize(742, 600)
+        ThumbnailTextureCreator.setMinimumSize(QSize(742, 600))
         self.verticalLayout = QVBoxLayout(ThumbnailTextureCreator)
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -72,23 +72,24 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.gridLayout_2.addWidget(self.export_farc_button, 3, 0, 1, 1)
 
-        self.generate_spr_db_button = QPushButton(ThumbnailTextureCreator)
-        self.generate_spr_db_button.setObjectName(u"generate_spr_db_button")
+        self.delete_all_thumbs_button = QPushButton(ThumbnailTextureCreator)
+        self.delete_all_thumbs_button.setObjectName(u"delete_all_thumbs_button")
 
-        self.gridLayout_2.addWidget(self.generate_spr_db_button, 3, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.delete_all_thumbs_button, 3, 1, 1, 1)
 
 
         self.verticalLayout.addLayout(self.gridLayout_2)
 
         self.scrollArea = QScrollArea(ThumbnailTextureCreator)
         self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setAcceptDrops(False)
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scrollArea.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 728, 455))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 730, 455))
         self.scrollAreaWidgetContents.setMinimumSize(QSize(0, 0))
         self.gridLayout = QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setSpacing(0)
@@ -113,6 +114,6 @@ class Ui_ThumbnailTextureCreator(object):
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
         self.mod_name_lineedit.setPlaceholderText(QCoreApplication.translate("ThumbnailTextureCreator", u"Enter your mod name here", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
-        self.generate_spr_db_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Generate Sprite Database", None))
+        self.delete_all_thumbs_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Delete all thumbnails", None))
     # retranslateUi
 

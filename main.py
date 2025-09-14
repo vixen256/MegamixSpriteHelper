@@ -133,7 +133,6 @@ def pad_number(number):
 
 class ThumbnailWindow(QWidget):
     resized = Signal()
-    spr_db_button_clicked = Signal()
     def __init__(self):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
@@ -141,7 +140,7 @@ class ThumbnailWindow(QWidget):
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
-        self.main_box.generate_spr_db_button.clicked.connect(self.spr_db_button_clicked.emit)
+        self.main_box.delete_all_thumbs_button.clicked.connect(self.delete_all_thumbs)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
 
@@ -293,6 +292,16 @@ class ThumbnailWindow(QWidget):
         self.main_box.gridLayout.removeWidget(widget)
         self.thumbnail_widgets.remove(widget)
         widget.deleteLater()
+
+        self.space_out_thumbnails()
+        self.update_thumbnail_count_labels()
+
+    def delete_all_thumbs(self):
+        for widget in self.thumbnail_widgets:
+            self.main_box.gridLayout.removeWidget(widget)
+            widget.deleteLater()
+
+        self.thumbnail_widgets = []
 
         self.space_out_thumbnails()
         self.update_thumbnail_count_labels()
@@ -611,8 +620,6 @@ class MainWindow(QMainWindow):
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
         self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
-
-        self.thumbnail_creator.spr_db_button_clicked.connect(self.generate_spr_db_button_callback)
 
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()) # Make sure that tab matches options shown on start
         self.draw_image_grid()

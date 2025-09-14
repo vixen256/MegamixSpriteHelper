@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>740</width>
+    <width>742</width>
     <height>600</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>740</width>
+    <width>742</width>
     <height>600</height>
    </size>
   </property>
@@ -108,9 +108,9 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QPushButton" name="generate_spr_db_button">
+      <widget class="QPushButton" name="delete_all_thumbs_button">
        <property name="text">
-        <string>Generate Sprite Database</string>
+        <string>Delete all thumbnails</string>
        </property>
       </widget>
      </item>
@@ -118,6 +118,9 @@
    </item>
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
      <property name="horizontalScrollBarPolicy">
       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
      </property>
@@ -135,7 +138,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>728</width>
+        <width>730</width>
         <height>455</height>
        </rect>
       </property>
