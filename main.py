@@ -440,12 +440,6 @@ class ThumbnailWindow(QWidget):
             FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
 
             #Remember ID's used for images
-
-            #TODO
-            #Needs to be formatted into:
-            # File path
-            #   [ID,ID,ID...]
-            #Needs to overwrite already existing entries for the file path , but keep others untouched
             remember_data = []
             for thumb_widget in self.thumbnail_widgets:
                 image = str(thumb_widget.image_path)
@@ -1070,8 +1064,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def refresh_image_grid(self):
-        for scene in config.scenes_to_draw:
-            self.draw_scene(scene)
+        self.draw_image_grid()
 
     @Slot()
     def farc_create_thumbnail_button_callback(self):
@@ -1094,8 +1087,7 @@ class MainWindow(QMainWindow):
             self.main_box.export_logo_button.setEnabled(True)
             #Draw Logo
             SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-            for scene in config.scenes_to_draw:
-                self.draw_scene(scene)
+            self.draw_image_grid()
         else:
             # Make options to tweak logo invisible
             self.main_box.current_sprite_combobox.removeItem(3)
@@ -1112,8 +1104,7 @@ class MainWindow(QMainWindow):
             self.main_box.export_logo_button.setDisabled(True)
             # Hide Logo
             SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-            for scene in config.scenes_to_draw:
-                self.draw_scene(scene)
+            self.draw_image_grid()
     @Slot()
     def load_background_button_callback(self):
         if os.name == "nt":
