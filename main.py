@@ -139,6 +139,7 @@ class ThumbnailWindow(QWidget):
         self.main_box.setupUi(self)
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
+        self.main_box.load_image_button.clicked.connect(self.select_file_for_thumbnails)
         self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
         self.main_box.delete_all_thumbs_button.clicked.connect(self.delete_all_thumbs)
         self.thumbnail_widgets = []
@@ -306,6 +307,36 @@ class ThumbnailWindow(QWidget):
         self.space_out_thumbnails()
         self.update_thumbnail_count_labels()
 
+    def select_file_for_thumbnails(self):
+        if os.name == "nt":
+            selected_files = filedialpy.openFiles(title="Choose images to load")
+        else:
+            selected_files = filedialpy.openFiles(title="Choose images to load", initial_dir=config.last_used_directory)
+
+            if selected_files == []:
+                print("No files were selected")
+            else:
+                print(Path(selected_files[0]).parent)
+                config.last_used_directory = Path(selected_files[0]).parent
+
+                with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
+                    futures = []
+                    exts = [".png", ".jpg", ".jpeg", ".webp"]
+
+                    for path in selected_files:
+                        if Path(path).suffix in exts:
+                            with Image.open(path) as open_image:
+                                if open_image.size == (128, 64):
+                                    print(f"found thumbnail at: {path}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
+
+                results = [future.result() for future in futures]
+                for widget in results:
+                    self.add_thumbnail(widget[0][0], widget[0][1])
+
+                self.space_out_thumbnails()
+                self.update_thumbnail_count_labels()
+
     def scan_folder_for_thumbnails(self):
         if os.name == "nt":
             selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails")
@@ -321,19 +352,22 @@ class ThumbnailWindow(QWidget):
 
             with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
                 futures = []
+                exts = [".png", ".jpg" ,".jpeg" ,".webp"]
 
                 if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
-                    for path in Path(selected_folder).rglob('*.png'):
-                        with Image.open(path) as open_image:
-                            if open_image.size == (128,64):
-                                print(f"found thumbnail at: {path}")
-                                futures.append(executor.submit(self.infer_thumbnail_id, path))
+                    for path in Path(selected_folder).rglob('*'):
+                        if Path(selected_folder).suffix in exts:
+                            with Image.open(path) as open_image:
+                                if open_image.size == (128, 64):
+                                    print(f"found thumbnail at: {path}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
                 else:
-                    for path in Path(selected_folder).glob('*.png'):
-                        with Image.open(path) as open_image:
-                            if open_image.size == (128, 64):
-                                print(f"found thumbnail at: {path}")
-                                futures.append(executor.submit(self.infer_thumbnail_id, path))
+                    for path in Path(selected_folder).iterdir():
+                        if Path(selected_folder).suffix in exts:
+                            with Image.open(path) as open_image:
+                                if open_image.size == (128, 64):
+                                    print(f"found thumbnail at: {path}")
+                                    futures.append(executor.submit(self.infer_thumbnail_id, path))
 
             results = [future.result() for future in futures]
             for widget in results:
