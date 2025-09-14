@@ -8,6 +8,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QFormLayout, QHBoxLayout, QLabel,
                                QLayout, QLineEdit, QPushButton, QScrollArea,
                                QSizePolicy, QVBoxLayout, QWidget, QDoubleSpinBox)
+from widgets import PlaceholderDoubleSpinBox
 
 class Ui_ThumbnailIDField(object):
         def setupUi(self, Form, variant):
@@ -18,7 +19,7 @@ class Ui_ThumbnailIDField(object):
                 self.formLayout.setObjectName(u"formLayout")
                 self.formLayout.setContentsMargins(0, 0, 0, 0)
 
-                self.song_id_spinbox = QDoubleSpinBox(Form)
+                self.song_id_spinbox = PlaceholderDoubleSpinBox(Form)
                 self.song_id_spinbox.setObjectName(u"song_id_spinbox")
                 self.song_id_spinbox.setMinimumSize(QSize(154, 0))
                 self.song_id_spinbox.setDecimals(0)
@@ -75,16 +76,18 @@ class Ui_ThumbnailIDField(object):
                                 QMetaObject.connectSlotsByName(Form)
                                 self.retranslateUi(Form, True)
 
+
         # setupUi
 
         def retranslateUi(self, Form,variant):
                 Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
-                self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Enter_Song_ID", None))
                 match variant:
                     case False:#Remove
                         self.id_line_button.setText(QCoreApplication.translate("Form", u"-", None))
+                        self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Set additional ID", None))
 
                     case True:#Add
                         self.id_line_button.setText(QCoreApplication.translate("Form", u"+", None))
+                        self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Set Song ID", None))
                 # retranslateUi
 

@@ -445,12 +445,6 @@ class ThumbnailWindow(QWidget):
 
             self.known_ids = self.read_saved_ids()
 
-
-
-
-
-
-
     def next_power_of_two(self,n):
         if n <= 0:
             return 1
