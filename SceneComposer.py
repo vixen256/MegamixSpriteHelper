@@ -45,6 +45,8 @@ class Sprite:
         self.type = sprite_type
         self.location = image_location
         self.dummy_location = image_location
+        self.flipped_h = False
+        self.flipped_v = False
         with Image.open(self.location) as open_image:
             left, upper, right, lower = open_image.getbbox()
             self.edges = (left, upper, right, lower)
@@ -92,6 +94,12 @@ class BackgroundSprite(Sprite):
         print("background")
         with Image.open(self.location).convert('RGBA') as background:
             cropped_background = Image.Image.crop(background, Image.Image.getbbox(background))
+
+            if self.flipped_h:
+                cropped_background = cropped_background.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if self.flipped_v:
+                cropped_background = cropped_background.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
             self.background_image = ImageOps.scale(cropped_background.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
             self.background = Image.new('RGBA', (1280, 720))
             self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
@@ -151,6 +159,12 @@ class JacketSprite(Sprite):
         print("jacket")
         with Image.open(self.location).convert('RGBA') as jacket:
             cropped_jacket = Image.Image.crop(jacket, Image.Image.getbbox(jacket))
+
+            if self.flipped_h:
+                cropped_jacket = cropped_jacket.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if self.flipped_v:
+                cropped_jacket = cropped_jacket.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
             self.jacket = Image.new('RGBA', (500, 500))
             self.jacket_image = ImageOps.scale(cropped_jacket.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
             self.jacket.alpha_composite(self.jacket_image, (horizontal_offset, vertical_offset))
@@ -175,6 +189,11 @@ class LogoSprite(Sprite):
         print("logo")
         if state == Qt.CheckState.Checked:
             with Image.open(self.location).convert('RGBA') as logo:
+                if self.flipped_h:
+                    logo = logo.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+                if self.flipped_v:
+                    logo = logo.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
                 self.logo_image = ImageOps.scale(logo.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
                 self.logo = Image.new('RGBA', (870, 330))
                 self.logo.alpha_composite(self.logo_image, (horizontal_offset, vertical_offset))
@@ -223,6 +242,12 @@ class ThumbnailSprite(Sprite):
         print("thumbnail")
         with Image.open(self.location).convert('RGBA') as thumbnail, Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
             cropped_thumbnail = Image.Image.crop(thumbnail, Image.Image.getbbox(thumbnail))
+
+            if self.flipped_h:
+                cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            if self.flipped_v:
+                cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
             self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
             self.thumbnail = Image.new('RGBA', (128, 64))
             self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
@@ -391,10 +416,8 @@ class SceneComposer:
         match sprite:
             case SpriteType.JACKET:
                 if ImageStat.Stat(self.Jacket.jacket_test).extrema[3] == (255,255):
-                    print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return True
                 else:
-                    print(ImageStat.Stat(self.Jacket.jacket_test).extrema[3])
                     return False
             case SpriteType.BACKGROUND:
                 if ImageStat.Stat(self.Background.scaled_background).extrema[3] == (255,255):
@@ -403,7 +426,6 @@ class SceneComposer:
                     return False
             case SpriteType.THUMBNAIL:
                 thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
-                print(thumbnail_area_covered)
                 if thumbnail_area_covered in ThumbnailCheck:
                     return True
                 else:

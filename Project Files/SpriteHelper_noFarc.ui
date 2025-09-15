@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>600</height>
+    <height>637</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -405,6 +405,27 @@
          </property>
         </item>
        </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="flip_horizontal_button">
+          <property name="text">
+           <string>Flip Horizontally</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="flip_vertical_button">
+          <property name="text">
+           <string>Flip Vertically</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="QScrollArea" name="image_edit_scroll_area">

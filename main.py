@@ -507,7 +507,7 @@ class ThumbnailWindow(QWidget):
 
             rows = math.ceil(thumb_amount / 7) # there will be 7 columns
 
-            total_height = rows * 66
+            total_height = rows * 66 # Height of a thumbnail plus 2 pixels of a gap
             tex_height = self.next_power_of_two(total_height)
             area = (tex_width , tex_height)
         return area
@@ -631,6 +631,8 @@ class MainWindow(QMainWindow):
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
         self.main_box.farc_create_thumbnail_button.clicked.connect(self.farc_create_thumbnail_button_callback)
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
+        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite("Horizontal"))
+        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite("Vertical"))
         #Connect spinboxes with functions that update their sprites
         self.spinbox_editing_finished_trigger("on")
         #Allow previews to be opened in external viewer
@@ -690,8 +692,10 @@ class MainWindow(QMainWindow):
             case Scene.FUTURE_TONE_RESULT:
                 self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
     def draw_image_grid(self):
+        start_time = time.time()
         for scene in config.scenes_to_draw:
             self.draw_scene(scene)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
         Jacket_state = SceneComposer.check_sprite(SpriteType.JACKET)
         Background_state = SceneComposer.check_sprite(SpriteType.BACKGROUND)
@@ -751,6 +755,36 @@ class MainWindow(QMainWindow):
         SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
         self.change_spinbox_offset_range(SpriteType.THUMBNAIL)
         SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+        self.draw_image_grid()
+
+    def flip_current_sprite(self,flip_type):
+        current_sprite = self.main_box.current_sprite_combobox.currentText()
+        match current_sprite:
+            case "Background":
+                match flip_type:
+                    case "Horizontal":
+                        SceneComposer.Background.flipped_h = not SceneComposer.Background.flipped_h
+                    case "Vertical":
+                        SceneComposer.Background.flipped_v = not SceneComposer.Background.flipped_v
+            case "Jacket":
+                match flip_type:
+                    case "Horizontal":
+                        SceneComposer.Jacket.flipped_h = not SceneComposer.Jacket.flipped_h
+                    case "Vertical":
+                        SceneComposer.Jacket.flipped_v = not SceneComposer.Jacket.flipped_v
+            case "Logo":
+                match flip_type:
+                    case "Horizontal":
+                        SceneComposer.Logo.flipped_h = not SceneComposer.Logo.flipped_h
+                    case "Vertical":
+                        SceneComposer.Logo.flipped_v = not SceneComposer.Logo.flipped_v
+            case "Thumbnail":
+                match flip_type:
+                    case "Horizontal":
+                        SceneComposer.Thumbnail.flipped_h = not SceneComposer.Thumbnail.flipped_h
+                    case "Vertical":
+                        SceneComposer.Thumbnail.flipped_v = not SceneComposer.Thumbnail.flipped_v
+        self.reload_images()
         self.draw_image_grid()
 
     def reload_images(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarctmicpi.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarcdfENLG.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -29,13 +29,13 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModality.NonModal)
-        MainWindow.resize(1200, 637)
+        MainWindow.resize(1266, 633)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QSize(1200, 600))
+        MainWindow.setMinimumSize(QSize(1266, 633))
         MainWindow.setSizeIncrement(QSize(0, 0))
         MainWindow.setBaseSize(QSize(1200, 600))
         font = QFont()
@@ -193,6 +193,22 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addWidget(self.current_sprite_combobox)
 
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(-1, 0, -1, -1)
+        self.flip_horizontal_button = QPushButton(self.grid)
+        self.flip_horizontal_button.setObjectName(u"flip_horizontal_button")
+
+        self.horizontalLayout_2.addWidget(self.flip_horizontal_button)
+
+        self.flip_vertical_button = QPushButton(self.grid)
+        self.flip_vertical_button.setObjectName(u"flip_vertical_button")
+
+        self.horizontalLayout_2.addWidget(self.flip_vertical_button)
+
+
+        self.load_buttons_box.addLayout(self.horizontalLayout_2)
+
         self.image_edit_scroll_area = QScrollArea(self.grid)
         self.image_edit_scroll_area.setObjectName(u"image_edit_scroll_area")
         self.image_edit_scroll_area.setEnabled(True)
@@ -226,6 +242,8 @@ class Ui_MainWindow(object):
         self.image_edit_area_widget_properties.setAutoFillBackground(True)
         self.verticalLayout = QVBoxLayout(self.image_edit_area_widget_properties)
         self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.verticalLayout.setContentsMargins(-1, 3, -1, 9)
         self.sprite_controls = QStackedWidget(self.image_edit_area_widget_properties)
         self.sprite_controls.setObjectName(u"sprite_controls")
         sizePolicy3.setHeightForWidth(self.sprite_controls.sizePolicy().hasHeightForWidth())
@@ -639,12 +657,13 @@ class Ui_MainWindow(object):
         self.image_tab_vertical_layout.setObjectName(u"image_tab_vertical_layout")
         self.export_controls = QTabWidget(self.grid)
         self.export_controls.setObjectName(u"export_controls")
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Expanding)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
         sizePolicy6.setHeightForWidth(self.export_controls.sizePolicy().hasHeightForWidth())
         self.export_controls.setSizePolicy(sizePolicy6)
         self.export_controls.setTabPosition(QTabWidget.TabPosition.North)
+        self.export_controls.setIconSize(QSize(16, 16))
         self.export_controls.setElideMode(Qt.TextElideMode.ElideNone)
         self.export_controls.setDocumentMode(False)
         self.to_farc_tab = QWidget()
@@ -689,7 +708,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.generate_spr_db_button)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
 
@@ -741,7 +760,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_4.addWidget(self.export_background_jacket_button)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer_2 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_4.addItem(self.verticalSpacer_2)
 
@@ -761,7 +780,7 @@ class Ui_MainWindow(object):
 
         self.current_sprite_combobox.setCurrentIndex(1)
         self.sprite_controls.setCurrentIndex(1)
-        self.export_controls.setCurrentIndex(0)
+        self.export_controls.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -783,6 +802,8 @@ class Ui_MainWindow(object):
         self.current_sprite_combobox.setItemText(2, QCoreApplication.translate("MainWindow", u"Thumbnail", None))
         self.current_sprite_combobox.setItemText(3, QCoreApplication.translate("MainWindow", u"Logo", None))
 
+        self.flip_horizontal_button.setText(QCoreApplication.translate("MainWindow", u"Flip Horizontally", None))
+        self.flip_vertical_button.setText(QCoreApplication.translate("MainWindow", u"Flip Vertically", None))
         self.jacket_horizontal_offset_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Horizontal Offset", None))
         self.jacket_vertical_offset_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Vertical Offset", None))
         self.jacket_rotation_label.setText(QCoreApplication.translate("MainWindow", u"Jacket Rotation", None))
