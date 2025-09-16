@@ -67,6 +67,8 @@ class BackgroundSprite(Sprite):
                         self.location = self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
                         self.edges = (new_left, new_upper, new_right, new_lower)
                         self.size = dummy_image.size
+                        self.flipped_h = False
+                        self.flipped_v = False
 
                         state = {
                             "Outcome": State.FALLBACK
@@ -120,6 +122,8 @@ class JacketSprite(Sprite):
                     self.location = self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
                     self.edges = (new_left, new_upper, new_right, new_lower)
                     self.size = dummy_image.size
+                    self.flipped_h = False
+                    self.flipped_v = False
 
                     state = {
                         "Outcome": State.FALLBACK
@@ -215,6 +219,8 @@ class ThumbnailSprite(Sprite):
                         self.location = self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
                         self.edges = (new_left, new_upper, new_right, new_lower)
                         self.size = dummy_image.size
+                        self.flipped_h = False
+                        self.flipped_v = False
 
                         state = {
                             "Outcome": State.FALLBACK
