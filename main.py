@@ -10,17 +10,15 @@ from time import sleep
 from enum import Enum, auto
 
 import PIL.ImageShow
-import filedialpy
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
 from PySide6.QtGui import QPixmap, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog
 from PIL import Image,ImageShow,ImageStat
 from PIL.ImageShow import Viewer
 
 from concurrent.futures import ThreadPoolExecutor
 
 from copykitten import copy_image
-from filedialpy import openFile
 from decimal import Decimal, ROUND_HALF_UP
 
 from SceneComposer import SceneComposer, State, SpriteType, Scene
@@ -42,7 +40,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.allowed_file_types = ["*.png *.jpg *.jpeg *.webp"] #TODO get supported file types in smarter way
+        self.allowed_file_types = "Image Files (*.png *.jpg *.jpeg *.webp)" #TODO get supported file types in smarter way
         self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
         self.last_used_directory = self.script_directory
 
@@ -307,40 +305,34 @@ class ThumbnailWindow(QWidget):
         self.update_thumbnail_count_labels()
 
     def select_file_for_thumbnails(self):
-        if os.name == "nt":
-            selected_files = filedialpy.openFiles(title="Choose images to load")
+        selected_files = QFileDialog.getOpenFileNames(self,"Choose images to load",str(config.last_used_directory),config.allowed_file_types)[0]
+
+        if selected_files == []:
+            print("No files were selected")
         else:
-            selected_files = filedialpy.openFiles(title="Choose images to load", initial_dir=config.last_used_directory)
+            print(Path(selected_files[0]).parent)
+            config.last_used_directory = Path(selected_files[0]).parent
 
-            if selected_files == []:
-                print("No files were selected")
-            else:
-                print(Path(selected_files[0]).parent)
-                config.last_used_directory = Path(selected_files[0]).parent
+            with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
+                futures = []
+                exts = [".png", ".jpg", ".jpeg", ".webp"]
 
-                with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
-                    futures = []
-                    exts = [".png", ".jpg", ".jpeg", ".webp"]
+                for file in selected_files:
+                    if Path(file).suffix in exts:
+                        with Image.open(file) as open_image:
+                            if open_image.size == (128, 64):
+                                print(f"found thumbnail at: {file}")
+                                futures.append(executor.submit(self.infer_thumbnail_id, file))
 
-                    for file in selected_files:
-                        if Path(file).suffix in exts:
-                            with Image.open(file) as open_image:
-                                if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {file}")
-                                    futures.append(executor.submit(self.infer_thumbnail_id, file))
+            results = [future.result() for future in futures]
+            for widget in results:
+                self.add_thumbnail(widget[0][0], widget[0][1])
 
-                results = [future.result() for future in futures]
-                for widget in results:
-                    self.add_thumbnail(widget[0][0], widget[0][1])
-
-                self.space_out_thumbnails()
-                self.update_thumbnail_count_labels()
+            self.space_out_thumbnails()
+            self.update_thumbnail_count_labels()
 
     def scan_folder_for_thumbnails(self):
-        if os.name == "nt":
-            selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails")
-        else:
-            selected_folder = filedialpy.openDir(title="Choose folder containing thumbnails", initial_dir=config.last_used_directory)
+        selected_folder = QFileDialog.getExistingDirectory(self, "Choose folder containing thumbnails", str(config.last_used_directory))
 
         if selected_folder == "":
             print("Folder wasn't selected")
@@ -428,10 +420,7 @@ class ThumbnailWindow(QWidget):
             for data in thumbnail_positions:
                 print(data)
 
-            if os.name == "nt":
-                chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to")
-            else:
-                chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to", initial_dir=config.last_used_directory)
+            chosen_dir = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
             if chosen_dir == "":
                 print("Folder wasn't chosen")
@@ -1083,10 +1072,8 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def export_background_jacket_logo_farc_button_callback(self):
-        if os.name == "nt":
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to")
-        else:
-            output_location = filedialpy.openDir(title="Select the folder where you want to save Farc file to", initial_dir=config.last_used_directory)
+        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
+
         if output_location == "":
             print("Directory wasn't chosen")
         else:
@@ -1145,10 +1132,7 @@ class MainWindow(QMainWindow):
             self.draw_image_grid()
     @Slot()
     def load_background_button_callback(self):
-        if os.name == "nt":
-            open_background = openFile(title="Open background image", filter=config.allowed_file_types)
-        else:
-            open_background = openFile(title="Open background image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        open_background = QFileDialog.getOpenFileName(self, "Open background image", str(config.last_used_directory), config.allowed_file_types)[0]
 
         if open_background == '':
             print("Background image wasn't chosen")
@@ -1177,10 +1161,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def load_jacket_button_callback(self):
-        if os.name == "nt":
-            open_jacket = openFile(title="Open jacket image", filter=config.allowed_file_types)
-        else:
-            open_jacket = openFile(title="Open jacket image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        open_jacket = QFileDialog.getOpenFileName(self,"Open jacket image", str(config.last_used_directory), config.allowed_file_types)[0]
 
         if open_jacket == '':
             print("Jacket image wasn't chosen")
@@ -1214,10 +1195,8 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def load_logo_button_callback(self):
-        if os.name == "nt":
-            open_logo = openFile(title="Open logo image", filter=config.allowed_file_types)
-        else:
-            open_logo = openFile(title="Open logo image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        open_logo = QFileDialog.getOpenFileName(self, "Open logo image", str(config.last_used_directory), config.allowed_file_types)[0]
+
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
@@ -1236,10 +1215,8 @@ class MainWindow(QMainWindow):
                 self.draw_image_grid()
     @Slot()
     def load_thumbnail_button_callback(self):
-        if os.name == "nt":
-            open_thumbnail = openFile(title="Open thumbnail image", filter=config.allowed_file_types)
-        else:
-            open_thumbnail = openFile(title="Open thumbnail image", initial_dir=config.last_used_directory, filter=config.allowed_file_types)
+        open_thumbnail = QFileDialog.getOpenFileName(self, "Open thumbnail image", str(config.last_used_directory), config.allowed_file_types)[0]
+
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
@@ -1268,53 +1245,45 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def export_background_jacket_button_callback(self):
-        background_jacket_texture = self.create_background_jacket_texture()
-        if os.name == "nt":
-            save_location = filedialpy.saveFile(initial_file="Background Texture.png", filter="*.png")
-        else:
-            save_location = filedialpy.saveFile(initial_file="Background Texture.png", initial_dir=config.last_used_directory, filter="*.png")
+        save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
+
         if save_location == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location).parent
+            background_jacket_texture = self.create_background_jacket_texture()
             background_jacket_texture.save(save_location,"png")
     @Slot()
     def export_thumbnail_button_callback(self):
-        thumbnail_texture = self.create_thumbnail_texture()
-        if os.name == "nt":
-            save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",filter="*.png")
-        else:
-            save_location = filedialpy.saveFile(initial_file="Thumbnail Texture.png",initial_dir=config.last_used_directory, filter="*.png")
+        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
+
         if save_location == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location)
+            thumbnail_texture = self.create_thumbnail_texture()
             thumbnail_texture.save(save_location, "png")
 
     @Slot()
     def export_logo_button_callback(self):
-        logo_texture = self.create_logo_texture()
-        if os.name == "nt":
-            save_location = filedialpy.saveFile(initial_file="Logo Texture.png",filter="*.png")
-        else:
-            save_location = filedialpy.saveFile(initial_file="Logo Texture.png",initial_dir=config.last_used_directory,filter="*.png")
+        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Logo Texture.png", "Images (*.png)")[0]
+
         if save_location == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location).parent
+            logo_texture = self.create_logo_texture()
             logo_texture.save(save_location, "png")
 
     @Slot()
     def generate_spr_db_button_callback(self):
-        spr_db = Manager()
-        if os.name == "nt":
-            spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for")
-        else:
-            spr_path = filedialpy.openDir(title="Choose 2d folder to generate spr_db for", initial_dir=config.last_used_directory)
-        farc_list = []
+        spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
+
         if spr_path == "":
             print("Folder wasn't chosen")
         else:
+            spr_db = Manager()
+            farc_list = []
             config.last_used_directory = Path(spr_path)
             for spr in Path(spr_path).iterdir():
                 _temp_file = Path(spr)
