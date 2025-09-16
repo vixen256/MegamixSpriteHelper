@@ -40,9 +40,15 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.allowed_file_types = "Image Files (*.png *.jpg *.jpeg *.webp)" #TODO get supported file types in smarter way
+
+        extensions = Image.registered_extensions()
+        readable_extensions = [ext for ext, fmt in extensions.items() if fmt in Image.OPEN]
+        formats_string = " ".join(sorted([f"*{ext}" for ext in readable_extensions]))
+
+        self.allowed_file_types = f"Image Files ({formats_string})"
         self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
         self.last_used_directory = self.script_directory
+
 
 
 class ThumbnailIDFieldWidget(QWidget):
