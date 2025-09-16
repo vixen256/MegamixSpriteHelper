@@ -379,108 +379,113 @@ class ThumbnailWindow(QWidget):
             #print("--- %s seconds ---" % (time.time() - start_time))
 
     def create_thumbnail_farc(self):
-        all_thumb_data = []
-        for thumb_widget in self.thumbnail_widgets:
-            thumb_data = []
-            image_path = thumb_widget.image_path
-            ids = []
-
-            for id_list in thumb_widget.id_field_list:
-                ids.append(int(id_list.ui.song_id_spinbox.value()))
-
-            thumb_data.append(ids)
-            thumb_data.append(image_path)
-            all_thumb_data.append(thumb_data)
-
-        thumb_unique_count = 0
-        for thumb in all_thumb_data:
-            thumb_unique_count = thumb_unique_count + 1
-
-        texture_size = self.calculate_texture_grid(thumb_unique_count)
-
-        thumbnail_texture = Image.new('RGBA', texture_size)
-        x=2
-        y=2
-        thumb = 0
-        thumbnail_positions = []
-
-        for thumb_data in all_thumb_data:
-        #[id,id...],image
-            thumb= thumb + 1
-            thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
-
-            for thumb_id in thumb_data[0]:
-                thumbnail_positions.append([pad_number(thumb_id), (x, y)])
-
-            if thumb == 7:
-                x = 2
-                y = y + 64 + 2
-                thumb = 0
-            else:
-                x = x + 128 + 2
-        #print(thumbnail_positions[0][0])
-        #TODO fix sorting. Needs to sort by id that's now a string so it shits itself
-        #thumbnail_positions.sort()
-
-        for data in thumbnail_positions:
-            print(data)
-
-        if os.name == "nt":
-            chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to")
+        mod_name = self.get_song_pack_name()
+        if mod_name == "":
+            show_message_box("Error", "You need to specify mod name!")
         else:
-            chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to", initial_dir=config.last_used_directory)
-
-        if chosen_dir == "":
-            print("Folder wasn't chosen")
-        else:
-            config.last_used_directory = Path(chosen_dir)
-
-            thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
-            mod_name = self.get_song_pack_name()
-            FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
-
-            #Remember ID's used for images
-            remember_data = []
+            all_thumb_data = []
             for thumb_widget in self.thumbnail_widgets:
-                image = str(thumb_widget.image_path)
+                thumb_data = []
+                image_path = thumb_widget.image_path
                 ids = []
-                for id_field in thumb_widget.id_field_list:
-                    ids.append(int(id_field.ui.song_id_spinbox.value()))
-                remember_data.append([image,ids])
 
-            if Path('remembered_ids.yaml').exists():
-                with io.open('remembered_ids.yaml', 'r') as infile:
-                    saved_data = yaml.safe_load(infile)
+                for id_list in thumb_widget.id_field_list:
+                    ids.append(int(id_list.ui.song_id_spinbox.value()))
 
-                    saved_paths =  {entry[0] for entry in saved_data}
-                    current_paths = {entry[0] for entry in remember_data}
+                thumb_data.append(ids)
+                thumb_data.append(image_path)
+                all_thumb_data.append(thumb_data)
 
-                    common_paths = saved_paths & current_paths
-                    untouched_saved_paths = saved_paths - common_paths
+            thumb_unique_count = 0
+            for thumb in all_thumb_data:
+                thumb_unique_count = thumb_unique_count + 1
 
-                    new_data = []
+            texture_size = self.calculate_texture_grid(thumb_unique_count)
 
-                    #Write new data for common paths and new ones
-                    #Append unchanged data
-                    #dump YAML
+            thumbnail_texture = Image.new('RGBA', texture_size)
+            x=2
+            y=2
+            thumb = 0
+            thumbnail_positions = []
 
-                    for entry in remember_data:
-                        new_data.append(entry)
+            for thumb_data in all_thumb_data:
+            #[id,id...],image
+                thumb= thumb + 1
+                thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
 
-                    for entry in saved_data:
-                        if entry[0] in untouched_saved_paths:
+                for thumb_id in thumb_data[0]:
+                    thumbnail_positions.append([pad_number(thumb_id), (x, y)])
+
+                if thumb == 7:
+                    x = 2
+                    y = y + 64 + 2
+                    thumb = 0
+                else:
+                    x = x + 128 + 2
+            #print(thumbnail_positions[0][0])
+            #TODO fix sorting. Needs to sort by id that's now a string so it shits itself
+            #thumbnail_positions.sort()
+
+            for data in thumbnail_positions:
+                print(data)
+
+            if os.name == "nt":
+                chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to")
+            else:
+                chosen_dir = filedialpy.openDir(title="Choose folder to save farc file to", initial_dir=config.last_used_directory)
+
+            if chosen_dir == "":
+                print("Folder wasn't chosen")
+            else:
+                config.last_used_directory = Path(chosen_dir)
+
+                thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
+
+
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
+
+                #Remember ID's used for images
+                remember_data = []
+                for thumb_widget in self.thumbnail_widgets:
+                    image = str(thumb_widget.image_path)
+                    ids = []
+                    for id_field in thumb_widget.id_field_list:
+                        ids.append(int(id_field.ui.song_id_spinbox.value()))
+                    remember_data.append([image,ids])
+
+                if Path('remembered_ids.yaml').exists():
+                    with io.open('remembered_ids.yaml', 'r' , encoding='utf8') as infile:
+                        saved_data = yaml.safe_load(infile)
+
+                        saved_paths =  {entry[0] for entry in saved_data}
+                        current_paths = {entry[0] for entry in remember_data}
+
+                        common_paths = saved_paths & current_paths
+                        untouched_saved_paths = saved_paths - common_paths
+
+                        new_data = []
+
+                        #Write new data for common paths and new ones
+                        #Append unchanged data
+                        #dump YAML
+
+                        for entry in remember_data:
                             new_data.append(entry)
 
-                with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
-                    yaml.dump(new_data, outfile, default_flow_style=False, allow_unicode=True)
+                        for entry in saved_data:
+                            if entry[0] in untouched_saved_paths:
+                                new_data.append(entry)
+
+                    with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                        yaml.dump(new_data, outfile, default_flow_style=False, allow_unicode=True)
+
+                    self.known_ids = self.read_saved_ids()
+
+                else:
+                   with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                       yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
                 self.known_ids = self.read_saved_ids()
-
-            else:
-               with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
-                   yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
-
-            self.known_ids = self.read_saved_ids()
 
     def next_power_of_two(self,n):
         if n <= 0:
