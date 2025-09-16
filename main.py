@@ -282,7 +282,7 @@ class ThumbnailWindow(QWidget):
                 x = x + 1
     def read_saved_ids(self):
         if Path('remembered_ids.yaml').exists():
-            with io.open('remembered_ids.yaml', 'r') as infile:
+            with io.open('remembered_ids.yaml', 'r', encoding='utf8') as infile:
                 saved_data = yaml.safe_load(infile)
                 return saved_data
         else:
