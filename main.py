@@ -1149,6 +1149,8 @@ class MainWindow(QMainWindow):
         if open_background == '':
             print("Background image wasn't chosen")
         else:
+            SceneComposer.Background.flipped_h = False
+            SceneComposer.Background.flipped_v = False
             result = SceneComposer.Background.update_sprite(open_background,False)
 
             if result["Outcome"] == State.UPDATED:
@@ -1179,6 +1181,8 @@ class MainWindow(QMainWindow):
         if open_jacket == '':
             print("Jacket image wasn't chosen")
         else:
+            SceneComposer.Jacket.flipped_h = False
+            SceneComposer.Jacket.flipped_v = False
             result = SceneComposer.Jacket.update_sprite(open_jacket,False)
 
             if result["Outcome"] == State.UPDATED:
@@ -1213,6 +1217,8 @@ class MainWindow(QMainWindow):
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
+            SceneComposer.Logo.flipped_h = False
+            SceneComposer.Logo.flipped_v = False
             result = SceneComposer.Logo.update_sprite(open_logo,False)
 
             if result["Outcome"] == State.UPDATED:
@@ -1233,6 +1239,8 @@ class MainWindow(QMainWindow):
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
+            SceneComposer.Thumbnail.flipped_h = False
+            SceneComposer.Thumbnail.flipped_v = False
             result = SceneComposer.Thumbnail.update_sprite(open_thumbnail,False)
 
             if result["Outcome"] == State.UPDATED:
