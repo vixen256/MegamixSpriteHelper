@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcdfENLG.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarcjynRsB.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -780,7 +780,7 @@ class Ui_MainWindow(object):
 
         self.current_sprite_combobox.setCurrentIndex(1)
         self.sprite_controls.setCurrentIndex(1)
-        self.export_controls.setCurrentIndex(1)
+        self.export_controls.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
