@@ -144,7 +144,6 @@ class ThumbnailWindow(QWidget):
         self.main_box.delete_all_thumbs_button.clicked.connect(self.delete_all_thumbs)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
-
         self.main_box.export_farc_button.setDisabled(True)
 
         self.id_conflict_palette = QPalette()

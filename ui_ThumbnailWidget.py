@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'ThumbnailWidgethvrEQy.ui'
+## Form generated from reading UI file 'ThumbnailWidgetDGaPff.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -63,6 +63,7 @@ class Ui_ThumbnailWidget(object):
         self.scrollArea.setSizePolicy(sizePolicy2)
         self.scrollArea.setMinimumSize(QSize(208, 37))
         self.scrollArea.setMaximumSize(QSize(208, 95))
+        self.scrollArea.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.scrollArea.setWidgetResizable(True)
@@ -88,6 +89,7 @@ class Ui_ThumbnailWidget(object):
         self.remove_thumbnail_button.setSizePolicy(sizePolicy1)
         self.remove_thumbnail_button.setMinimumSize(QSize(206, 27))
         self.remove_thumbnail_button.setMaximumSize(QSize(206, 27))
+        self.remove_thumbnail_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.thumbnail_v_layout.addWidget(self.remove_thumbnail_button)
 
