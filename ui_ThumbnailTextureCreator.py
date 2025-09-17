@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'Thumbnail Texture CreatorfJMJPo.ui'
+## Form generated from reading UI file 'Thumbnail Texture CreatorsQXeDJ.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,6 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QGridLayout,
     QLabel, QLineEdit, QPushButton, QScrollArea,
     QSizePolicy, QVBoxLayout, QWidget)
+import resources
 
 class Ui_ThumbnailTextureCreator(object):
     def setupUi(self, ThumbnailTextureCreator):
@@ -25,6 +26,9 @@ class Ui_ThumbnailTextureCreator(object):
             ThumbnailTextureCreator.setObjectName(u"ThumbnailTextureCreator")
         ThumbnailTextureCreator.resize(742, 600)
         ThumbnailTextureCreator.setMinimumSize(QSize(742, 600))
+        icon = QIcon()
+        icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        ThumbnailTextureCreator.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(ThumbnailTextureCreator)
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(u"verticalLayout")

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcjynRsB.ui'
+## Form generated from reading UI file 'SpriteHelper_noFarcsUgtKR.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplicati
     QWidget)
 
 from widgets import QLabel_clickable
+import resources
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -47,7 +48,7 @@ class Ui_MainWindow(object):
         MainWindow.setAcceptDrops(False)
         MainWindow.setWindowTitle(u"Megamix Sprite Helper")
         icon = QIcon()
-        icon.addFile(u":/icon/Icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setAutoFillBackground(True)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Europe))
