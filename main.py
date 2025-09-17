@@ -1088,9 +1088,13 @@ class MainWindow(QMainWindow):
             Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
             Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-
+            #TODO make it not create logo sprite if logo is disabled
             output_location = output_location
-            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location)
+            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+                logo_state = True
+            else:
+                logo_state = False
+            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
 
 
     @Slot()

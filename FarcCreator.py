@@ -2,10 +2,9 @@ import spr
 import farc
 
 class FarcCreator:
-    def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location):
+    def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location,is_logo_checked):
         sprite_set = spr.PySprSet()
         sprite_set.set_texture(('MERGE_D5COMP_0'),spr.PyImage(jk_bg_texture))
-        sprite_set.set_texture(('MERGE_D5COMP_1'),spr.PyImage(logo_texture))
 
         background = spr.PySprite()
         background.texture = 'MERGE_D5COMP_0'
@@ -23,17 +22,23 @@ class FarcCreator:
         jacket.width = 502
         jacket.height = 502
 
-        logo = spr.PySprite()
-        logo.texture = 'MERGE_D5COMP_1'
-        logo.screen_mode = spr.ScreenMode.HDTV1080
-        logo.x = 2
-        logo.y = 2
-        logo.width = 870
-        logo.height = 330
+        sprite_set.set_sprite(str("SONG_BG" + song_id), background)
+        sprite_set.set_sprite(str("SONG_JK" + song_id), jacket)
 
-        sprite_set.set_sprite(str("SONG_BG"+song_id),background)
-        sprite_set.set_sprite(str("SONG_JK"+song_id),jacket)
-        sprite_set.set_sprite(str("SONG_LOGO"+song_id),logo)
+        if is_logo_checked:
+            sprite_set.set_texture(('MERGE_D5COMP_1'),spr.PyImage(logo_texture))
+
+            logo = spr.PySprite()
+            logo.texture = 'MERGE_D5COMP_1'
+            logo.screen_mode = spr.ScreenMode.HDTV1080
+            logo.x = 2
+            logo.y = 2
+            logo.width = 870
+            logo.height = 330
+
+            sprite_set.set_sprite(str("SONG_LOGO" + song_id), logo)
+
+
         files = {"spr_sel_pv"+song_id+".bin": sprite_set.save_to_raw()}
         farc.save(files,output_location+'/spr_sel_pv'+song_id+'.farc', True)
 
