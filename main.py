@@ -581,10 +581,10 @@ def draw_combined_preview_to(target):
     #TODO use pixmap.save to avoid re-rendering the scenes
     new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
     composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
-    composite.alpha_composite(SceneComposer.compose_scene(Scene.MEGAMIX_SONG_SELECT,new_classics_state), (0, 0))
-    composite.alpha_composite(SceneComposer.compose_scene(Scene.MEGAMIX_RESULT,new_classics_state), (0, 1080))
-    composite.alpha_composite(SceneComposer.compose_scene(Scene.FUTURE_TONE_SONG_SELECT,new_classics_state), (1920, 0))
-    composite.alpha_composite(SceneComposer.compose_scene(Scene.FUTURE_TONE_RESULT,new_classics_state), (1920, 1080))
+    composite.alpha_composite(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state))
+    composite.alpha_composite(SceneComposer.Megamix_Result.compose_scene(new_classics_state),(0, 1080))
+    composite.alpha_composite(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state), (1920, 0))
+    composite.alpha_composite(SceneComposer.FutureTone_Result.compose_scene(new_classics_state), (1920, 1080))
 
     match target:
         case OutputTarget.CLIPBOARD:
@@ -671,29 +671,30 @@ class MainWindow(QMainWindow):
         new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
         match scene:
             case Scene.MEGAMIX_SONG_SELECT:
-                ImageShow.show(SceneComposer.compose_scene(Scene.MEGAMIX_SONG_SELECT,new_classics_state))
+                ImageShow.show(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state))
             case Scene.FUTURE_TONE_SONG_SELECT:
-                ImageShow.show(SceneComposer.compose_scene(Scene.FUTURE_TONE_SONG_SELECT, new_classics_state))
+                ImageShow.show(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state))
             case Scene.MEGAMIX_RESULT:
-                ImageShow.show(SceneComposer.compose_scene(Scene.MEGAMIX_RESULT, new_classics_state))
+                ImageShow.show(SceneComposer.Megamix_Result.compose_scene(new_classics_state))
             case Scene.FUTURE_TONE_RESULT:
-                ImageShow.show(SceneComposer.compose_scene(Scene.FUTURE_TONE_RESULT, new_classics_state))
+                ImageShow.show(SceneComposer.FutureTone_Result.compose_scene(new_classics_state))
 
     def draw_scene(self, ui_scene):
         new_classics_state = self.main_box.new_classics_checkbox.isChecked()
         match ui_scene:
             case Scene.MEGAMIX_SONG_SELECT:
-                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
+                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state).toqpixmap())
             case Scene.FUTURE_TONE_SONG_SELECT:
-                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
+                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state).toqpixmap())
             case Scene.MEGAMIX_RESULT:
-                self.main_box.mm_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
+                self.main_box.mm_result_preview.setPixmap(SceneComposer.Megamix_Result.compose_scene(new_classics_state).toqpixmap())
             case Scene.FUTURE_TONE_RESULT:
-                self.main_box.ft_result_preview.setPixmap(SceneComposer.compose_scene(ui_scene,new_classics_state).toqpixmap())
+                self.main_box.ft_result_preview.setPixmap(SceneComposer.FutureTone_Result.compose_scene(new_classics_state).toqpixmap())
     def draw_image_grid(self):
         start_time = time.time()
-        for scene in config.scenes_to_draw:
-            self.draw_scene(scene)
+        with ThreadPoolExecutor() as executor:
+            for scene in config.scenes_to_draw:
+                executor.submit(self.draw_scene,scene)
         print("--- %s seconds ---" % (time.time() - start_time))
 
         Jacket_state = SceneComposer.check_sprite(SpriteType.JACKET)
