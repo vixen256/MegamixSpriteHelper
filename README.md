@@ -1,9 +1,9 @@
 # Megamix Sprite Helper
 
-Simple program that lets you make slight adjustments to the sprites while having preview of them in most important screens they are used it.
+Simple program that lets you make slight adjustments to the sprites while having preview of them in most important screens they are used in.
 
 # Features
-- Displays a 2x2 grid with both MM UI and FT UI's Song Select and Results Screen
+- Displays a 2x2 grid with both MM UI's and FT UI's Song Select and Results Screen
 - - Copy said grid to clipboard for easy sharing
 - Edit position, rotation and zoom of the sprites. Big images are cut to optimal shape / size
 - - Jacket is processed to get rid of jagged edges from showing up in-game
