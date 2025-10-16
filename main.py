@@ -12,7 +12,7 @@ from enum import Enum, auto
 import PIL.ImageShow
 from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
 from PySide6.QtGui import QPixmap, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy
 from PIL import Image,ImageShow,ImageStat
 from PIL.ImageShow import Viewer
 
@@ -21,7 +21,9 @@ from concurrent.futures import ThreadPoolExecutor
 from copykitten import copy_image
 from decimal import Decimal, ROUND_HALF_UP
 
-from SceneComposer import SceneComposer, State, SpriteType, Scene
+from superqt.utils import qthrottled
+
+from SceneComposer import SceneComposer, State, SpriteType, Scene , SpriteSetting
 from FarcCreator import FarcCreator
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
@@ -30,7 +32,7 @@ from ui_ThumbnailWidget import Ui_ThumbnailWidget
 from ui_ThumbnailIDField import  Ui_ThumbnailIDField
 from ui_SpriteHelper import Ui_MainWindow
 
-from widgets import Stylesheet
+from widgets import Stylesheet,EditableDoubleLabel
 
 class OutputTarget(Enum):
     CLIPBOARD = auto()
@@ -163,6 +165,8 @@ class ThumbnailWindow(QWidget):
         self.normal_palette.setColor(QPalette.ColorRole.Text, QColor(255,255,255))
 
         self.known_ids = self.read_saved_ids()
+        #TODO Make it so last used song pack names are remembered and user can select them from a dropdown
+        #TODO User should be able to see processed name as it will be used in spr_db (Optional)
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -223,19 +227,6 @@ class ThumbnailWindow(QWidget):
                 if image_path == thumbnail.image_path:
                     return
 
-        #
-        # for entry in main_window.thumbnail_creator.known_ids:
-        #     if str(image_path) == entry[0]:
-        #         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=entry[1])
-        #         print(f"inferring {entry[1]} from YAML")
-        #         break
-        #
-        # if thumbnail_widget is None:
-        #     if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
-        #         id_list = [Path(image_path).stem]
-        #         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=id_list)
-        #         #print(f"inferring {id_list} from file name")
-        #     else:
         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=inferred_id)
 
 
@@ -603,6 +594,14 @@ class MainWindow(QMainWindow):
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
 
+        #Create dictionary that will contain all sprite controls
+        self.edit_control = {}
+        # TODO add all edit controls via list from SceneComposer
+        self.add_edit_control(SceneComposer.Background)
+        self.add_edit_control(SceneComposer.Jacket)
+        self.add_edit_control(SceneComposer.Thumbnail)
+        self.add_edit_control(SceneComposer.Logo)
+
         check_for_files()
         self.reload_images()
 
@@ -690,6 +689,7 @@ class MainWindow(QMainWindow):
                 self.main_box.mm_result_preview.setPixmap(SceneComposer.Megamix_Result.compose_scene(new_classics_state).toqpixmap())
             case Scene.FUTURE_TONE_RESULT:
                 self.main_box.ft_result_preview.setPixmap(SceneComposer.FutureTone_Result.compose_scene(new_classics_state).toqpixmap())
+
     def draw_image_grid(self):
         start_time = time.time()
         with ThreadPoolExecutor() as executor:
@@ -702,12 +702,12 @@ class MainWindow(QMainWindow):
 
         if Jacket_state == False or Background_state == False:
             failed_check = []
-            if Jacket_state == False:
+            if not Jacket_state:
                 print("Jacket is fucked up")
                 failed_check.append("Jacket")
             else:
                 print("Jacket is fine")
-            if Background_state == False:
+            if not Background_state:
                 print("Background is fucked up")
                 failed_check.append("Background")
             else:
@@ -727,7 +727,7 @@ class MainWindow(QMainWindow):
 
         Thumbnail_state = SceneComposer.check_sprite(SpriteType.THUMBNAIL)
 
-        if Thumbnail_state == False:
+        if not Thumbnail_state:
             print("Thumbnail is fucked up")
             self.main_box.export_thumbnail_button.setEnabled(False)
             self.main_box.export_thumbnail_button.setToolTip("Thumbnail isn't fully filled by opaque image!")
@@ -736,25 +736,117 @@ class MainWindow(QMainWindow):
             self.main_box.export_thumbnail_button.setEnabled(True)
             self.main_box.export_thumbnail_button.setToolTip("")
 
+    def add_edit_control(self,sprite):
+        editable_values = {}
+
+        for setting in sprite.sprite_settings:
+            parameters = setting[1]
+            edit = EditableDoubleLabel(sprite=sprite,setting=setting[0], range=sprite.calculate_range(setting[0]),**parameters)
+            editable_values[setting[0].value] = edit
+
+            #TODO make it properly, not hardcode
+            match sprite:
+                case SceneComposer.Background:
+                    self.main_box.verticalLayout_8.addWidget(edit)
+                case SceneComposer.Jacket:
+                    self.main_box.verticalLayout_10.addWidget(edit)
+                case SceneComposer.Thumbnail:
+                    self.main_box.verticalLayout_12.addWidget(edit)
+                case SceneComposer.Logo:
+                    self.main_box.verticalLayout_11.addWidget(edit)
+
+
+        self.edit_control[sprite.type.value] = editable_values
+
+    @qthrottled(timeout=100)
     def jacket_value_edit_trigger(self):
-        SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.JACKET)
-        SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
+        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.JACKET]:
+            self.edit_control[SpriteType.JACKET][control].block_drawing = True
+
+        self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.JACKET]:
+            self.edit_control[SpriteType.JACKET][control].block_drawing = False
+
         self.draw_image_grid()
+    @qthrottled(timeout=100)
     def logo_value_edit_trigger(self):
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.LOGO)
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.LOGO]:
+            self.edit_control[SpriteType.LOGO][control].block_drawing = True
+
+        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.LOGO]:
+            self.edit_control[SpriteType.LOGO][control].block_drawing = False
+
         self.draw_image_grid()
+    @qthrottled(timeout=100)
     def background_value_edit_trigger(self):
-        SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.BACKGROUND)
-        SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
+        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.BACKGROUND]:
+            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = True
+
+        self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.BACKGROUND]:
+            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = False
+
         self.draw_image_grid()
+    @qthrottled(timeout=100)
     def thumbnail_value_edit_trigger(self):
-        SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-        self.change_spinbox_offset_range(SpriteType.THUMBNAIL)
-        SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
+        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.THUMBNAIL]:
+            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
+
+        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+
+        for control in self.edit_control[SpriteType.THUMBNAIL]:
+            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = False
+
         self.draw_image_grid()
 
     def flip_current_sprite(self,flip_type):
@@ -788,209 +880,69 @@ class MainWindow(QMainWindow):
         self.draw_image_grid()
 
     def reload_images(self):
-        SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-        SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(), self.main_box.jacket_vertical_offset_spinbox.value(), self.main_box.jacket_rotation_spinbox.value(), self.main_box.jacket_zoom_spinbox.value())
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(), self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-        SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-    def jacket_spinbox_values_reset(self):
-        self.spinbox_editing_finished_trigger("off")
+        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
+                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
 
-        self.main_box.jacket_rotation_spinbox.setValue(0)
-        self.main_box.jacket_horizontal_offset_spinbox.setValue(0)
-        self.main_box.jacket_vertical_offset_spinbox.setValue(0)
-        self.main_box.jacket_zoom_spinbox.setValue(1.00)
+        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
+                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
 
-        self.spinbox_editing_finished_trigger("on")
-    def logo_spinbox_values_reset(self):
-        self.spinbox_editing_finished_trigger("off")
+        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
 
-        self.main_box.logo_rotation_spinbox.setValue(0)
-        self.main_box.logo_horizontal_offset_spinbox.setValue(0)
-        self.main_box.logo_vertical_offset_spinbox.setValue(0)
-        self.main_box.logo_zoom_spinbox.setValue(1.00)
-
-        self.spinbox_editing_finished_trigger("on")
-    def background_spinbox_values_reset(self):
-        self.spinbox_editing_finished_trigger("off")
-
-        self.main_box.background_rotation_spinbox.setValue(0)
-        self.main_box.background_horizontal_offset_spinbox.setValue(0)
-        self.main_box.background_vertical_offset_spinbox.setValue(0)
-        self.main_box.background_zoom_spinbox.setValue(1.00)
-
-        self.spinbox_editing_finished_trigger("on")
-    def thumbnail_spinbox_values_reset(self):
-        self.spinbox_editing_finished_trigger("off")
-
-        self.main_box.thumbnail_rotation_spinbox.setValue(0)
-        self.main_box.thumbnail_horizontal_offset_spinbox.setValue(0)
-        self.main_box.thumbnail_vertical_offset_spinbox.setValue(0)
-        self.main_box.thumbnail_zoom_spinbox.setValue(1.00)
-
-        self.spinbox_editing_finished_trigger("on")
+        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
 
     def spinbox_editing_finished_trigger(self,state):
         if state == "on":
-            self.main_box.jacket_rotation_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_zoom_spinbox.editingFinished.connect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].editingFinished.connect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].editingFinished.connect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
-            self.main_box.logo_zoom_spinbox.editingFinished.connect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].editingFinished.connect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].editingFinished.connect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.connect(self.background_value_edit_trigger)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.connect(self.background_value_edit_trigger)
-            self.main_box.background_zoom_spinbox.editingFinished.connect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].editingFinished.connect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].editingFinished.connect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].editingFinished.connect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].editingFinished.connect(self.thumbnail_value_edit_trigger)
 
         else:
-            self.main_box.jacket_rotation_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_horizontal_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_vertical_offset_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.main_box.jacket_zoom_spinbox.editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].editingFinished.disconnect(self.jacket_value_edit_trigger)
+            self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].editingFinished.disconnect(self.jacket_value_edit_trigger)
 
-            self.main_box.logo_rotation_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.main_box.logo_horizontal_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.main_box.logo_vertical_offset_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.main_box.logo_zoom_spinbox.editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].editingFinished.disconnect(self.logo_value_edit_trigger)
+            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].editingFinished.disconnect(self.logo_value_edit_trigger)
 
-            self.main_box.background_rotation_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
-            self.main_box.background_horizontal_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
-            self.main_box.background_vertical_offset_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
-            self.main_box.background_zoom_spinbox.editingFinished.disconnect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].editingFinished.disconnect(self.background_value_edit_trigger)
+            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].editingFinished.disconnect(self.background_value_edit_trigger)
 
-            self.main_box.thumbnail_rotation_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_horizontal_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_vertical_offset_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.main_box.thumbnail_zoom_spinbox.editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-
-    def fit_logo(self,logo_image):
-        with Image.open(logo_image).convert('RGBA') as logo:
-            left, upper, right, lower = Image.Image.getbbox(logo)
-            image_width = right - left
-            image_height = lower - upper
-
-            if image_height > 330 or image_width > 870:
-                if (330 / image_height) <= (870 / image_width):
-                    max_scale = 330 / image_height
-                else:
-                    max_scale = 870 / image_width
-            else:
-                max_scale = 1
-        self.main_box.logo_zoom_spinbox.setMaximum(max_scale)
-
-    def change_spinbox_offset_range(self,spinbox):
-        match spinbox:
-            case SpriteType.JACKET:
-                minimum_horizontal = (SceneComposer.Jacket.jacket_image.width * -1) + 500
-                minimum_vertical = (SceneComposer.Jacket.jacket_image.height * -1) + 500
-                self.main_box.jacket_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
-                self.main_box.jacket_vertical_offset_spinbox.setRange(minimum_vertical, 0)
-
-                if minimum_horizontal == 0:
-                    self.main_box.jacket_horizontal_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.jacket_horizontal_offset_spinbox.setEnabled(True)
-
-                if minimum_vertical == 0:
-                    self.main_box.jacket_vertical_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.jacket_vertical_offset_spinbox.setEnabled(True)
-            case SpriteType.BACKGROUND:
-                minimum_horizontal = (SceneComposer.Background.background_image.width * -1) + 1280
-                minimum_vertical = (SceneComposer.Background.background_image.height * -1) + 720
-                self.main_box.background_horizontal_offset_spinbox.setRange(minimum_horizontal, 0)
-                self.main_box.background_vertical_offset_spinbox.setRange(minimum_vertical, 0)
-
-                if minimum_horizontal == 0:
-                    self.main_box.background_horizontal_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.background_horizontal_offset_spinbox.setEnabled(True)
-
-                if minimum_vertical == 0:
-                    self.main_box.background_vertical_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.background_vertical_offset_spinbox.setEnabled(True)
-            case SpriteType.LOGO:
-                with SceneComposer.Logo.logo_image as logo:
-                    left, upper, right , lower = Image.Image.getbbox(logo)
-
-                    logo_max_width_offset = 870 - right
-                    logo_max_height_offset = 330 - lower
-
-                    self.main_box.logo_horizontal_offset_spinbox.setRange(-left,logo_max_width_offset)
-                    self.main_box.logo_vertical_offset_spinbox.setRange(-upper,logo_max_height_offset)
-            case SpriteType.THUMBNAIL:
-                minimum_horizontal = (SceneComposer.Thumbnail.thumbnail_image.width * -1) + 100
-                minimum_vertical = (SceneComposer.Thumbnail.thumbnail_image.height * -1) + 61
-                self.main_box.thumbnail_horizontal_offset_spinbox.setRange(minimum_horizontal ,0)
-                self.main_box.thumbnail_vertical_offset_spinbox.setRange(minimum_vertical,0)
-
-                if minimum_horizontal == 0:
-                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.thumbnail_horizontal_offset_spinbox.setEnabled(True)
-
-                if minimum_vertical == 0:
-                    self.main_box.thumbnail_vertical_offset_spinbox.setEnabled(False)
-                else:
-                    self.main_box.thumbnail_vertical_offset_spinbox.setEnabled(True)
-
-    def change_spinbox_zoom_range(self,spinbox,image_width,image_height):
-        match spinbox:
-            case SpriteType.JACKET:
-                width_factor =  Decimal(500 / image_width)
-                height_factor = Decimal(500 / image_height)
-                if width_factor > height_factor:
-                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
-                    self.main_box.jacket_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP),1.00)
-                elif height_factor > width_factor:
-                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
-                    self.main_box.jacket_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP),1.00)
-                elif height_factor == width_factor:
-                    self.main_box.jacket_zoom_spinbox.setEnabled(True)
-                    self.main_box.jacket_zoom_spinbox.setRange(height_factor,1.00)
-                else:
-                    self.main_box.jacket_zoom_spinbox.setEnabled(False)
-                    self.main_box.jacket_zoom_spinbox.setRange(1.00, 1.00)
-
-            case SpriteType.BACKGROUND:
-                width_factor = Decimal(1280 / image_width)
-                height_factor = Decimal(720 / image_height)
-                if width_factor > height_factor:
-                    self.main_box.background_zoom_spinbox.setEnabled(True)
-                    self.main_box.background_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                elif height_factor > width_factor:
-                    self.main_box.background_zoom_spinbox.setEnabled(True)
-                    self.main_box.background_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                elif height_factor == width_factor:
-                    self.main_box.background_zoom_spinbox.setEnabled(True)
-                    self.main_box.background_zoom_spinbox.setRange(height_factor, 1.00)
-                else:
-                    self.main_box.background_zoom_spinbox.setEnabled(False)
-                    self.main_box.background_zoom_spinbox.setRange(1.00, 1.00)
-            case SpriteType.THUMBNAIL:
-                width_factor = Decimal(100 / image_width)
-                height_factor = Decimal(61 / image_height)
-                print(f"Width Factor= {width_factor}")
-                print(f"Height Factor= {height_factor}")
-                if width_factor > height_factor:
-                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
-                    self.main_box.thumbnail_zoom_spinbox.setRange(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                elif width_factor < height_factor:
-                    self.main_box.thumbnail_zoom_spinbox.setEnabled(True)
-                    self.main_box.thumbnail_zoom_spinbox.setRange(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP), 1.00)
-                else:
-                    self.main_box.thumbnail_zoom_spinbox.setEnabled(False)
-                    self.main_box.thumbnail_zoom_spinbox.setRange(1.00, 1.00)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
 
     def watcher_file_modified_action(self,path):
         sleep(2) #TODO replace sleep with detection is the modified file there
@@ -1009,14 +961,14 @@ class MainWindow(QMainWindow):
                     real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
 
                     print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
-                    self.main_box.jacket_zoom_spinbox.setValue(result["Zoom"])
+                    self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].setValue(result["Zoom"])
                     print(f"Set jacket's zoom to {result["Zoom"]}.")
 
         if path == SceneComposer.Logo.location:
             print("Logo image was changed")
             result = SceneComposer.Logo.update_sprite(path)
             if result["Outcome"] == State.UPDATED:
-                self.fit_logo(path)
+                self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.ZOOM))
                 keep_watching_path = True
 
         if path == SceneComposer.Background.location:
@@ -1104,42 +1056,37 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def farc_create_thumbnail_button_callback(self):
+        #TODO move it to button directly with lambda function
         self.thumbnail_creator.show()
     @Slot()
     def has_logo_checkbox_callback(self):
+        #TODO Figure out what to do with this shit
+        #Needs a better way of removing the tab
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             #Make options to tweak logo visible
             self.main_box.current_sprite_combobox.addItem("Logo")
-            self.main_box.logo_horizontal_offset_label.setEnabled(True)
-            self.main_box.logo_horizontal_offset_spinbox.setEnabled(True)
-            self.main_box.logo_vertical_offset_label.setEnabled(True)
-            self.main_box.logo_vertical_offset_spinbox.setEnabled(True)
-            self.main_box.logo_rotation_label.setEnabled(True)
-            self.main_box.logo_rotation_spinbox.setEnabled(True)
-            self.main_box.logo_zoom_label.setEnabled(True)
-            self.main_box.logo_zoom_spinbox.setEnabled(True)
             #Enable buttons related to logos
             self.main_box.load_logo_button.setEnabled(True)
             self.main_box.export_logo_button.setEnabled(True)
             #Draw Logo
-            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
             self.draw_image_grid()
         else:
             # Make options to tweak logo invisible
             self.main_box.current_sprite_combobox.removeItem(3)
-            self.main_box.logo_horizontal_offset_label.setDisabled(True)
-            self.main_box.logo_horizontal_offset_spinbox.setDisabled(True)
-            self.main_box.logo_vertical_offset_label.setDisabled(True)
-            self.main_box.logo_vertical_offset_spinbox.setDisabled(True)
-            self.main_box.logo_rotation_label.setDisabled(True)
-            self.main_box.logo_rotation_spinbox.setDisabled(True)
-            self.main_box.logo_zoom_label.setDisabled(True)
-            self.main_box.logo_zoom_spinbox.setDisabled(True)
             #Disable buttons related to logos
             self.main_box.load_logo_button.setDisabled(True)
             self.main_box.export_logo_button.setDisabled(True)
             # Hide Logo
-            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
+            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
             self.draw_image_grid()
     @Slot()
     def load_background_button_callback(self):
@@ -1148,23 +1095,34 @@ class MainWindow(QMainWindow):
         if open_background == '':
             print("Background image wasn't chosen")
         else:
-            SceneComposer.Background.flipped_h = False
-            SceneComposer.Background.flipped_v = False
             result = SceneComposer.Background.update_sprite(open_background,False)
 
             if result["Outcome"] == State.UPDATED:
-                real_width = SceneComposer.Background.edges[2] - SceneComposer.Background.edges[0]
-                real_height = SceneComposer.Background.edges[3] - SceneComposer.Background.edges[1]
-
+                SceneComposer.Background.flipped_h = False
+                SceneComposer.Background.flipped_v = False
                 config.last_used_directory = Path(open_background).parent
+
                 self.watcher.removePath(str(SceneComposer.Background.location))
-                self.change_spinbox_zoom_range(SpriteType.BACKGROUND, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Background.location))
-                self.background_spinbox_values_reset()
-                SceneComposer.Background.post_process(self.main_box.background_horizontal_offset_spinbox.value(), self.main_box.background_vertical_offset_spinbox.value(), self.main_box.background_rotation_spinbox.value(), self.main_box.background_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.BACKGROUND)
+
+                self.spinbox_editing_finished_trigger("off")
+
+                for control in self.edit_control[SpriteType.BACKGROUND]:
+                    self.edit_control[SpriteType.BACKGROUND][control].reset_value()
+
+                SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                                      self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
+                                                      self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
+                                                      self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
+
+                self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].set_range(SceneComposer.Background.calculate_range(SpriteSetting.ZOOM))
+                self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+                self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+                self.spinbox_editing_finished_trigger("on")
 
                 self.draw_image_grid()
+
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
                 config.last_used_directory = Path(open_background).parent
                 show_message_box(result["Window Title"], result["Description"])
@@ -1177,27 +1135,37 @@ class MainWindow(QMainWindow):
         if open_jacket == '':
             print("Jacket image wasn't chosen")
         else:
-            SceneComposer.Jacket.flipped_h = False
-            SceneComposer.Jacket.flipped_v = False
             result = SceneComposer.Jacket.update_sprite(open_jacket,False)
 
             if result["Outcome"] == State.UPDATED:
-                real_width = SceneComposer.Jacket.edges[2] - SceneComposer.Jacket.edges[0]
-                real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
-
+                SceneComposer.Jacket.flipped_h = False
+                SceneComposer.Jacket.flipped_v = False
                 config.last_used_directory = Path(open_jacket).parent
+
                 self.watcher.removePath(str(SceneComposer.Jacket.location))
-                self.change_spinbox_zoom_range(SpriteType.JACKET, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Jacket.location))
-                self.jacket_spinbox_values_reset()
 
+                self.spinbox_editing_finished_trigger("off")
+
+                for control in self.edit_control[SpriteType.JACKET]:
+                    self.edit_control[SpriteType.JACKET][control].reset_value()
+
+                SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                                  self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
+                                                  self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
+                                                  self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
                 if result["Jacket Force Fit"]:
-                    print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
-                    self.main_box.jacket_zoom_spinbox.setValue(result["Zoom"])
+                    print(f"Image is {SceneComposer.Jacket.jacket_image.width}x{SceneComposer.Jacket.jacket_image.height}. Imported jacket is 1:1 aspect ratio.")
+                    self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].setValue(result["Zoom"])
                     print(f"Set jacket's zoom to {result["Zoom"]}.")
+                else:
+                    self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.ZOOM))
 
-                SceneComposer.Jacket.post_process(self.main_box.jacket_horizontal_offset_spinbox.value(),self.main_box.jacket_vertical_offset_spinbox.value(),self.main_box.jacket_rotation_spinbox.value(),self.main_box.jacket_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.JACKET)
+                self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+                self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
+                self.spinbox_editing_finished_trigger("on")
+
                 self.draw_image_grid()
 
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
@@ -1211,18 +1179,29 @@ class MainWindow(QMainWindow):
         if open_logo == '':
             print("Logo image wasn't chosen")
         else:
-            SceneComposer.Logo.flipped_h = False
-            SceneComposer.Logo.flipped_v = False
             result = SceneComposer.Logo.update_sprite(open_logo,False)
 
             if result["Outcome"] == State.UPDATED:
+                SceneComposer.Logo.flipped_h = False
+                SceneComposer.Logo.flipped_v = False
                 config.last_used_directory = Path(open_logo).parent
+
                 self.watcher.removePath(str(SceneComposer.Logo.location))
-                self.fit_logo(open_logo)
                 self.watcher.addPath(str(SceneComposer.Logo.location))
-                self.logo_spinbox_values_reset()
-                SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),self.main_box.logo_horizontal_offset_spinbox.value(), self.main_box.logo_vertical_offset_spinbox.value(), self.main_box.logo_rotation_spinbox.value(), self.main_box.logo_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.LOGO)
+
+                for control in self.edit_control[SpriteType.LOGO]:
+                    self.edit_control[SpriteType.LOGO][control].reset_value()
+
+                SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+                                                self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                                self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+                                                self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+                                                self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+
+                self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.ZOOM))
+                self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+                self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
                 self.draw_image_grid()
     @Slot()
     def load_thumbnail_button_callback(self):
@@ -1231,22 +1210,28 @@ class MainWindow(QMainWindow):
         if open_thumbnail == '':
             print("Thumbnail image wasn't chosen")
         else:
-            SceneComposer.Thumbnail.flipped_h = False
-            SceneComposer.Thumbnail.flipped_v = False
             result = SceneComposer.Thumbnail.update_sprite(open_thumbnail,False)
 
             if result["Outcome"] == State.UPDATED:
-                real_width = SceneComposer.Thumbnail.edges[2] - SceneComposer.Thumbnail.edges[0]
-                real_height = SceneComposer.Thumbnail.edges[3] - SceneComposer.Thumbnail.edges[1]
-
+                SceneComposer.Thumbnail.flipped_h = False
+                SceneComposer.Thumbnail.flipped_v = False
                 config.last_used_directory = Path(open_thumbnail).parent
+
                 self.watcher.removePath(str(SceneComposer.Thumbnail.location))
-                print(f"W= {real_width} H= {real_height}")
-                self.change_spinbox_zoom_range(SpriteType.THUMBNAIL, real_width, real_height)
                 self.watcher.addPath(str(SceneComposer.Thumbnail.location))
-                self.thumbnail_spinbox_values_reset()
-                SceneComposer.Thumbnail.post_process(self.main_box.thumbnail_horizontal_offset_spinbox.value(), self.main_box.thumbnail_vertical_offset_spinbox.value(), self.main_box.thumbnail_rotation_spinbox.value(), self.main_box.thumbnail_zoom_spinbox.value())
-                self.change_spinbox_offset_range(SpriteType.THUMBNAIL)
+
+                for control in self.edit_control[SpriteType.THUMBNAIL]:
+                    self.edit_control[SpriteType.THUMBNAIL][control].reset_value()
+
+                SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+                                                     self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+                                                     self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+                                                     self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+
+                self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.ZOOM))
+                self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+                self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+
                 self.draw_image_grid()
 
             elif result["Outcome"] == State.IMAGE_TOO_SMALL:
@@ -1289,6 +1274,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def generate_spr_db_button_callback(self):
         spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
+        #TODO add warning about using multiple new thumbnail files in single mod. Should prevent user from generating sprite database until this gets fixed
 
         if spr_path == "":
             print("Folder wasn't chosen")

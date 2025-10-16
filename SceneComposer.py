@@ -1,7 +1,8 @@
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path, PurePath
 
 from PySide6.QtCore import Qt
-from enum import Enum, auto
+from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
 
@@ -15,11 +16,17 @@ class State(Enum):
     IMAGE_TOO_SMALL = auto()
     UPDATED = auto()
 
-class SpriteType(Enum):
-    JACKET = auto()
-    BACKGROUND = auto()
-    THUMBNAIL = auto()
-    LOGO = auto()
+class SpriteType(StrEnum):
+    JACKET = "Jacket"
+    BACKGROUND = "Background"
+    THUMBNAIL = "Thumbnail"
+    LOGO = "Logo"
+
+class SpriteSetting(StrEnum):
+    HORIZONTAL_OFFSET = "Horizontal Offset"
+    VERTICAL_OFFSET = "Vertical Offset"
+    ROTATION = "Rotation"
+    ZOOM = "Zoom"
 
 class Scene(Enum):
     MEGAMIX_SONG_SELECT = auto()
@@ -45,6 +52,32 @@ class Sprite:
         self.type = sprite_type
         self.location = image_location
         self.dummy_location = image_location
+        self.sprite_settings = [
+            (SpriteSetting.HORIZONTAL_OFFSET,{
+                'initial_value':0,
+                'decimals':0,
+                'rough_step':1,
+                'precise_step':1
+            }),
+            (SpriteSetting.VERTICAL_OFFSET,{
+                'initial_value':0,
+                'decimals':0,
+                'rough_step':1,
+                'precise_step':1
+            }),
+            (SpriteSetting.ROTATION,{
+                'initial_value':0,
+                'decimals':2,
+                'rough_step':1,
+                'precise_step':0.01
+            }),
+            (SpriteSetting.ZOOM,{
+                'initial_value':1,
+                'decimals':3,
+                'rough_step':0.001,
+                'precise_step':0.001
+            })
+        ]
         self.flipped_h = False
         self.flipped_v = False
         with Image.open(self.location) as open_image:
@@ -83,8 +116,8 @@ class BackgroundSprite(Sprite):
 
                     state = {
                         "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{(self.type).name} image is too small",
-                        "Description": f"{(self.type).name} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
+                        "Window Title": f"{self.type} image is too small",
+                        "Description": f"{self.type} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
                     }
                     return state
             else:
@@ -112,6 +145,37 @@ class BackgroundSprite(Sprite):
             self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
             self.scaled_background = ImageOps.scale(self.background, 1.5)
 
+    def calculate_range(self, SpriteSetting):
+        match SpriteSetting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                offset = (self.background_image.width * -1) + 1280
+
+                if offset > 0:
+                    return 0,offset
+                else:
+                    return offset,0
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                offset = (self.background_image.height * -1) + 720
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+
+            case SpriteSetting.ZOOM:
+                width_factor = Decimal(1280 / self.background_image.width)
+                height_factor = Decimal(720 / self.background_image.width)
+
+                if width_factor > height_factor:
+                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                elif height_factor > width_factor:
+                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                else:
+                    return 1.00, 1.00
+
+            case SpriteSetting.ROTATION:
+                return 0,360
 class JacketSprite(Sprite):
     def __init__(self, sprite_type, image_location):
 
@@ -142,8 +206,8 @@ class JacketSprite(Sprite):
 
                 state = {
                     "Outcome": State.IMAGE_TOO_SMALL,
-                    "Window Title": f"{(self.type).name} image is too small",
-                    "Description": f"{(self.type).name} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
+                    "Window Title": f"{self.type} image is too small",
+                    "Description": f"{self.type} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
                 }
                 return state
         else:
@@ -183,6 +247,37 @@ class JacketSprite(Sprite):
             self.jacket.alpha_composite(self.jacket_image, (horizontal_offset, vertical_offset))
             self.jacket_test = self.jacket
             self.jacket = texture_filtering_fix(self.jacket, 102)
+    def calculate_range(self, SpriteSetting):
+        match SpriteSetting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                offset = (self.jacket_image.width * -1) + 500
+
+                if offset > 0:
+                    return 0,offset
+                else:
+                    return offset,0
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                offset = (self.jacket_image.height * -1) + 500
+
+                if offset > 0:
+                    return 0,offset
+                else:
+                    return offset,0
+
+            case SpriteSetting.ZOOM:
+                width_factor = Decimal(500 / self.jacket_image.width)
+                height_factor = Decimal(500 / self.jacket_image.height)
+
+                if width_factor > height_factor:
+                    return float(width_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP)),1.00
+                elif height_factor > width_factor:
+                    return float(height_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP)),1.00
+                else:
+                    return 1.00,1.00
+            case SpriteSetting.ROTATION:
+                return 0,360
+
 
 class LogoSprite(Sprite):
     def __init__(self, sprite_type, image_location):
@@ -217,6 +312,47 @@ class LogoSprite(Sprite):
         else:
             self.logo = Image.new('RGBA', (870, 330))
 
+    def calculate_range(self,SpriteSetting):
+        match SpriteSetting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                with self.logo_image as logo:
+                    left, upper, right, lower = Image.Image.getbbox(logo)
+
+                    offset = 870 - right
+
+                    if offset > -left:
+                        return -left, offset
+                    else:
+                        return offset, -left
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                with self.logo_image as logo:
+                    left, upper, right, lower = Image.Image.getbbox(logo)
+
+                    offset = 330 - lower
+
+                    if offset > -upper:
+                        return -upper, offset
+                    else:
+                        return offset, -upper
+            case SpriteSetting.ZOOM:
+                with self.logo_image as logo:
+                    left, upper, right, lower = Image.Image.getbbox(logo)
+                    image_width = right - left
+                    image_height = lower - upper
+
+                    if image_height > 330 or image_width > 870:
+                        if (330 / image_height) <= (870 / image_width):
+                            max_scale = 330 / image_height
+                        else:
+                            max_scale = 870 / image_width
+                    else:
+                        max_scale = 1
+
+                return 0, max_scale
+            case SpriteSetting.ROTATION:
+                return 0,360
+
 class ThumbnailSprite(Sprite):
     def __init__(self, sprite_type, image_location):
 
@@ -247,8 +383,8 @@ class ThumbnailSprite(Sprite):
 
                     state = {
                         "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{(self.type).name} image is too small",
-                        "Description": f"{(self.type).name} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
+                        "Window Title": f"{self.type} image is too small",
+                        "Description": f"{self.type} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
                     }
                     return state
             else:
@@ -276,11 +412,41 @@ class ThumbnailSprite(Sprite):
             self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
             self.thumbnail_test = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) #This doesn't fill in transparent area with black. Used only to get info what pixels are filled in.
             self.thumbnail.putalpha(mask) #Used for final image, forces exact same transparency as mask.
+    def calculate_range(self,SpriteSetting):
+        match SpriteSetting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                offset = (self.thumbnail_image.width * -1) + 100
 
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                offset = (self.thumbnail_image.height * -1) + 61
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+            case SpriteSetting.ZOOM:
+                width_factor = Decimal(100 / self.thumbnail_image.width)
+                height_factor = Decimal(61 / self.thumbnail_image.height)
+
+                if width_factor > height_factor:
+                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                elif width_factor < height_factor:
+                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                else:
+                    return 1.00, 1.00
+            case SpriteSetting.ROTATION:
+                return 0,360
 class SceneBase:
-    def __init__(self):
+    def __init__(self,*args):
         self.layers = ()
         self.sprites = []
+        for arg in args:
+            self.sprites.append(arg)
 
     def draw_scene(self):
         composite = Image.new('RGBA', (1920, 1080))
@@ -291,8 +457,7 @@ class SceneBase:
 
 class MegamixSongSelect(SceneBase):
     def __init__(self,background,logo,thumbnail,jacket):
-        super().__init__()
-        self.required_sprites = [BackgroundSprite,LogoSprite,ThumbnailSprite,JacketSprite]
+        super().__init__(background,logo,thumbnail,jacket)
         self.shared_background = background
         self.shared_logo = logo
         self.shared_thumbnail = thumbnail
@@ -367,8 +532,7 @@ class MegamixSongSelect(SceneBase):
         return drawn_scene
 class MegamixResult(SceneBase):
     def __init__(self,background,logo,jacket):
-        super().__init__()
-        self.required_sprites = [BackgroundSprite,LogoSprite,JacketSprite]
+        super().__init__(background,logo,jacket)
         self.shared_background = background
         self.shared_logo = logo
         self.shared_jacket = jacket
@@ -419,8 +583,7 @@ class MegamixResult(SceneBase):
         return drawn_scene
 class FutureToneSongSelect(SceneBase):
     def __init__(self,background,logo,jacket):
-        super().__init__()
-        self.required_sprites = [LogoSprite,JacketSprite]
+        super().__init__(background,logo,jacket)
         self.shared_background = background
         self.shared_logo = logo
         self.shared_jacket = jacket
@@ -469,8 +632,7 @@ class FutureToneSongSelect(SceneBase):
         return drawn_scene
 class FutureToneResult(SceneBase):
     def __init__(self,logo,jacket):
-        super().__init__()
-        self.required_sprites = [LogoSprite,JacketSprite]
+        super().__init__(logo,jacket)
         self.shared_logo = logo
         self.shared_jacket = jacket
 
@@ -518,6 +680,7 @@ class FutureToneResult(SceneBase):
 class SceneComposer:
 
     def __init__(self):
+        self.loaded_scenes = []
         #Create objects storing information about images
         self.Background = BackgroundSprite(SpriteType.BACKGROUND,Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png')
         self.Jacket = JacketSprite(SpriteType.JACKET, Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png')
@@ -528,6 +691,22 @@ class SceneComposer:
         self.Megamix_Result = MegamixResult(self.Background,self.Logo,self.Jacket)
         self.FutureTone_Song_Select = FutureToneSongSelect(self.Background,self.Logo,self.Jacket)
         self.FutureTone_Result = FutureToneResult(self.Logo,self.Jacket)
+
+        self.loaded_scenes.append(self.Megamix_Song_Select)
+        self.loaded_scenes.append(self.Megamix_Result)
+        self.loaded_scenes.append(self.FutureTone_Song_Select)
+        self.loaded_scenes.append(self.FutureTone_Result)
+
+    def get_required_sprites(self):
+        sprite_list = []
+        for loaded_scene in self.loaded_scenes:
+            for sprite in loaded_scene.sprites:
+                if sprite in sprite_list:
+                    pass
+                else:
+                    sprite_list.append(sprite)
+
+        return sprite_list
 
     def check_sprite(self,sprite):
         match sprite:
