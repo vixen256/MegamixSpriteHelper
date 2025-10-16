@@ -102,13 +102,13 @@ class EditableDoubleLabel(QWidget):
         self.spinbox.setDecimals(self.decimals)
         self.spinbox.setSingleStep(precise_step)
         self.spinbox.setMinimumSize(self.editable_label_size)
-        self.spinbox.editingFinished.connect(self.finish_editing)
+        #self.spinbox.editingFinished.connect(self.finish_editing)
         self.spinbox.valueChanged.connect(self.sync_slider)
 
         self.slider = QDoubleSlider(Qt.Horizontal)
         self.slider.setPageStep(rough_step)
         self.slider.setSingleStep(rough_step)
-        self.slider.sliderReleased.connect(self.slider_editing_finish)
+        #self.slider.sliderReleased.connect(self.slider_editing_finish)
         self.slider.valueChanged.connect(self.slider_value_changed)
 
         self.set_range(range)
@@ -177,7 +177,7 @@ class EditableDoubleLabel(QWidget):
             self.value = self.slider.value()
             self.label.setText(f"{self.value:.{self.decimals}f}")
             self.spinbox.setValue(self.value)
-            qthrottled(self.slider_editing_finish(),timeout=100)
+            qthrottled(self.slider_editing_finish(),timeout=20)
 
     def sync_slider(self):
         self.slider.setValue(self.spinbox.value())

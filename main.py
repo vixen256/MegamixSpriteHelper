@@ -627,7 +627,7 @@ class MainWindow(QMainWindow):
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
-        self.main_box.farc_create_thumbnail_button.clicked.connect(self.farc_create_thumbnail_button_callback)
+        self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite("Horizontal"))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite("Vertical"))
@@ -650,6 +650,8 @@ class MainWindow(QMainWindow):
         self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
 
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()) # Make sure that tab matches options shown on start
+
+        print("Initial Draw")
         self.draw_image_grid()
 
     def resizeEvent(self,event):
@@ -660,11 +662,11 @@ class MainWindow(QMainWindow):
         new_height = int(new_width / 2)
         size = QSize(new_width,new_height)
         self.resize(size)
-    @Slot()
+
     def current_sprite_tab_switcher(self,tab):
         self.main_box.sprite_controls.setCurrentIndex(tab)
 
-    @Slot()
+
     def view_pixmap_external(self,scene):
         #TODO use pixmap.save to not re-render scene
         new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
@@ -758,15 +760,15 @@ class MainWindow(QMainWindow):
 
         self.edit_control[sprite.type.value] = editable_values
 
-    @qthrottled(timeout=100)
+    @qthrottled(timeout=30)
     def jacket_value_edit_trigger(self):
+        for control in self.edit_control[SpriteType.JACKET]:
+            self.edit_control[SpriteType.JACKET][control].block_drawing = True
+
         SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
                                           self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
                                           self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
                                           self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.JACKET]:
-            self.edit_control[SpriteType.JACKET][control].block_drawing = True
 
         self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
         self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.VERTICAL_OFFSET))
@@ -778,18 +780,18 @@ class MainWindow(QMainWindow):
 
         for control in self.edit_control[SpriteType.JACKET]:
             self.edit_control[SpriteType.JACKET][control].block_drawing = False
-
+        print("Jacket Triggered draw")
         self.draw_image_grid()
-    @qthrottled(timeout=100)
+    @qthrottled(timeout=30)
     def logo_value_edit_trigger(self):
+        for control in self.edit_control[SpriteType.LOGO]:
+            self.edit_control[SpriteType.LOGO][control].block_drawing = True
+
         SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
                                         self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
                                         self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
                                         self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
                                         self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.LOGO]:
-            self.edit_control[SpriteType.LOGO][control].block_drawing = True
 
         self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
         self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
@@ -802,17 +804,17 @@ class MainWindow(QMainWindow):
 
         for control in self.edit_control[SpriteType.LOGO]:
             self.edit_control[SpriteType.LOGO][control].block_drawing = False
-
+        print("Logo Trigered draw")
         self.draw_image_grid()
-    @qthrottled(timeout=100)
+    @qthrottled(timeout=30)
     def background_value_edit_trigger(self):
+        for control in self.edit_control[SpriteType.BACKGROUND]:
+            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = True
+
         SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
                                               self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
                                               self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
                                               self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.BACKGROUND]:
-            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = True
 
         self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
         self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.VERTICAL_OFFSET))
@@ -824,17 +826,17 @@ class MainWindow(QMainWindow):
 
         for control in self.edit_control[SpriteType.BACKGROUND]:
             self.edit_control[SpriteType.BACKGROUND][control].block_drawing = False
-
+        print("Background Triggered draw")
         self.draw_image_grid()
-    @qthrottled(timeout=100)
+    @qthrottled(timeout=30)
     def thumbnail_value_edit_trigger(self):
+        for control in self.edit_control[SpriteType.THUMBNAIL]:
+            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
+
         SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
                                              self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
                                              self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
                                              self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.THUMBNAIL]:
-            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
 
         self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
         self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
@@ -846,7 +848,7 @@ class MainWindow(QMainWindow):
 
         for control in self.edit_control[SpriteType.THUMBNAIL]:
             self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = False
-
+        print("Thumbnail triggered draw")
         self.draw_image_grid()
 
     def flip_current_sprite(self,flip_type):
@@ -1029,7 +1031,7 @@ class MainWindow(QMainWindow):
         thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
         return thumbnail_texture
 
-    @Slot()
+
     def export_background_jacket_logo_farc_button_callback(self):
         output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
@@ -1041,7 +1043,7 @@ class MainWindow(QMainWindow):
             Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
             Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-            #TODO make it not create logo sprite if logo is disabled
+
             output_location = output_location
             if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
                 logo_state = True
@@ -1050,15 +1052,10 @@ class MainWindow(QMainWindow):
             FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
 
 
-    @Slot()
+
     def refresh_image_grid(self):
         self.draw_image_grid()
 
-    @Slot()
-    def farc_create_thumbnail_button_callback(self):
-        #TODO move it to button directly with lambda function
-        self.thumbnail_creator.show()
-    @Slot()
     def has_logo_checkbox_callback(self):
         #TODO Figure out what to do with this shit
         #Needs a better way of removing the tab
@@ -1088,7 +1085,7 @@ class MainWindow(QMainWindow):
                                             self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
                                             self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
             self.draw_image_grid()
-    @Slot()
+
     def load_background_button_callback(self):
         open_background = QFileDialog.getOpenFileName(self, "Open background image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1128,7 +1125,7 @@ class MainWindow(QMainWindow):
                 show_message_box(result["Window Title"], result["Description"])
 
 
-    @Slot()
+
     def load_jacket_button_callback(self):
         open_jacket = QFileDialog.getOpenFileName(self,"Open jacket image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1172,7 +1169,7 @@ class MainWindow(QMainWindow):
                 config.last_used_directory = Path(open_jacket).parent
                 show_message_box(result["Window Title"], result["Description"])
 
-    @Slot()
+
     def load_logo_button_callback(self):
         open_logo = QFileDialog.getOpenFileName(self, "Open logo image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1203,7 +1200,7 @@ class MainWindow(QMainWindow):
                 self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
 
                 self.draw_image_grid()
-    @Slot()
+
     def load_thumbnail_button_callback(self):
         open_thumbnail = QFileDialog.getOpenFileName(self, "Open thumbnail image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1239,7 +1236,6 @@ class MainWindow(QMainWindow):
                 show_message_box(result["Window Title"], result["Description"])
 
 
-    @Slot()
     def export_background_jacket_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
 
@@ -1249,7 +1245,7 @@ class MainWindow(QMainWindow):
             config.last_used_directory = Path(save_location).parent
             background_jacket_texture = self.create_background_jacket_texture()
             background_jacket_texture.save(save_location,"png")
-    @Slot()
+
     def export_thumbnail_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
 
@@ -1260,7 +1256,6 @@ class MainWindow(QMainWindow):
             thumbnail_texture = self.create_thumbnail_texture()
             thumbnail_texture.save(save_location, "png")
 
-    @Slot()
     def export_logo_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Logo Texture.png", "Images (*.png)")[0]
 
@@ -1271,7 +1266,6 @@ class MainWindow(QMainWindow):
             logo_texture = self.create_logo_texture()
             logo_texture.save(save_location, "png")
 
-    @Slot()
     def generate_spr_db_button_callback(self):
         spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
         #TODO add warning about using multiple new thumbnail files in single mod. Should prevent user from generating sprite database until this gets fixed
