@@ -358,7 +358,7 @@ class ThumbnailWindow(QWidget):
                                     if open_image.size == (128, 64):
                                         print(f"found thumbnail at: {file}")
                                         futures.append(executor.submit(self.infer_thumbnail_id, file))
-                            except:
+                            except PIL.UnidentifiedImageError:
                                 print("Skipping invalid file")
                                 continue
                 else:
@@ -369,7 +369,7 @@ class ThumbnailWindow(QWidget):
                                     if open_image.size == (128, 64):
                                         print(f"found thumbnail at: {file}")
                                         futures.append(executor.submit(self.infer_thumbnail_id, file))
-                            except:
+                            except PIL.UnidentifiedImageError:
                                 print("Skipping invalid file")
                                 continue
 
@@ -1139,7 +1139,7 @@ class MainWindow(QMainWindow):
                 elif result["Outcome"] == State.IMAGE_TOO_SMALL:
                     config.last_used_directory = Path(open_background).parent
                     show_message_box(result["Window Title"], result["Description"])
-            except:
+            except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_background).parent
                 print("Couldn't load image. Image might be corrupted")
 
@@ -1188,7 +1188,7 @@ class MainWindow(QMainWindow):
                 elif result["Outcome"] == State.IMAGE_TOO_SMALL:
                     config.last_used_directory = Path(open_jacket).parent
                     show_message_box(result["Window Title"], result["Description"])
-            except:
+            except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_jacket).parent
                 print("Couldn't load image. Image might be corrupted")
 
@@ -1223,7 +1223,7 @@ class MainWindow(QMainWindow):
                     self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
 
                     self.draw_image_grid()
-            except:
+            except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_logo).parent
                 print("Couldn't load image. Image might be corrupted")
 
@@ -1261,7 +1261,7 @@ class MainWindow(QMainWindow):
                 elif result["Outcome"] == State.IMAGE_TOO_SMALL:
                     config.last_used_directory = Path(open_thumbnail).parent
                     show_message_box(result["Window Title"], result["Description"])
-            except:
+            except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_thumbnail).parent
                 print("Couldn't load image. Image might be corrupted")
 
