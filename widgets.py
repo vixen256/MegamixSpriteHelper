@@ -41,6 +41,8 @@ class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def wheelEvent(self, event, /):
         if self.hasFocus():
             QSpinBox.wheelEvent(self, event)
+        else:
+            event.ignore()
 
     def focusInEvent(self, event):
         #TODO do it properly // Shitty workaround for setupUi being executed bit later than init
