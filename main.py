@@ -405,6 +405,9 @@ class ThumbnailWindow(QWidget):
 
             texture_size = self.calculate_texture_grid(thumb_unique_count)
 
+            if texture_size == (0,0):
+                return
+
             thumbnail_texture = Image.new('RGBA', texture_size)
             x=2
             y=2
