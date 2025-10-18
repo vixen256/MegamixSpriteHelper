@@ -36,6 +36,11 @@ class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.workaround = True
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def wheelEvent(self, event, /):
+        if self.hasFocus():
+            QSpinBox.wheelEvent(self, event)
 
     def focusInEvent(self, event):
         #TODO do it properly // Shitty workaround for setupUi being executed bit later than init
