@@ -139,6 +139,7 @@ def pad_number(number):
 
 class ThumbnailWindow(QWidget):
     resized = Signal()
+    NameDeleteRequest = Signal()
     def __init__(self):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
@@ -148,6 +149,7 @@ class ThumbnailWindow(QWidget):
         self.main_box.load_image_button.clicked.connect(self.select_file_for_thumbnails)
         self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
         self.main_box.delete_all_thumbs_button.clicked.connect(self.delete_all_thumbs)
+        self.main_box.mod_name_lineedit.delete_button.clicked.connect(self.delete_selected_name)
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
         self.main_box.export_farc_button.setDisabled(True)
@@ -552,6 +554,31 @@ class ThumbnailWindow(QWidget):
             with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
                 remember_data = yaml.safe_load(infile)
                 self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
+
+    def delete_selected_name(self):
+        name = self.main_box.mod_name_lineedit.combo_box.currentText()
+        if name == "":
+            return
+
+        edited_file = False
+
+        if Path('remembered_names.yaml').exists():
+            with io.open('remembered_names.yaml', 'r', encoding='utf8') as infile:
+                remember_data = yaml.safe_load(infile)
+
+                if name in remember_data:
+                    remember_data.remove(name)
+                    edited_file = True
+
+            if edited_file:
+                with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
+                    yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
+
+
+
+        self.main_box.mod_name_lineedit.combo_box.removeItem(self.main_box.mod_name_lineedit.combo_box.currentIndex())
+        self.main_box.mod_name_lineedit.label.setText("")
+
 
 ###################################################################################################
 

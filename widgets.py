@@ -238,9 +238,6 @@ class SongpackNameInput(QWidget):
         self.combo_box.setEditable(True)
         self.combo_box.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.combo_box.setPlaceholderText("Enter your mod name here")
-        self.combo_box.insertItem(1,"Mod Name")
-        self.combo_box.insertItem(2, "Shit Name")
-        self.combo_box.insertItem(3, "LEgo345.'.'. Name")
 
         palette = QPalette()
         brush = QBrush(QColor(235, 51, 101, 255))
@@ -251,7 +248,6 @@ class SongpackNameInput(QWidget):
         self.delete_button.setPalette(palette)
         self.delete_button.setText("-")
         self.delete_button.setFixedSize(30,27)
-        self.delete_button.clicked.connect(self.delete_button_callback)
 
         self.combo_box.installEventFilter(self)
 
@@ -294,7 +290,3 @@ class SongpackNameInput(QWidget):
             else:
                 QTimer.singleShot(100, self.finish_editing)
         return super().eventFilter(watched, event)
-
-    def delete_button_callback(self):
-        self.combo_box.removeItem(self.combo_box.currentIndex())
-        self.label.setText("")
