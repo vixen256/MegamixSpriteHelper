@@ -1,3 +1,5 @@
+import re
+import string
 import time
 from enum import Enum
 from threading import Lock
@@ -15,8 +17,8 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplicati
                                QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
                                QLabel, QLayout, QMainWindow, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QSpinBox,
-                               QVBoxLayout, QWidget, QScrollBar, QSlider)
-from superqt import QDoubleSlider
+                               QVBoxLayout, QWidget, QScrollBar, QSlider, QComboBox, QCompleter)
+from superqt import QDoubleSlider, QSearchableComboBox
 from superqt.utils import qdebounced, qthrottled
 
 
@@ -224,3 +226,75 @@ class EditableDoubleLabel(QWidget):
 
     def reset_value(self):
         self.setValue(self.initial_value)
+
+class SongpackNameInput(QWidget):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.label = QLabel()
+        self.label.mousePressEvent = self.on_label_clicked
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.combo_box = QSearchableComboBox()
+        self.combo_box.setEditable(True)
+        self.combo_box.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.combo_box.setPlaceholderText("Enter your mod name here")
+        self.combo_box.insertItem(1,"Mod Name")
+        self.combo_box.insertItem(2, "Shit Name")
+        self.combo_box.insertItem(3, "LEgo345.'.'. Name")
+
+        palette = QPalette()
+        brush = QBrush(QColor(235, 51, 101, 255))
+        brush.setStyle(Qt.BrushStyle.SolidPattern)
+        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
+
+        self.delete_button = QPushButton()
+        self.delete_button.setPalette(palette)
+        self.delete_button.setText("-")
+        self.delete_button.setFixedSize(30,27)
+        self.delete_button.clicked.connect(self.delete_button_callback)
+
+        self.combo_box.installEventFilter(self)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0,0,0,0)
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.combo_box)
+        self.layout.addWidget(self.delete_button)
+
+        self.label.setVisible(True)
+        self.combo_box.setVisible(False)
+
+    def on_label_clicked(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.start_editing()
+
+    def start_editing(self):
+        self.label.setVisible(False)
+        self.combo_box.setVisible(True)
+        self.combo_box.setFocus()
+
+    def finish_editing(self):
+        self.label.setText(self.get_filtered_text())
+
+        self.combo_box.setVisible(False)
+        self.label.setVisible(True)
+
+    def get_filtered_text(self):
+        mod_string = self.combo_box.currentText()
+        mod_string = mod_string.translate(str.maketrans('', '', string.punctuation)).lower()
+        mod_string = re.sub(r'[^A-Za-z0-9 ]+', '', mod_string)
+
+        return "_".join(mod_string.split())
+
+    def eventFilter(self, watched, event, /):
+        if watched == self.combo_box and event.type() == event.Type.FocusOut:
+            if self.hasFocus():
+                event.ignore()
+            else:
+                QTimer.singleShot(100, self.finish_editing)
+        return super().eventFilter(watched, event)
+
+    def delete_button_callback(self):
+        self.combo_box.removeItem(self.combo_box.currentIndex())
+        self.label.setText("")

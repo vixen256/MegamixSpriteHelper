@@ -165,8 +165,8 @@ class ThumbnailWindow(QWidget):
         self.normal_palette.setColor(QPalette.ColorRole.Text, QColor(255,255,255))
 
         self.known_ids = self.read_saved_ids()
-        #TODO Make it so last used song pack names are remembered and user can select them from a dropdown
-        #TODO User should be able to see processed name as it will be used in spr_db (Optional)
+
+        self.fill_combobox_suggestions()
 
     def resizeEvent(self,event):
         super().resizeEvent(event)
@@ -382,7 +382,7 @@ class ThumbnailWindow(QWidget):
             self.update_thumbnail_count_labels()
 
     def create_thumbnail_farc(self):
-        mod_name = self.get_song_pack_name()
+        mod_name = self.main_box.mod_name_lineedit.get_filtered_text()
         if mod_name == "":
             show_message_box("Error", "You need to specify mod name!")
         else:
@@ -441,7 +441,7 @@ class ThumbnailWindow(QWidget):
                 print("Folder wasn't chosen")
             else:
                 config.last_used_directory = Path(chosen_dir)
-
+                self.save_pack_name()
                 thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
 
 
@@ -520,13 +520,38 @@ class ThumbnailWindow(QWidget):
             area = (tex_width , tex_height)
         return area
 
-    def get_song_pack_name(self):
-        mod_string = self.main_box.mod_name_lineedit.text()
-        mod_string = mod_string.translate(str.maketrans('', '', string.punctuation)).lower()
-        mod_string = re.sub(r'[^A-Za-z0-9 ]+', '',mod_string)
+    def save_pack_name(self):
 
-        return "_".join(mod_string.split())
+        if Path('remembered_names.yaml').exists():
+            with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
+                remember_data = yaml.safe_load(infile)
+                if self.main_box.mod_name_lineedit.combo_box.currentText() not in remember_data:
+                    remember_data.append(self.main_box.mod_name_lineedit.combo_box.currentText())
 
+                    with io.open('remembered_names.yaml' , 'w', encoding='utf8') as outfile:
+                        yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
+
+
+        else:
+            remember_data = []
+            for i in range(self.main_box.mod_name_lineedit.combo_box.count()):
+                remember_data.append(self.main_box.mod_name_lineedit.combo_box.itemText(i))
+
+            if self.main_box.mod_name_lineedit.combo_box.currentText() != "":
+                remember_data.append(self.main_box.mod_name_lineedit.combo_box.currentText())
+
+            with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
+                yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
+
+        for i in range(self.main_box.mod_name_lineedit.combo_box.count()):
+            self.main_box.mod_name_lineedit.combo_box.removeItem(i)
+        self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
+
+    def fill_combobox_suggestions(self):
+        if Path('remembered_names.yaml').exists():
+            with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
+                remember_data = yaml.safe_load(infile)
+                self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
 
 ###################################################################################################
 
@@ -1104,6 +1129,7 @@ class MainWindow(QMainWindow):
                                             self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
             self.draw_image_grid()
 
+    #TODO Simplify loading sprites into single function
     def load_background_button_callback(self):
         open_background = QFileDialog.getOpenFileName(self, "Open background image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1145,9 +1171,6 @@ class MainWindow(QMainWindow):
             except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_background).parent
                 print("Couldn't load image. Image might be corrupted")
-
-
-
     def load_jacket_button_callback(self):
         open_jacket = QFileDialog.getOpenFileName(self,"Open jacket image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1194,7 +1217,6 @@ class MainWindow(QMainWindow):
             except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_jacket).parent
                 print("Couldn't load image. Image might be corrupted")
-
     def load_logo_button_callback(self):
         open_logo = QFileDialog.getOpenFileName(self, "Open logo image", str(config.last_used_directory), config.allowed_file_types)[0]
 
@@ -1229,7 +1251,6 @@ class MainWindow(QMainWindow):
             except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_logo).parent
                 print("Couldn't load image. Image might be corrupted")
-
     def load_thumbnail_button_callback(self):
         open_thumbnail = QFileDialog.getOpenFileName(self, "Open thumbnail image", str(config.last_used_directory), config.allowed_file_types)[0]
 

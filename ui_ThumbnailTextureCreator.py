@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QGr
     QLabel, QLineEdit, QPushButton, QScrollArea,
     QSizePolicy, QVBoxLayout, QWidget)
 import resources
+from widgets import SongpackNameInput
+
 
 class Ui_ThumbnailTextureCreator(object):
     def setupUi(self, ThumbnailTextureCreator):
@@ -64,10 +66,11 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.gridLayout_2.addWidget(self.load_image_button, 1, 0, 1, 1)
 
-        self.mod_name_lineedit = QLineEdit(ThumbnailTextureCreator)
-        self.mod_name_lineedit.setObjectName(u"mod_name_lineedit")
-        self.mod_name_lineedit.setMaxLength(200)
-        self.mod_name_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # self.mod_name_lineedit = QLineEdit(ThumbnailTextureCreator)
+        # self.mod_name_lineedit.setObjectName(u"mod_name_lineedit")
+        # self.mod_name_lineedit.setMaxLength(200)
+        # self.mod_name_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.mod_name_lineedit = SongpackNameInput()
 
         self.gridLayout_2.addWidget(self.mod_name_lineedit, 2, 0, 1, 1)
 
@@ -116,7 +119,7 @@ class Ui_ThumbnailTextureCreator(object):
         self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails loaded: 0", None))
         self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
-        self.mod_name_lineedit.setPlaceholderText(QCoreApplication.translate("ThumbnailTextureCreator", u"Enter your mod name here", None))
+        #self.mod_name_lineedit.setPlaceholderText(QCoreApplication.translate("ThumbnailTextureCreator", u"Enter your mod name here", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
         self.delete_all_thumbs_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Delete all thumbnails", None))
     # retranslateUi
