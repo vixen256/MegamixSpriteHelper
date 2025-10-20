@@ -16,6 +16,8 @@ Simple program that lets you make slight adjustments to the sprites while having
 # Notes
 - Generating sprite database uses [Hiki8man's Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
 - Farc export uses [Vixen256's](https://github.com/vixen256) [Farc](https://github.com/vixen256/farc) and [Spr](https://github.com/vixen256/spr) libraries.
+- - Known issue: Exported farc needs to be re-saved with MMM to fix crashes in-game.
+- Thumbnail sprite image was made by [ふらすこ](https://www.pixiv.net/en/artworks/134599002)
 
 # Preview
 
