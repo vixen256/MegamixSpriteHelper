@@ -3,12 +3,19 @@ from pathlib import Path
 from pprint import pprint
 import hashlib
 from io import BytesIO
+from diva_lib.hash import CalculateStr
 
+'''
 def get_hash(string):
     obj = hashlib.shake_256()
     obj.update(string.encode("utf-8"))
-    result=int(obj.hexdigest(4),16) #changed 4 to 3
+    result=int(obj.hexdigest(4),16)
     return result
+'''
+
+def get_hash(string):
+    return CalculateStr(string)
+    
 
 class farc_format:
     AFT = b"FArC"
@@ -125,7 +132,7 @@ class Manager:
             self.sprinfo_id_dict[data.info_id].add_spr(self.spr_list[-1])
 
         else:
-            raise ValueError("Error Dataļ¼",data)
+            raise ValueError("Error Data！",data)
     
     def check_index(self):
         check_list = []
@@ -135,11 +142,10 @@ class Manager:
             check_list += check
         #print("\nDone!")
         if len(check_list) > 0:
-            #pprint(f"Crash Error Index:\n{check_list}")
-            pass
+            pprint(f"Crash Error Index:\n{check_list}")
         else:
-            #print("No Crash Error")
             pass
+            #print("No Crash Error")
 
     def check_id(self):
 
@@ -153,11 +159,11 @@ class Manager:
                 same_id_list.append(i.id)
         #print("Done!")
         if len(same_id_list) > 0:
+            pass
             #pprint(f"Same ID:\n{same_id_list}")
-            pass
         else:
-            #print("No Same ID")
             pass
+            #print("No Same ID")
         
         #print("\nCheck Spr ID")
         id_list = []
@@ -169,11 +175,11 @@ class Manager:
                 same_id_list.append(i.id)
         #print("Done!")
         if len(same_id_list) > 0:
+            pass
             #pprint(f"Same ID:\n{same_id_list}")
-            pass
         else:
-            #print("No Same ID")
             pass
+            #print("No Same ID")
     
     def have_sprinfo(self, _file_name = None):
         return self.sprinfo_file_name_dict.get(_file_name)
@@ -331,6 +337,7 @@ class add_farc_to_Manager:
                             "info_id":info_id
                             }
             sprsetinfo_dict["id"] = get_hash(head_str) if (head_str != "SPR_SEL_PVTMB") else 4527
+            print(head_str)
             self.Manager.add_spr(SpriteSetInfo(sprsetinfo_dict))
             
         else:
@@ -348,6 +355,8 @@ class add_farc_to_Manager:
         for i in range(len(head_str_list)):
             if head_str_list[i] == "":
                 head_str = f"{self.farc_name[:-4]}_sprite_null_{i}" if _is_spr else f"{self.farc_name[:-4].upper()}_texture_null_{i}"
+            elif "SPR_SEL_PVTMB" in self.farc_name[:-4].upper():
+                head_str = f"SPR_SEL_PVTMB_{head_str_list[i]}" if _is_spr else f"{self.farc_name[0:3]}TEX{self.farc_name[3:-4]}_{head_str_list[i]}"
             else:
                 head_str = f"{self.farc_name[:-4]}_{head_str_list[i]}" if _is_spr else f"{self.farc_name[0:3]}TEX{self.farc_name[3:-4]}_{head_str_list[i]}"
             sprinfo_dict["info_str"] = head_str.upper()
@@ -425,5 +434,5 @@ class read_farc:
 #    for farc_file in farc_list:
 #        farc_reader = read_farc(farc_file)
 #        add_farc_to_Manager(farc_reader, SPR_DB)
-#
+
 #SPR_DB.write_db("output\\mod_spr_db.bin")
