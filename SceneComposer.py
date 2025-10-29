@@ -1,10 +1,19 @@
+import io
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path, PurePath
+from typing import Callable
 
-from PySide6.QtCore import Qt
+import PySide6
+from PIL.ImageQt import QBuffer
+from PySide6.QtCore import Qt, QByteArray, QIODevice, QRectF
 from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
+from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout
+
+from widgets import EditableDoubleLabel
+
 
 class ThumbnailCheck(Enum):
     FULLY_OPAQUE = [15293.325646817684]
@@ -131,7 +140,6 @@ class BackgroundSprite(Sprite):
                 return state
 
     def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("background")
         with Image.open(self.location).convert('RGBA') as background:
             cropped_background = Image.Image.crop(background, Image.Image.getbbox(background))
 
@@ -233,7 +241,6 @@ class JacketSprite(Sprite):
                 return state
 
     def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("jacket")
         with Image.open(self.location).convert('RGBA') as jacket:
             cropped_jacket = Image.Image.crop(jacket, Image.Image.getbbox(jacket))
 
@@ -298,7 +305,6 @@ class LogoSprite(Sprite):
             return state
 
     def post_process(self,state,horizontal_offset,vertical_offset,rotation,zoom):
-        print("logo")
         if state == Qt.CheckState.Checked:
             with Image.open(self.location).convert('RGBA') as logo:
                 if self.flipped_h:
@@ -398,7 +404,6 @@ class ThumbnailSprite(Sprite):
                 return state
 
     def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("thumbnail")
         with Image.open(self.location).convert('RGBA') as thumbnail, Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
             cropped_thumbnail = Image.Image.crop(thumbnail, Image.Image.getbbox(thumbnail))
 
@@ -406,6 +411,8 @@ class ThumbnailSprite(Sprite):
                 cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
             if self.flipped_v:
                 cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+            self.uncropped_thumbnail_image = ImageOps.scale(thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
 
             self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
             self.thumbnail = Image.new('RGBA', (128, 64))
@@ -727,4 +734,211 @@ class SceneComposer:
                 else:
                     return False
 
+####################################################
+class QSpriteBase(QGraphicsPixmapItem):
+    def __init__(self,
+                 sprite:Path,
+                 sprite_type:SpriteType,
+                 size:PySide6.QtCore.QRectF):
+        super().__init__()
+        #Set default image and fallback dummy.
+        self.dummy_location = sprite
+        self.location = sprite
+        self.sprite_size = size
 
+        self.sprite_image = QImage(self.location)
+
+        #Create a scene that will crop image to max size
+        self.sprite = QGraphicsPixmapItem()
+        self.sprite.setPixmap(QPixmap(self.sprite_image))
+        self.sprite_scene = QGraphicsScene()
+        self.sprite_scene.setSceneRect(self.sprite_size)
+        self.sprite_scene.addItem(self.sprite)
+
+        self.type = sprite_type
+
+
+        self.sprite_settings = [
+            (SpriteSetting.HORIZONTAL_OFFSET, {
+                'initial_value': 0,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }),
+            (SpriteSetting.VERTICAL_OFFSET, {
+                'initial_value': 0,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }),
+            (SpriteSetting.ROTATION, {
+                'initial_value': 0,
+                'decimals': 2,
+                'rough_step': 1,
+                'precise_step': 0.01
+            }),
+            (SpriteSetting.ZOOM, {
+                'initial_value': 1,
+                'decimals': 3,
+                'rough_step': 0.001,
+                'precise_step': 0.001
+            })
+        ]
+        self.flipped_h = False
+        self.flipped_v = False
+        self.edit_controls = self.create_edit_controls()
+
+        self.update_sprite()
+
+    def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
+        editable_values = {}
+        for setting in self.sprite_settings:
+            parameters = setting[1]
+            edit = EditableDoubleLabel(sprite=self,
+                                       setting=setting[0],
+                                       range=self.calculate_range(setting[0]),
+                                       **parameters)
+            edit.editingFinished.connect(self.update_sprite)
+            editable_values[setting[0].value] = edit
+        return editable_values
+
+    def add_edit_controls_to(self,layout:QLayout):
+        for control in self.edit_controls:
+            layout.addWidget(self.edit_controls[control])
+
+
+    def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
+        pixmap = QPixmap(source_rect.size().toSize())
+        pixmap.fill("transparent")
+
+        painter = QPainter(pixmap)
+        #painter.setRenderHint(QPainter.LosslessImageRendering)
+        scene.render(painter, QRectF(pixmap.rect()), source_rect)
+        painter.end()
+
+        return pixmap
+
+    def calculate_range(self,sprite_setting:SpriteSetting):
+        match sprite_setting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                offset = (self.sprite_image.width() * -1) + self.sprite_scene.width()
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                offset = (self.sprite_image.height() * -1) + self.sprite_scene.height()
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+            case SpriteSetting.ZOOM:
+                width_factor = Decimal(self.sprite_scene.width() / self.sprite_image.width())
+                height_factor = Decimal(self.sprite_scene.height() / self.sprite_image.height())
+
+                if width_factor > height_factor:
+                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                elif width_factor < height_factor:
+                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                else:
+                    return 1.00, 1.00
+            case SpriteSetting.ROTATION:
+                return 0, 360
+
+    def grab_final_sprite(self) -> QPixmap:
+        return self.pixmap()
+
+    def update_sprite(self):
+        image = self.sprite_image
+        image = image.scaledToHeight(self.sprite_image.height()*self.edit_controls[SpriteSetting.ZOOM.value].value)
+        image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
+        image = image.transformed(QTransform().translate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
+                                                         self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
+        self.sprite.setPixmap(QPixmap(image))
+        self.setPixmap(self.grab_scene_portion(self.sprite_scene,self.sprite_size))
+
+    def mousePressEvent(self, event, /):
+        self.save_image()
+
+        super().mousePressEvent(event)
+
+    def save_image(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save Image",
+            "image.png",
+            "PNG Files (*.png)"
+        )
+        if filename:
+            self.pixmap().save(filename, "PNG",100)
+            print(f"Image saved to: {filename}")
+
+class QThumbnail(QSpriteBase):
+    def __init__(self,
+                 sprite: Path,
+                 size: PySide6.QtCore.QRectF,
+                 mask: Path):
+        self.sprite_mask = QImage(mask)
+        super().__init__(sprite,SpriteType.THUMBNAIL,size)
+
+
+    def apply_mask_to_pixmap(self, pixmap:QPixmap) -> QPixmap:
+        #TODO Needs to apply mask with // Probably only for final image.
+        # (Wand) magick image.png mask.png -compose CopyOpacity -composite result.png
+
+        result_pixmap = QPixmap(self.sprite.pixmap().size())
+        result_pixmap.fill("transparent")  # This prevents ghost images from showing up
+
+        painter = QPainter(result_pixmap)
+        #painter.setRenderHint(QPainter.LosslessImageRendering)
+
+        painter.drawPixmap(0, 0, pixmap)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
+
+        painter.drawImage(0, 0, self.sprite_mask)
+        painter.end()
+
+        return result_pixmap
+
+    def update_sprite(self):
+        image = self.sprite_image
+        image = image.scaledToHeight(self.sprite_image.height() * self.edit_controls[SpriteSetting.ZOOM.value].value)
+        image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
+        image = image.transformed(QTransform().translate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
+                                                         self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
+        self.sprite.setPixmap(QPixmap(image))
+        self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
+
+    def calculate_range(self,sprite_setting:SpriteSetting) -> None | tuple[int, int] | tuple[float, float]:
+        match sprite_setting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                offset = (self.sprite_image.width() * -1) + 100
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                offset = (self.sprite_image.height() * -1) + 61
+
+                if offset > 0:
+                    return 0, offset
+                else:
+                    return offset, 0
+            case SpriteSetting.ZOOM:
+                width_factor = Decimal(100 / self.sprite_image.width())
+                height_factor = Decimal(61 / self.sprite_image.height())
+
+                if width_factor > height_factor:
+                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                elif width_factor < height_factor:
+                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                else:
+                    return 1.00, 1.00
+            case SpriteSetting.ROTATION:
+                return 0,360

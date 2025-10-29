@@ -16,10 +16,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QComboBox,
-    QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QLayout, QMainWindow, QPushButton,
-    QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
-    QTabWidget, QVBoxLayout, QWidget)
+                               QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
+                               QLabel, QLayout, QMainWindow, QPushButton,
+                               QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
+                               QTabWidget, QVBoxLayout, QWidget, QGraphicsView)
 
 from widgets import QLabel_clickable
 import resources
@@ -86,8 +86,18 @@ class Ui_MainWindow(object):
         self.mm_result_preview.setSizeIncrement(QSize(0, 0))
         self.mm_result_preview.setBaseSize(QSize(640, 360))
         self.mm_result_preview.setScaledContents(True)
+        self.mm_result_preview.setVisible(False)
 
-        self.image_grid.addWidget(self.mm_result_preview, 1, 0, 1, 1)
+        #self.image_grid.addWidget(self.mm_result_preview, 1, 0, 1, 1)
+
+        self.graphics_scene_view = QGraphicsView()
+        self.graphics_scene_view.setSizePolicy(sizePolicy2)
+        self.graphics_scene_view.setMinimumSize(QSize(256, 144))
+        self.graphics_scene_view.setMaximumSize(QSize(1920, 1080))
+        self.graphics_scene_view.setSizeIncrement(QSize(0, 0))
+        self.graphics_scene_view.setBaseSize(QSize(640, 360))
+        self.image_grid.addWidget(self.graphics_scene_view,1,0,1,1)
+
 
         self.mm_song_selector_preview = QLabel_clickable(self.grid)
         self.mm_song_selector_preview.setObjectName(u"mm_song_selector_preview")

@@ -10,9 +10,9 @@ from time import sleep
 from enum import Enum, auto
 
 import PIL.ImageShow
-from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
-from PySide6.QtGui import QPixmap, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy
+from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal, QRect, QRectF
+from PySide6.QtGui import QPixmap, QPalette, QColor, QBrush, QImage, QPainter, QBitmap
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsOpacityEffect
 from PIL import Image,ImageShow,ImageStat
 from PIL.ImageShow import Viewer
 
@@ -23,7 +23,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from superqt.utils import qthrottled
 
-from SceneComposer import SceneComposer, State, SpriteType, Scene , SpriteSetting
+from SceneComposer import SceneComposer, State, SpriteType, Scene, SpriteSetting, QThumbnail, QSpriteBase
 from FarcCreator import FarcCreator
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 
@@ -724,6 +724,8 @@ class MainWindow(QMainWindow):
         print("Initial Draw")
         self.draw_image_grid()
 
+        self.benchmark()
+
     def resizeEvent(self,event):
         #Todo allow resizing by grabbing top/bottom edge too
 
@@ -817,15 +819,15 @@ class MainWindow(QMainWindow):
             editable_values[setting[0].value] = edit
 
             #TODO make it properly, not hardcode
-            match sprite:
-                case SceneComposer.Background:
-                    self.main_box.verticalLayout_8.addWidget(edit)
-                case SceneComposer.Jacket:
-                    self.main_box.verticalLayout_10.addWidget(edit)
-                case SceneComposer.Thumbnail:
-                    self.main_box.verticalLayout_12.addWidget(edit)
-                case SceneComposer.Logo:
-                    self.main_box.verticalLayout_11.addWidget(edit)
+            # match sprite:
+            #     case SceneComposer.Background:
+            #         self.main_box.verticalLayout_8.addWidget(edit)
+            #     case SceneComposer.Jacket:
+            #         self.main_box.verticalLayout_10.addWidget(edit)
+            #     case SceneComposer.Thumbnail:
+            #         self.main_box.verticalLayout_12.addWidget(edit)
+            #     case SceneComposer.Logo:
+            #         self.main_box.verticalLayout_11.addWidget(edit)
 
 
         self.edit_control[sprite.type.value] = editable_values
@@ -852,30 +854,32 @@ class MainWindow(QMainWindow):
             self.edit_control[SpriteType.JACKET][control].block_drawing = False
         print("Jacket Triggered draw")
         self.draw_image_grid()
-    @qthrottled(timeout=30)
+    #@qthrottled(timeout=30)
     def logo_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.LOGO]:
-            self.edit_control[SpriteType.LOGO][control].block_drawing = True
-
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.LOGO]:
-            self.edit_control[SpriteType.LOGO][control].block_drawing = False
-        print("Logo Trigered draw")
-        self.draw_image_grid()
+        #self.logo.setRotation(self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value)
+        # for control in self.edit_control[SpriteType.LOGO]:
+        #     self.edit_control[SpriteType.LOGO][control].block_drawing = True
+        #
+        # SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+        #
+        # self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        # self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+        #
+        # SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
+        #                                 self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+        #
+        # for control in self.edit_control[SpriteType.LOGO]:
+        #     self.edit_control[SpriteType.LOGO][control].block_drawing = False
+        # print("Logo Trigered draw")
+        # self.draw_image_grid()
+        pass
     @qthrottled(timeout=30)
     def background_value_edit_trigger(self):
         for control in self.edit_control[SpriteType.BACKGROUND]:
@@ -900,26 +904,29 @@ class MainWindow(QMainWindow):
         self.draw_image_grid()
     @qthrottled(timeout=30)
     def thumbnail_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.THUMBNAIL]:
-            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
-
-        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.THUMBNAIL]:
-            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = False
-        print("Thumbnail triggered draw")
-        self.draw_image_grid()
+        pass
+        #self.thumbnail.setRotation(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value)
+        #self.clipped_thumb.setPixmap(self.create_masked_scene_portion(self.thumbnail_scene, QRectF(0, 0, 128, 64), self.thumbnail_mask))
+        # for control in self.edit_control[SpriteType.THUMBNAIL]:
+        #     self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
+        #
+        # SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+        #
+        # self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
+        # self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
+        #
+        # SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
+        #                                      self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+        #
+        # for control in self.edit_control[SpriteType.THUMBNAIL]:
+        #     self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = False
+        # print("Thumbnail triggered draw")
+        # self.draw_image_grid()
 
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
@@ -950,6 +957,40 @@ class MainWindow(QMainWindow):
                         SceneComposer.Thumbnail.flipped_v = not SceneComposer.Thumbnail.flipped_v
         self.reload_images()
         self.draw_image_grid()
+
+    def benchmark(self):
+        #####
+
+
+        # Get masked pixmap item
+        self.thumbnail = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
+                                QRectF(0,0,128,64),
+                                Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
+        self.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
+
+        #self.clipped_thumb.setPixmap(self.create_masked_scene_portion(self.thumbnail_scene, QRectF(0, 0, 128, 64), self.thumbnail_mask))
+
+        #####
+        self.logo = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
+                                SpriteType.LOGO,
+                                QRectF(0,0,870,330))
+
+        self.logo_scene = QGraphicsScene()
+        self.logo_scene.setSceneRect(0,0,870,330)
+        self.logo_scene.addItem(self.logo)
+        #self.logo_scene.addItem(self.thumbnail)
+        self.logo_scene_view = QGraphicsView()
+        #self.logo_scene_view.scale(0.25, 0.25)
+        self.logo_scene_view.setScene(self.logo_scene)
+
+        self.scene = QGraphicsScene()
+        self.scene.setSceneRect(0, 0, 1920, 1080)
+        self.scene.addWidget(self.logo_scene_view)
+        self.scene.addItem(self.thumbnail)
+
+        self.main_box.graphics_scene_view.scale(1,1)
+        self.main_box.graphics_scene_view.setScene(self.scene)
+        #self.thumbnail.setPixmap(Image.open(Path.cwd() / 'Images/Dummy/Jacket.png').convert('RGBA').toqpixmap())
 
     def reload_images(self):
         SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
@@ -1308,6 +1349,8 @@ class MainWindow(QMainWindow):
                     self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
 
                     self.draw_image_grid()
+                    self.thumbnail_q = SceneComposer.Thumbnail.thumbnail_image.toqimage().convertToFormat(QImage.Format.Format_ARGB32_Premultiplied)
+                    self.thumbnail.setPixmap(QPixmap(self.thumbnail_q))
 
                 elif result["Outcome"] == State.IMAGE_TOO_SMALL:
                     config.last_used_directory = Path(open_thumbnail).parent
