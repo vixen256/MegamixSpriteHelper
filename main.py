@@ -688,7 +688,7 @@ class MainWindow(QMainWindow):
 
         #Connect buttons with their functionality
         self.main_box.load_background_button.clicked.connect(self.load_background_button_callback)
-        self.main_box.load_thumbnail_button.clicked.connect(self.load_thumbnail_button_callback)
+        self.main_box.load_thumbnail_button.clicked.connect(lambda: self.load_new_sprite_image(self.thumbnail))
         self.main_box.load_logo_button.clicked.connect(self.load_logo_button_callback)
         self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
         self.main_box.copy_to_clipboard_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.CLIPBOARD))
@@ -952,9 +952,9 @@ class MainWindow(QMainWindow):
             case "Thumbnail":
                 match flip_type:
                     case "Horizontal":
-                        SceneComposer.Thumbnail.flipped_h = not SceneComposer.Thumbnail.flipped_h
+                        self.thumbnail.flipped_h = not self.thumbnail.flipped_h
                     case "Vertical":
-                        SceneComposer.Thumbnail.flipped_v = not SceneComposer.Thumbnail.flipped_v
+                        self.thumbnail.flipped_v = not self.thumbnail.flipped_v
         self.reload_images()
         self.draw_image_grid()
 
@@ -1358,6 +1358,19 @@ class MainWindow(QMainWindow):
             except PIL.UnidentifiedImageError:
                 config.last_used_directory = Path(open_thumbnail).parent
                 print("Couldn't load image. Image might be corrupted")
+
+    def load_new_sprite_image(self,sprite:QSpriteBase):
+        #TODO Get all objects with specified sprite type.
+        #TODO make watcher functional
+        #Open file explorer to select file
+        #Test the image against required sizes
+        #Apply the image if it fits
+        image_location = QFileDialog.getOpenFileName(self,
+                                                 f"Open {sprite.type.value} image",
+                                                 str(config.last_used_directory),
+                                                 config.allowed_file_types)[0]
+
+        sprite.load_new_image(image_location)
 
     def export_background_jacket_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]

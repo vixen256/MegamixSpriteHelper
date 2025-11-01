@@ -10,7 +10,7 @@ from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
 from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
 
 from widgets import EditableDoubleLabel
 
@@ -735,6 +735,13 @@ class SceneComposer:
                     return False
 
 ####################################################
+class QScalingGraphicsScene(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+    def resizeEvent(self,event):
+        self.fitInView(self.scene().sceneRect())
+
+
 class QSpriteBase(QGraphicsPixmapItem):
     def __init__(self,
                  sprite:Path,
@@ -821,7 +828,7 @@ class QSpriteBase(QGraphicsPixmapItem):
     def calculate_range(self,sprite_setting:SpriteSetting):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.sprite_image.width() * -1) + self.sprite_scene.width()
+                offset = (self.sprite_image.width() * -1) + self.sprite.pixmap().width()
 
                 if offset > 0:
                     return 0, offset
@@ -829,15 +836,15 @@ class QSpriteBase(QGraphicsPixmapItem):
                     return offset, 0
 
             case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.sprite_image.height() * -1) + self.sprite_scene.height()
+                offset = (self.sprite_image.height() * -1) + self.sprite.pixmap().height()
 
                 if offset > 0:
                     return 0, offset
                 else:
                     return offset, 0
             case SpriteSetting.ZOOM:
-                width_factor = Decimal(self.sprite_scene.width() / self.sprite_image.width())
-                height_factor = Decimal(self.sprite_scene.height() / self.sprite_image.height())
+                width_factor = Decimal(self.sprite.pixmap().width() / self.sprite.pixmap().width())
+                height_factor = Decimal(self.sprite.pixmap().height() / self.sprite.pixmap().height())
 
                 if width_factor > height_factor:
                     return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
@@ -850,6 +857,35 @@ class QSpriteBase(QGraphicsPixmapItem):
 
     def grab_final_sprite(self) -> QPixmap:
         return self.pixmap()
+
+    def load_new_image(self,image_location):
+        #TODO - Must take inconsideration REAL area of the image - ignore transparent areas
+        #           Ideally check for transparent holes in images like jacket , background
+
+        #TODO - Should return nice error codes , states
+        #       -Image.TooSmall
+        #       -Image.ContainsTransparency
+        #       -Success
+        #       -Success.JacketFitted
+        #
+        #TODO - Should allow for easy per-sprite adjustments after the sprite is loaded in without replacing whole function
+        #TODO - Add optional fallback to dummy sprite -Needed for watcher
+
+
+        qimage = QImage(image_location)
+        required_size = self.sprite_size.size().toSize()
+        rw = required_size.width()
+        rh = required_size.height()
+        w = qimage.width()
+        h = qimage.height()
+
+        if (w, h) < (rw, rh):
+            return
+        else:
+            self.sprite_image = qimage
+            self.setPixmap(QPixmap(qimage))
+            self.location = image_location
+            self.update_sprite()
 
     def update_sprite(self):
         image = self.sprite_image
@@ -905,10 +941,12 @@ class QThumbnail(QSpriteBase):
         return result_pixmap
 
     def update_sprite(self):
+        #TODO , Make it so offsets are updated and they use processed image
+
         image = self.sprite_image
         image = image.scaledToHeight(self.sprite_image.height() * self.edit_controls[SpriteSetting.ZOOM.value].value)
         image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
-        image = image.transformed(QTransform().translate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
+        image = image.transformed(QTransform().fromTranslate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
                                                          self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
         self.sprite.setPixmap(QPixmap(image))
         self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
@@ -916,7 +954,7 @@ class QThumbnail(QSpriteBase):
     def calculate_range(self,sprite_setting:SpriteSetting) -> None | tuple[int, int] | tuple[float, float]:
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.sprite_image.width() * -1) + 100
+                offset = (self.sprite.pixmap().width() * -1) + 100
 
                 if offset > 0:
                     return 0, offset
@@ -924,15 +962,15 @@ class QThumbnail(QSpriteBase):
                     return offset, 0
 
             case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.sprite_image.height() * -1) + 61
+                offset = (self.sprite.pixmap().height() * -1) + 61
 
                 if offset > 0:
                     return 0, offset
                 else:
                     return offset, 0
             case SpriteSetting.ZOOM:
-                width_factor = Decimal(100 / self.sprite_image.width())
-                height_factor = Decimal(61 / self.sprite_image.height())
+                width_factor = Decimal(100 / self.sprite.pixmap().width())
+                height_factor = Decimal(61 / self.sprite.pixmap().height())
 
                 if width_factor > height_factor:
                     return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
@@ -942,3 +980,4 @@ class QThumbnail(QSpriteBase):
                     return 1.00, 1.00
             case SpriteSetting.ROTATION:
                 return 0,360
+
