@@ -6,3 +6,4 @@ PyYAML~=6.0.2
 #spr~=0.1.0    -Package not on pip
 #farc~=0.1.0   -Package not on pip
 superqt~=0.7.6
+pyqt-advanced-slider==1.1.1
