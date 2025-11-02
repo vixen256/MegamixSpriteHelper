@@ -5,7 +5,7 @@ from typing import Callable
 
 import PySide6
 from PIL.ImageQt import QBuffer
-from PySide6.QtCore import Qt, QByteArray, QIODevice, QRectF
+from PySide6.QtCore import Qt, QByteArray, QIODevice, QRectF, QPoint, Signal, Slot, QObject
 from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
@@ -742,12 +742,14 @@ class QScalingGraphicsScene(QGraphicsView):
         self.fitInView(self.scene().sceneRect())
 
 
-class QSpriteBase(QGraphicsPixmapItem):
+class QSpriteBase(QGraphicsPixmapItem, QObject):
+    SpriteUpdated = Signal()
     def __init__(self,
                  sprite:Path,
                  sprite_type:SpriteType,
                  size:PySide6.QtCore.QRectF):
-        super().__init__()
+        QObject.__init__(self)
+        QGraphicsPixmapItem.__init__(self)
         #Set default image and fallback dummy.
         self.dummy_location = sprite
         self.location = sprite
@@ -911,12 +913,12 @@ class QSpriteBase(QGraphicsPixmapItem):
         if filename:
             self.pixmap().save(filename, "PNG",100)
             print(f"Image saved to: {filename}")
-
 class QThumbnail(QSpriteBase):
     def __init__(self,
                  sprite: Path,
                  size: PySide6.QtCore.QRectF,
                  mask: Path):
+
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size)
 
@@ -943,13 +945,15 @@ class QThumbnail(QSpriteBase):
     def update_sprite(self):
         #TODO , Make it so offsets are updated and they use processed image
 
-        image = self.sprite_image
+        image = self.sprite_image.scaledToHeight(76)
         image = image.scaledToHeight(self.sprite_image.height() * self.edit_controls[SpriteSetting.ZOOM.value].value)
         image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
         image = image.transformed(QTransform().fromTranslate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
                                                          self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
         self.sprite.setPixmap(QPixmap(image))
         self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
+        self.SpriteUpdated.emit()
+
 
     def calculate_range(self,sprite_setting:SpriteSetting) -> None | tuple[int, int] | tuple[float, float]:
         match sprite_setting:
@@ -980,4 +984,62 @@ class QThumbnail(QSpriteBase):
                     return 1.00, 1.00
             case SpriteSetting.ROTATION:
                 return 0,360
+class QSpriteSlave(QGraphicsPixmapItem):
 
+    def __init__(self, tracked: QSpriteBase, position: QPoint,height=None):
+        super().__init__()
+        self.tracked = tracked
+        tracked.SpriteUpdated.connect(self.update_sprite)
+        self.height = height
+        self.setPos(position)
+
+        self.update_sprite()
+    def update_sprite(self):
+        #TODO It gets scaled wrong when image has transparency as it doesn't get included in calc
+        if self.height:
+            self.setPixmap(self.tracked.pixmap().scaledToHeight(self.height))
+        else:
+            self.setPixmap(self.tracked.pixmap())
+
+class QMMSongSelectScene(QGraphicsScene):
+    def __init__(self):
+        super().__init__()
+
+        self.thumbnail_1 = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
+                                    QRectF(0, 0, 128, 64),
+                                    Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
+
+        self.logo = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
+                                SpriteType.LOGO,
+                                QRectF(0, 0, 870, 330))
+
+        ######
+
+
+        self.logo_scene = QGraphicsScene()
+        self.logo_scene.setSceneRect(0, 0, 870, 330)
+        self.logo_scene.addItem(self.logo)
+
+        self.logo_scene_view = QGraphicsView()
+        self.logo_scene_view.setScene(self.logo_scene)
+
+        self.scene = QGraphicsScene()
+        self.scene.setSceneRect(0, 0, 1920, 1080)
+        self.scene.addWidget(self.logo_scene_view)
+
+        self.scene.addItem(self.thumbnail_1)
+        self.thumbnail_1.setPos(QPoint(-98, -24))
+        self.thumbnail_2 = QSpriteSlave(self.thumbnail_1, QPoint(-66, 90))
+        self.scene.addItem(self.thumbnail_2)
+        self.thumbnail_3 = QSpriteSlave(self.thumbnail_1, QPoint(-34, 204))
+        self.scene.addItem(self.thumbnail_3)
+        self.thumbnail_selected = QSpriteSlave(self.thumbnail_1, QPoint(-8, 332),height=98)
+        self.scene.addItem(self.thumbnail_selected)
+        self.thumbnail_4 = QSpriteSlave(self.thumbnail_1, QPoint(44, 476))
+        self.scene.addItem(self.thumbnail_4)
+        self.thumbnail_5 = QSpriteSlave(self.thumbnail_1, QPoint(108, 704))
+        self.scene.addItem(self.thumbnail_5)
+        self.thumbnail_6 = QSpriteSlave(self.thumbnail_1, QPoint(140, 818))
+        self.scene.addItem(self.thumbnail_6)
+        self.thumbnail_7 = QSpriteSlave(self.thumbnail_1, QPoint(168, 948))
+        self.scene.addItem(self.thumbnail_7)
