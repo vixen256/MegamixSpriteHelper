@@ -747,15 +747,19 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def __init__(self,
                  sprite:Path,
                  sprite_type:SpriteType,
-                 size:PySide6.QtCore.QRectF):
+                 size:PySide6.QtCore.QRectF,
+                 scale:float=None):
         QObject.__init__(self)
         QGraphicsPixmapItem.__init__(self)
         #Set default image and fallback dummy.
         self.dummy_location = sprite
         self.location = sprite
         self.sprite_size = size
+        if scale:
+            self.setScale(scale)
 
         self.sprite_image = QImage(self.location)
+
 
         #Create a scene that will crop image to max size
         self.sprite = QGraphicsPixmapItem()
@@ -944,8 +948,7 @@ class QThumbnail(QSpriteBase):
 
     def update_sprite(self):
         #TODO , Make it so offsets are updated and they use processed image
-
-        image = self.sprite_image.scaledToHeight(76)
+        image = self.sprite_image
         image = image.scaledToHeight(self.sprite_image.height() * self.edit_controls[SpriteSetting.ZOOM.value].value)
         image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
         image = image.transformed(QTransform().fromTranslate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
@@ -986,60 +989,70 @@ class QThumbnail(QSpriteBase):
                 return 0,360
 class QSpriteSlave(QGraphicsPixmapItem):
 
-    def __init__(self, tracked: QSpriteBase, position: QPoint,height=None):
+    def __init__(self, tracked: QSpriteBase, position: QPoint,scale=None):
         super().__init__()
         self.tracked = tracked
         tracked.SpriteUpdated.connect(self.update_sprite)
-        self.height = height
+        self.scale = scale
         self.setPos(position)
 
         self.update_sprite()
     def update_sprite(self):
         #TODO It gets scaled wrong when image has transparency as it doesn't get included in calc
-        if self.height:
-            self.setPixmap(self.tracked.pixmap().scaledToHeight(self.height))
+        if self.scale:
+            self.setPixmap(self.tracked.pixmap())
+            self.setScale(self.scale)
         else:
             self.setPixmap(self.tracked.pixmap())
+class QLayer(QGraphicsPixmapItem):
+    def __init__(self,
+                 sprite: Path,
+                 size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080)):
+        super().__init__()
+        self.sprite_size = size
+        self.setPixmap(QPixmap(QImage(sprite)))
 
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self):
         super().__init__()
 
-        self.thumbnail_1 = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
+        self.thumbnail_c = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
                                     QRectF(0, 0, 128, 64),
                                     Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
 
-        self.logo = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
+        self.logo_c = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
                                 SpriteType.LOGO,
                                 QRectF(0, 0, 870, 330))
-
+        #####
+        self.logo = QSpriteSlave(self.logo_c, QPoint(825, 537), scale=0.8)
+        self.thumbnail_1 = QSpriteSlave(self.thumbnail_c, QPoint(-98, -24), scale=1.25)
+        self.thumbnail_2 = QSpriteSlave(self.thumbnail_c, QPoint(-66, 90), scale=1.25)
+        self.thumbnail_3 = QSpriteSlave(self.thumbnail_c, QPoint(-34, 204), scale=1.25)
+        self.thumbnail_selected = QSpriteSlave(self.thumbnail_c, QPoint(-8, 332), scale=1.578125)
+        self.thumbnail_4 = QSpriteSlave(self.thumbnail_c, QPoint(44, 476), scale=1.25)
+        self.thumbnail_5 = QSpriteSlave(self.thumbnail_c, QPoint(108, 704), scale=1.25)
+        self.thumbnail_6 = QSpriteSlave(self.thumbnail_c, QPoint(140, 818), scale=1.25)
+        self.thumbnail_7 = QSpriteSlave(self.thumbnail_c, QPoint(168, 948), scale=1.25)
         ######
-
-
-        self.logo_scene = QGraphicsScene()
-        self.logo_scene.setSceneRect(0, 0, 870, 330)
-        self.logo_scene.addItem(self.logo)
-
-        self.logo_scene_view = QGraphicsView()
-        self.logo_scene_view.setScene(self.logo_scene)
-
+        self.backdrop = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Backdrop.png')
+        self.song_selector = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Song Selector.png')
+        self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Middle Layer.png')
+        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
+        ######
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(0, 0, 1920, 1080)
-        self.scene.addWidget(self.logo_scene_view)
 
+        self.scene.addItem(self.backdrop)
+        self.scene.addItem(self.middle_layer)
+        self.scene.addItem(self.logo)
+        self.scene.addItem(self.song_selector)
         self.scene.addItem(self.thumbnail_1)
-        self.thumbnail_1.setPos(QPoint(-98, -24))
-        self.thumbnail_2 = QSpriteSlave(self.thumbnail_1, QPoint(-66, 90))
         self.scene.addItem(self.thumbnail_2)
-        self.thumbnail_3 = QSpriteSlave(self.thumbnail_1, QPoint(-34, 204))
         self.scene.addItem(self.thumbnail_3)
-        self.thumbnail_selected = QSpriteSlave(self.thumbnail_1, QPoint(-8, 332),height=98)
         self.scene.addItem(self.thumbnail_selected)
-        self.thumbnail_4 = QSpriteSlave(self.thumbnail_1, QPoint(44, 476))
         self.scene.addItem(self.thumbnail_4)
-        self.thumbnail_5 = QSpriteSlave(self.thumbnail_1, QPoint(108, 704))
         self.scene.addItem(self.thumbnail_5)
-        self.thumbnail_6 = QSpriteSlave(self.thumbnail_1, QPoint(140, 818))
         self.scene.addItem(self.thumbnail_6)
-        self.thumbnail_7 = QSpriteSlave(self.thumbnail_1, QPoint(168, 948))
         self.scene.addItem(self.thumbnail_7)
+        self.scene.addItem(self.top_layer_new_classics)

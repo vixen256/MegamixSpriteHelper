@@ -960,8 +960,8 @@ class MainWindow(QMainWindow):
 
     def benchmark(self):
         self.MM_SongSelect = QMMSongSelectScene()
-        self.MM_SongSelect.thumbnail_1.add_edit_controls_to(self.main_box.verticalLayout_12)
-
+        self.MM_SongSelect.thumbnail_c.add_edit_controls_to(self.main_box.verticalLayout_12)
+        self.MM_SongSelect.logo_c.add_edit_controls_to(self.main_box.verticalLayout_11)
 
 
         self.main_box.graphics_scene_view.setScene(self.MM_SongSelect.scene)
