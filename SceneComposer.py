@@ -825,7 +825,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         pixmap.fill("transparent")
 
         painter = QPainter(pixmap)
-        #painter.setRenderHint(QPainter.LosslessImageRendering)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
         scene.render(painter, QRectF(pixmap.rect()), source_rect)
         painter.end()
 
@@ -901,6 +901,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                                          self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
         self.sprite.setPixmap(QPixmap(image))
         self.setPixmap(self.grab_scene_portion(self.sprite_scene,self.sprite_size))
+        self.SpriteUpdated.emit()
 
     def mousePressEvent(self, event, /):
         self.save_image()
@@ -935,7 +936,7 @@ class QThumbnail(QSpriteBase):
         result_pixmap.fill("transparent")  # This prevents ghost images from showing up
 
         painter = QPainter(result_pixmap)
-        #painter.setRenderHint(QPainter.LosslessImageRendering)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
         painter.drawPixmap(0, 0, pixmap)
 
@@ -987,14 +988,22 @@ class QThumbnail(QSpriteBase):
                     return 1.00, 1.00
             case SpriteSetting.ROTATION:
                 return 0,360
+class QJacket(QSpriteBase):
+    def __init__(self,sprite: Path,
+                 size: PySide6.QtCore.QRectF):
+        super().__init__(sprite,SpriteType.JACKET,size)
+        #TODO Apply jacket fix to final sprite and on export
+
 class QSpriteSlave(QGraphicsPixmapItem):
 
-    def __init__(self, tracked: QSpriteBase, position: QPoint,scale=None):
+    def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None):
         super().__init__()
         self.tracked = tracked
         tracked.SpriteUpdated.connect(self.update_sprite)
+        self.rotation = rotation
         self.scale = scale
         self.setPos(position)
+        self.setTransformationMode(Qt.SmoothTransformation)
 
         self.update_sprite()
     def update_sprite(self):
@@ -1004,6 +1013,11 @@ class QSpriteSlave(QGraphicsPixmapItem):
             self.setScale(self.scale)
         else:
             self.setPixmap(self.tracked.pixmap())
+
+        if self.rotation:
+            image = self.pixmap().toImage()
+            image = image.transformed(QTransform().rotate(self.rotation))
+            self.setPixmap(QPixmap(image))
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: Path,
@@ -1011,6 +1025,7 @@ class QLayer(QGraphicsPixmapItem):
         super().__init__()
         self.sprite_size = size
         self.setPixmap(QPixmap(QImage(sprite)))
+        self.setTransformationMode(Qt.SmoothTransformation)
 
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self):
@@ -1023,8 +1038,16 @@ class QMMSongSelectScene(QGraphicsScene):
         self.logo_c = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
                                 SpriteType.LOGO,
                                 QRectF(0, 0, 870, 330))
+        self.jacket_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
+                                    SpriteType.JACKET,
+                                    QRectF(0,0,502,502))
+        self.background_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
+                                        SpriteType.BACKGROUND,
+                                        QRectF(0,0,1920,1080))
         #####
+        self.jacket = QSpriteSlave(self.jacket_c, QPoint(1284, 130), rotation=7)
         self.logo = QSpriteSlave(self.logo_c, QPoint(825, 537), scale=0.8)
+        self.background = QSpriteSlave(self.background_c,QPoint(0,0), scale=1.50)
         self.thumbnail_1 = QSpriteSlave(self.thumbnail_c, QPoint(-98, -24), scale=1.25)
         self.thumbnail_2 = QSpriteSlave(self.thumbnail_c, QPoint(-66, 90), scale=1.25)
         self.thumbnail_3 = QSpriteSlave(self.thumbnail_c, QPoint(-34, 204), scale=1.25)
@@ -1044,6 +1067,8 @@ class QMMSongSelectScene(QGraphicsScene):
         self.scene.setSceneRect(0, 0, 1920, 1080)
 
         self.scene.addItem(self.backdrop)
+        self.scene.addItem(self.background)
+        self.scene.addItem(self.jacket)
         self.scene.addItem(self.middle_layer)
         self.scene.addItem(self.logo)
         self.scene.addItem(self.song_selector)

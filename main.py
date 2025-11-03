@@ -854,7 +854,7 @@ class MainWindow(QMainWindow):
             self.edit_control[SpriteType.JACKET][control].block_drawing = False
         print("Jacket Triggered draw")
         self.draw_image_grid()
-    #@qthrottled(timeout=30)
+    @qthrottled(timeout=30)
     def logo_value_edit_trigger(self):
         #self.logo.setRotation(self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value)
         # for control in self.edit_control[SpriteType.LOGO]:
@@ -962,11 +962,13 @@ class MainWindow(QMainWindow):
         self.MM_SongSelect = QMMSongSelectScene()
         self.MM_SongSelect.thumbnail_c.add_edit_controls_to(self.main_box.verticalLayout_12)
         self.MM_SongSelect.logo_c.add_edit_controls_to(self.main_box.verticalLayout_11)
+        self.MM_SongSelect.jacket_c.add_edit_controls_to(self.main_box.verticalLayout_10)
+        self.MM_SongSelect.background_c.add_edit_controls_to(self.main_box.verticalLayout_8)
 
 
         self.main_box.graphics_scene_view.setScene(self.MM_SongSelect.scene)
-        #self.thumbnail.setPixmap(Image.open(Path.cwd() / 'Images/Dummy/Jacket.png').convert('RGBA').toqpixmap())
-
+        self.main_box.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
+        self.main_box.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
     def reload_images(self):
         SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
                                               self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
