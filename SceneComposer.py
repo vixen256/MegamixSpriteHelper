@@ -5,7 +5,7 @@ from typing import Callable
 
 import PySide6
 from PIL.ImageQt import QBuffer
-from PySide6.QtCore import Qt, QByteArray, QIODevice, QRectF, QPoint, Signal, Slot, QObject
+from PySide6.QtCore import Qt, QByteArray, QIODevice, QRectF, QPoint, Signal, Slot, QObject, QSize
 from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
@@ -994,6 +994,33 @@ class QJacket(QSpriteBase):
         super().__init__(sprite,SpriteType.JACKET,size)
         #TODO Apply jacket fix to final sprite and on export
 
+    def apply_jacket_fix(self,image:QImage) -> QImage:
+        w = image.width()
+        h = image.height()
+        image_s = image
+
+        image_fix = QImage(QSize(502,502), QImage.Format_ARGB32)
+        image_fix.fill(Qt.transparent)
+
+        painter = QPainter(image_fix)
+        painter.setOpacity(144/255)
+        painter.drawImage(0,0,image_s.scaled(w+2, h+2))
+        painter.setOpacity(255)
+        painter.drawImage(1,1,image)
+        painter.end()
+
+        return image_fix
+
+    def update_sprite(self):
+        image = self.sprite_image
+        image = image.scaledToHeight(self.sprite_image.height()*self.edit_controls[SpriteSetting.ZOOM.value].value)
+        image = image.transformed(QTransform().rotate(self.edit_controls[SpriteSetting.ROTATION.value].value))
+        image = image.transformed(QTransform().translate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
+                                                         self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
+        self.sprite.setPixmap(QPixmap(image))
+        self.setPixmap(QPixmap(self.apply_jacket_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
+        self.SpriteUpdated.emit()
+
 class QSpriteSlave(QGraphicsPixmapItem):
 
     def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None):
@@ -1018,6 +1045,7 @@ class QSpriteSlave(QGraphicsPixmapItem):
             image = self.pixmap().toImage()
             image = image.transformed(QTransform().rotate(self.rotation))
             self.setPixmap(QPixmap(image))
+
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: Path,
@@ -1038,8 +1066,7 @@ class QMMSongSelectScene(QGraphicsScene):
         self.logo_c = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
                                 SpriteType.LOGO,
                                 QRectF(0, 0, 870, 330))
-        self.jacket_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
-                                    SpriteType.JACKET,
+        self.jacket_c = QJacket(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
                                     QRectF(0,0,502,502))
         self.background_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
                                         SpriteType.BACKGROUND,
