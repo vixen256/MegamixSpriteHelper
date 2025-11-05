@@ -966,7 +966,7 @@ class MainWindow(QMainWindow):
         self.MM_SongSelect.background_c.add_edit_controls_to(self.main_box.verticalLayout_8)
 
 
-        self.main_box.graphics_scene_view.setScene(self.MM_SongSelect.scene)
+        self.main_box.graphics_scene_view.setScene(self.MM_SongSelect)
         self.main_box.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
         self.main_box.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
     def reload_images(self):

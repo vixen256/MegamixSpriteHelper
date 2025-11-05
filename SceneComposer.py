@@ -863,7 +863,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.ROTATION:
                 return 0, 360
 
-    def required_size(self) -> QSize:
+    def required_size(self) -> None|QSize:
         return self.sprite_size.size().toSize()
 
     def load_new_image(self,image_location):
@@ -881,7 +881,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
 
         qimage = QImage(image_location)
-        #TODO Required size is wrong.
         required_size = self.required_size()
         print(required_size)
 
@@ -934,7 +933,7 @@ class QThumbnail(QSpriteBase):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size)
-    def required_size(self) -> QSize:
+    def required_size(self) -> None|QSize:
         return QSize(100,61)
 
     def apply_mask_to_pixmap(self, pixmap:QPixmap) -> QPixmap:
@@ -1001,7 +1000,6 @@ class QJacket(QSpriteBase):
     def __init__(self,sprite: Path,
                  size: PySide6.QtCore.QRectF):
         super().__init__(sprite,SpriteType.JACKET,size)
-        #TODO Apply jacket fix to final sprite and on export
 
     def apply_fix(self,image:QImage) -> QImage:
         w = image.width()
@@ -1020,7 +1018,7 @@ class QJacket(QSpriteBase):
 
         return image_fix
 
-    def required_size(self) -> QSize:
+    def required_size(self) -> None|QSize:
         return QSize(500,500)
 
     def update_sprite(self):
@@ -1036,13 +1034,13 @@ class QBackground(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.BACKGROUND,size)
 
-    def required_size(self) -> QSize:
+    def required_size(self) -> None|QSize:
         return QSize(1280,720)
 class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
 
-    def required_size(self) -> None:
+    def required_size(self) -> None|QSize:
         return None
 
 
@@ -1084,7 +1082,6 @@ class QLayer(QGraphicsPixmapItem):
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self):
         super().__init__()
-
         self.thumbnail_c = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
                                     QRectF(0, 0, 128, 64),
                                     Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
@@ -1114,21 +1111,21 @@ class QMMSongSelectScene(QGraphicsScene):
         self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png')
         self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
         ######
-        self.scene = QGraphicsScene()
-        self.scene.setSceneRect(0, 0, 1920, 1080)
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
 
-        self.scene.addItem(self.backdrop)
-        self.scene.addItem(self.background)
-        self.scene.addItem(self.jacket)
-        self.scene.addItem(self.middle_layer)
-        self.scene.addItem(self.logo)
-        self.scene.addItem(self.song_selector)
-        self.scene.addItem(self.thumbnail_1)
-        self.scene.addItem(self.thumbnail_2)
-        self.scene.addItem(self.thumbnail_3)
-        self.scene.addItem(self.thumbnail_selected)
-        self.scene.addItem(self.thumbnail_4)
-        self.scene.addItem(self.thumbnail_5)
-        self.scene.addItem(self.thumbnail_6)
-        self.scene.addItem(self.thumbnail_7)
-        self.scene.addItem(self.top_layer_new_classics)
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.jacket)
+        self.addItem(self.middle_layer)
+        self.addItem(self.logo)
+        self.addItem(self.song_selector)
+        self.addItem(self.thumbnail_1)
+        self.addItem(self.thumbnail_2)
+        self.addItem(self.thumbnail_3)
+        self.addItem(self.thumbnail_selected)
+        self.addItem(self.thumbnail_4)
+        self.addItem(self.thumbnail_5)
+        self.addItem(self.thumbnail_6)
+        self.addItem(self.thumbnail_7)
+        self.addItem(self.top_layer_new_classics)
