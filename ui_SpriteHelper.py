@@ -99,6 +99,8 @@ class Ui_MainWindow(object):
         self.graphics_scene_view.setMaximumSize(QSize(1920, 1080))
         self.graphics_scene_view.setSizeIncrement(QSize(0, 0))
         self.graphics_scene_view.setBaseSize(QSize(640, 360))
+        self.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
+        self.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
         self.image_grid.addWidget(self.graphics_scene_view,1,0,1,1)
 
 
