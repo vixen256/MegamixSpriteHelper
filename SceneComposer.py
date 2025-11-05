@@ -10,6 +10,7 @@ from enum import Enum, auto, StrEnum
 from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
 from PIL.Image import Resampling
 from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
 
 from widgets import EditableDoubleLabel
@@ -738,6 +739,7 @@ class SceneComposer:
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
+        self.setViewport(QOpenGLWidget())
     def resizeEvent(self,event):
         self.fitInView(self.scene().sceneRect())
 
@@ -861,8 +863,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.ROTATION:
                 return 0, 360
 
-    def grab_final_sprite(self) -> QPixmap:
-        return self.pixmap()
+    def required_size(self) -> QSize:
+        return self.sprite_size.size().toSize()
 
     def load_new_image(self,image_location):
         #TODO - Must take inconsideration REAL area of the image - ignore transparent areas
@@ -879,19 +881,25 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
 
         qimage = QImage(image_location)
-        required_size = self.sprite_size.size().toSize()
-        rw = required_size.width()
-        rh = required_size.height()
-        w = qimage.width()
-        h = qimage.height()
+        #TODO Required size is wrong.
+        required_size = self.required_size()
+        print(required_size)
 
-        if (w, h) < (rw, rh):
-            return
-        else:
-            self.sprite_image = qimage
-            self.setPixmap(QPixmap(qimage))
-            self.location = image_location
-            self.update_sprite()
+        if required_size:
+            rw = required_size.width()
+            rh = required_size.height()
+            w = qimage.width()
+            h = qimage.height()
+
+            if (w, h) < (rw, rh):
+                print(f"Chosen image for {self.type.value} is too small. It's size is {w,h}")
+                print(f"Required size for the sprite is {rw,rh}")
+                return
+
+        self.sprite_image = qimage
+        self.setPixmap(QPixmap(qimage))
+        self.location = image_location
+        self.update_sprite()
 
     def update_sprite(self):
         image = self.sprite_image
@@ -926,7 +934,8 @@ class QThumbnail(QSpriteBase):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size)
-
+    def required_size(self) -> QSize:
+        return QSize(100,61)
 
     def apply_mask_to_pixmap(self, pixmap:QPixmap) -> QPixmap:
         #TODO Needs to apply mask with // Probably only for final image.
@@ -994,7 +1003,7 @@ class QJacket(QSpriteBase):
         super().__init__(sprite,SpriteType.JACKET,size)
         #TODO Apply jacket fix to final sprite and on export
 
-    def apply_jacket_fix(self,image:QImage) -> QImage:
+    def apply_fix(self,image:QImage) -> QImage:
         w = image.width()
         h = image.height()
         image_s = image
@@ -1011,6 +1020,9 @@ class QJacket(QSpriteBase):
 
         return image_fix
 
+    def required_size(self) -> QSize:
+        return QSize(500,500)
+
     def update_sprite(self):
         image = self.sprite_image
         image = image.scaledToHeight(self.sprite_image.height()*self.edit_controls[SpriteSetting.ZOOM.value].value)
@@ -1018,8 +1030,22 @@ class QJacket(QSpriteBase):
         image = image.transformed(QTransform().translate(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
                                                          self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
         self.sprite.setPixmap(QPixmap(image))
-        self.setPixmap(QPixmap(self.apply_jacket_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
+        self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
         self.SpriteUpdated.emit()
+class QBackground(QSpriteBase):
+    def __init__(self,sprite,size):
+        super().__init__(sprite,SpriteType.BACKGROUND,size)
+
+    def required_size(self) -> QSize:
+        return QSize(1280,720)
+class QLogo(QSpriteBase):
+    def __init__(self,sprite,size):
+        super().__init__(sprite,SpriteType.LOGO,size)
+
+    def required_size(self) -> None:
+        return None
+
+
 
 class QSpriteSlave(QGraphicsPixmapItem):
 
@@ -1063,13 +1089,11 @@ class QMMSongSelectScene(QGraphicsScene):
                                     QRectF(0, 0, 128, 64),
                                     Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
 
-        self.logo_c = QSpriteBase(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
-                                SpriteType.LOGO,
+        self.logo_c = QLogo(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
                                 QRectF(0, 0, 870, 330))
         self.jacket_c = QJacket(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
                                     QRectF(0,0,502,502))
-        self.background_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
-                                        SpriteType.BACKGROUND,
+        self.background_c = QBackground(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
                                         QRectF(0,0,1920,1080))
         #####
         self.jacket = QSpriteSlave(self.jacket_c, QPoint(1284, 130), rotation=7)

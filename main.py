@@ -687,10 +687,10 @@ class MainWindow(QMainWindow):
         self.watcher.addPath(str(SceneComposer.Thumbnail.location))
 
         #Connect buttons with their functionality
-        self.main_box.load_background_button.clicked.connect(self.load_background_button_callback)
-        self.main_box.load_thumbnail_button.clicked.connect(lambda: self.load_new_sprite_image(self.thumbnail))
-        self.main_box.load_logo_button.clicked.connect(self.load_logo_button_callback)
-        self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
+        self.main_box.load_background_button.clicked.connect(lambda: self.load_new_sprite_image(self.MM_SongSelect.background_c))
+        self.main_box.load_thumbnail_button.clicked.connect(lambda: self.load_new_sprite_image(self.MM_SongSelect.thumbnail_c))
+        self.main_box.load_logo_button.clicked.connect(lambda: self.load_new_sprite_image(self.MM_SongSelect.logo_c))
+        self.main_box.load_jacket_button.clicked.connect(lambda: self.load_new_sprite_image(self.MM_SongSelect.jacket_c))
         self.main_box.copy_to_clipboard_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.CLIPBOARD))
         self.main_box.open_preview_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.IMAGE_VIEWER))
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
@@ -1339,9 +1339,6 @@ class MainWindow(QMainWindow):
     def load_new_sprite_image(self,sprite:QSpriteBase):
         #TODO Get all objects with specified sprite type.
         #TODO make watcher functional
-        #Open file explorer to select file
-        #Test the image against required sizes
-        #Apply the image if it fits
         image_location = QFileDialog.getOpenFileName(self,
                                                  f"Open {sprite.type.value} image",
                                                  str(config.last_used_directory),
