@@ -101,6 +101,7 @@ class Ui_MainWindow(object):
         self.graphics_scene_view.setBaseSize(QSize(640, 360))
         self.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
         self.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.graphics_scene_view.setBackgroundBrush(Qt.black)
         self.image_grid.addWidget(self.graphics_scene_view,1,0,1,1)
 
 
