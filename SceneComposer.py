@@ -806,6 +806,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.flipped_v = False
         self.edit_controls = self.create_edit_controls()
 
+        self.last_value = {}
+        self.initial_calc = True
         self.update_sprite()
 
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
@@ -873,8 +875,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
                 width_factor = self.required_size().width() / self.sprite_image.width()
                 height_factor = self.required_size().height() / self.sprite_image.height()
-                print(f"Width_Factor:{width_factor}")
-                print(f"Height_Factor:{height_factor}")
 
                 if width_factor > height_factor:
                     return round(width_factor,3), 1.00
@@ -923,6 +923,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.sprite_image = qimage
         self.setPixmap(QPixmap(qimage))
         self.location = image_location
+        self.initial_calc = True
         self.update_sprite()
 
     def update_sprite(self):
@@ -951,10 +952,34 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.y = int(transform.mapRect(original_rect).y()) - vertical_offset
 
         self.sprite.setPixmap(QPixmap(result))
-        self.setPixmap(self.grab_scene_portion(self.sprite_scene,self.sprite_size))
-        self.update_all_ranges()
+        self.update_pixmap()
+
+        recalculate_offsets = False
+
+        if self.initial_calc:
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
+
+            self.update_all_ranges()
+            self.initial_calc = False
+        else:
+            for setting in self.last_value:
+                if self.edit_controls[setting].value != self.last_value[setting]:
+                    if setting in ["Horizontal Offset" , "Vertical Offset"]:
+                        continue
+                    else:
+                        recalculate_offsets = True
+                        break
+
+        if recalculate_offsets:
+            self.update_all_ranges()
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
+
         self.SpriteUpdated.emit()
 
+    def update_pixmap(self):
+        self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
 
     def mousePressEvent(self, event, /):
         self.save_image()
@@ -1001,28 +1026,8 @@ class QThumbnail(QSpriteBase):
 
         return result_pixmap
 
-    def update_sprite(self):
-        #TODO , Make it so offsets are updated and they use processed image
-        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
-        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
-        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
-        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
-
-        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
-        result.fill(Qt.transparent)
-        painter = QPainter(result)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
-
-        painter.scale(zoom, zoom)
-
-        painter.translate(QPoint(horizontal_offset, vertical_offset))
-        painter.rotate(rotation)
-        painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
-        painter.end()
-
-        self.sprite.setPixmap(QPixmap(result))
+    def update_pixmap(self):
         self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
-        self.SpriteUpdated.emit()
 
 
     def calculate_range(self,sprite_setting:SpriteSetting) -> None | tuple[int, int] | tuple[float, float]:
@@ -1079,28 +1084,9 @@ class QJacket(QSpriteBase):
     def required_size(self) -> QSize:
         return QSize(500,500)
 
-    def update_sprite(self):
-        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
-        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
-        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
-        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
-
-        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
-        result.fill(Qt.transparent)
-        painter = QPainter(result)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
-
-
-        painter.scale(zoom,zoom)
-
-        painter.translate(QPoint(horizontal_offset,vertical_offset))
-        painter.rotate(rotation)
-        painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
-        painter.end()
-
-        self.sprite.setPixmap(QPixmap(result))
+    def update_pixmap(self):
         self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
-        self.SpriteUpdated.emit()
+
 class QBackground(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.BACKGROUND,size)
