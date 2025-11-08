@@ -114,11 +114,18 @@ class EditableDoubleLabel(QWidget):
         #self.spinbox.editingFinished.connect(self.finish_editing)
         self.spinbox.valueChanged.connect(self.sync_slider)
 
-        self.slider = QDoubleSlider(Qt.Horizontal)
-        self.slider.setPageStep(rough_step)
-        self.slider.setSingleStep(rough_step)
-        #self.slider.sliderReleased.connect(self.slider_editing_finish)
-        self.slider.valueChanged.connect(self.slider_value_changed)
+        if decimals == 0:
+            self.slider = QSlider(Qt.Horizontal)
+            self.slider.setPageStep(rough_step)
+            self.slider.setSingleStep(rough_step)
+            # self.slider.sliderReleased.connect(self.slider_editing_finish)
+            self.slider.valueChanged.connect(self.slider_value_changed)
+        else:
+            self.slider = QDoubleSlider(Qt.Horizontal)
+            self.slider.setPageStep(rough_step)
+            self.slider.setSingleStep(rough_step)
+            #self.slider.sliderReleased.connect(self.slider_editing_finish)
+            self.slider.valueChanged.connect(self.slider_value_changed)
 
         self.set_range(range)
 
@@ -183,7 +190,11 @@ class EditableDoubleLabel(QWidget):
 
     def slider_value_changed(self):
         if not self.block_editing:
-            self.value = self.slider.value()
+            if self.decimals == 0:
+                self.value = int(self.slider.value())
+            else:
+                self.value = self.slider.value()
+
             self.label.setText(f"{self.value:.{self.decimals}f}")
             self.spinbox.setValue(self.value)
             qthrottled(self.slider_editing_finish(),timeout=20)
@@ -192,8 +203,20 @@ class EditableDoubleLabel(QWidget):
         self.slider.setValue(self.spinbox.value())
 
     def set_range(self,range):
-        minimum = range[0]
-        maximum = range[1]
+        if self.decimals == 0:
+            minimum = int(range[0])
+            maximum = int(range[1])
+        else:
+            minimum = range[0]
+            maximum = range[1]
+
+        if minimum > maximum: #This catches issues where float error causes min > max at values ~1
+            minimum = 1       #prevents crashes
+            maximum = 1
+            range = 0
+
+        else:
+            range = round(maximum - minimum,3)
 
         self.spinbox.setMinimum(minimum)
         self.spinbox.setMaximum(maximum)
@@ -201,9 +224,7 @@ class EditableDoubleLabel(QWidget):
         self.slider.setMinimum(minimum)
         self.slider.setMaximum(maximum)
 
-        range = maximum - minimum
-
-        if int(range == 0) and int(range == 0):
+        if int(range == 0):
             self.block_editing = True
             self.label.setCursor(Qt.CursorShape.ArrowCursor)
         else:
@@ -216,7 +237,11 @@ class EditableDoubleLabel(QWidget):
         return super().eventFilter(obj, event)
 
     def setValue(self, value):
-        self.value = value
+        if self.decimals == 0:
+            self.value = int(value)
+        else:
+            self.value = value
+
         self.label.setText(f"{value:.{self.decimals}f}")
         self.spinbox.setValue(self.value)
         self.slider.setValue(self.value)

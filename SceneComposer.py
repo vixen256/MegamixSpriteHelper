@@ -761,6 +761,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             self.setScale(scale)
 
         self.sprite_image = QImage(self.location)
+        self.calc_size = self.sprite_image.size()
+        self.x = 0
+        self.y = 0
 
 
         #Create a scene that will crop image to max size
@@ -788,15 +791,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             }),
             (SpriteSetting.ROTATION, {
                 'initial_value': 0,
-                'decimals': 2,
+                'decimals': 0,
                 'rough_step': 1,
-                'precise_step': 0.01
+                'precise_step': 1
             }),
             (SpriteSetting.ZOOM, {
                 'initial_value': 1,
-                'decimals': 3,
-                'rough_step': 0.001,
-                'precise_step': 0.001
+                'decimals': 2,
+                'rough_step': 0.01,
+                'precise_step': 0.01
             })
         ]
         self.flipped_h = False
@@ -836,37 +839,49 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def calculate_range(self,sprite_setting:SpriteSetting):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.sprite_image.width() * -1) + self.required_size().width()
+                if self.calc_size.width() > 0:
+                    offset = self.required_size().width() - self.calc_size.width()
+                else:
+                    offset = (self.calc_size.width() * -1) + self.required_size().width()
 
                 if offset > 0:
-                    return 0, offset
+                    return -offset, 0
+                elif 0 > offset:
+                    return offset+self.x, -self.x
                 else:
-                    return offset, 0
+                    return 0, 0
 
             case SpriteSetting.VERTICAL_OFFSET:
-                if self.required_size() == None:
-                    offset = (self.sprite_image.width() * -1)
+                if self.calc_size.height() > 0:
+                    offset = self.required_size().height() - self.calc_size.height()
                 else:
-                    offset = (self.sprite_image.height() * -1) + self.required_size().height()
+                    offset = (self.calc_size.height() * -1) + self.required_size().height()
 
                 if offset > 0:
-                    return 0, offset
+                    return -offset,0
+                elif 0 > offset:
+                    return offset-self.y, -self.y
                 else:
-                    return offset, 0
+                    return 0, 0
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
-                    return 0.01,1.00 #TODO HACK
-                width_factor = Decimal(self.required_size().width() / self.sprite_image.width())
-                print(width_factor)
-                height_factor = Decimal(self.required_size().height() / self.sprite_image.height())
-                print(height_factor)
+                    return 0.10,1.00 #TODO HACK
+                if self.calc_size.width() == 0:
+                    return 1.00,1.00
+                if self.calc_size.height() == 0:
+                    return 1.00,1.00
+
+                width_factor = self.required_size().width() / self.sprite_image.width()
+                height_factor = self.required_size().height() / self.sprite_image.height()
+                print(f"Width_Factor:{width_factor}")
+                print(f"Height_Factor:{height_factor}")
 
                 if width_factor > height_factor:
-                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                    return round(width_factor,3), 1.00
                 elif width_factor < height_factor:
-                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                    return round(height_factor,3), 1.00
                 else:
-                    return float(height_factor), 1.00
+                    return round(height_factor,3), 1.00
             case SpriteSetting.ROTATION:
                 return 0, 360
 
@@ -876,8 +891,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def update_all_ranges(self):
         for setting in self.edit_controls:
             self.edit_controls[setting].set_range(self.calculate_range(setting))
-        #self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].set_range(self.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
     def load_new_image(self,image_location):
         #TODO - Must take inconsideration REAL area of the image - ignore transparent areas
         #           Ideally check for transparent holes in images like jacket , background
@@ -911,29 +924,35 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.setPixmap(QPixmap(qimage))
         self.location = image_location
         self.update_sprite()
-        self.update_all_ranges()
 
     def update_sprite(self):
-        result = QImage(self.sprite_size.size().toSize(),QImage.Format.Format_ARGB32)
+        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+
+        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
         result.fill(Qt.transparent)
         painter = QPainter(result)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
+        transform = QTransform()
+        transform.scale(zoom, zoom)
+        transform.translate(horizontal_offset, vertical_offset)
+        transform.rotate(rotation)
 
-
-        painter.scale(self.edit_controls[SpriteSetting.ZOOM.value].value,
-                      self.edit_controls[SpriteSetting.ZOOM.value].value)
-
-        painter.translate(QPoint(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
-                                 self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
-
-        painter.rotate(self.edit_controls[SpriteSetting.ROTATION.value].value)
-
-        painter.drawPixmap(0,0, QPixmap(self.sprite_image))
+        painter.setTransform(transform,combine=False)
+        painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
         painter.end()
+
+        original_rect = QRectF(0, 0, self.sprite_image.width(), self.sprite_image.height())
+        self.calc_size = transform.mapRect(original_rect).size().toSize()
+        self.x = int(transform.mapRect(original_rect).x()) - horizontal_offset
+        self.y = int(transform.mapRect(original_rect).y()) - vertical_offset
 
         self.sprite.setPixmap(QPixmap(result))
         self.setPixmap(self.grab_scene_portion(self.sprite_scene,self.sprite_size))
+        self.update_all_ranges()
         self.SpriteUpdated.emit()
 
 
@@ -984,19 +1003,20 @@ class QThumbnail(QSpriteBase):
 
     def update_sprite(self):
         #TODO , Make it so offsets are updated and they use processed image
+        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
         result.fill(Qt.transparent)
         painter = QPainter(result)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
-        painter.scale(self.edit_controls[SpriteSetting.ZOOM.value].value,
-                      self.edit_controls[SpriteSetting.ZOOM.value].value)
+        painter.scale(zoom, zoom)
 
-        painter.translate(QPoint(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
-                                 self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
-
-        painter.rotate(self.edit_controls[SpriteSetting.ROTATION.value].value)
-
+        painter.translate(QPoint(horizontal_offset, vertical_offset))
+        painter.rotate(rotation)
         painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
         painter.end()
 
@@ -1060,19 +1080,21 @@ class QJacket(QSpriteBase):
         return QSize(500,500)
 
     def update_sprite(self):
+        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
         result.fill(Qt.transparent)
         painter = QPainter(result)
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
-        painter.scale(self.edit_controls[SpriteSetting.ZOOM.value].value,
-                      self.edit_controls[SpriteSetting.ZOOM.value].value)
 
-        painter.translate(QPoint(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value,
-                                 self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value))
+        painter.scale(zoom,zoom)
 
-        painter.rotate(self.edit_controls[SpriteSetting.ROTATION.value].value)
-
+        painter.translate(QPoint(horizontal_offset,vertical_offset))
+        painter.rotate(rotation)
         painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
         painter.end()
 
@@ -1088,6 +1110,7 @@ class QBackground(QSpriteBase):
 class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
 
     def required_size(self) -> QSize:
         return QSize(0,0)
