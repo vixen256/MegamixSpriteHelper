@@ -4,11 +4,13 @@ from pathlib import Path, PurePath
 from typing import Callable
 
 import PySide6
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QBuffer, QIODevice
 from enum import Enum, auto, StrEnum
 from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
+from wand.color import Color
+from wand.image import Image
 
 from widgets import EditableDoubleLabel
 
@@ -42,6 +44,50 @@ class Scene(Enum):
     FUTURE_TONE_RESULT = auto()
 
 ####################################################
+def _has_transparent_corners(qimage):
+    width = qimage.width()
+    height = qimage.height()
+
+    corners = [
+        (0, 0),  # Top-left
+        (width, 0),  # Top-right
+        (0, height),  # Bottom-left
+        (width, height)  # Bottom-right
+    ]
+
+    for x, y in corners:
+        if x < width and y < height:
+            pixel = qimage.pixel(x, y)
+            alpha = (pixel >> 24) & 0xFF
+            if alpha == 0:
+                return True
+
+    return False
+def trim_to_opaque(qimage):
+    if qimage.format() != QImage.Format_RGBA8888:
+        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+
+
+    needs_trim = _has_transparent_corners(qimage)
+
+    if not needs_trim:
+        return qimage
+
+    buffer = QBuffer()
+    buffer.open(QIODevice.ReadWrite)
+    qimage.save(buffer, "PNG")
+
+    with Image(blob=buffer.data().data()) as img:
+        img.background_color = Color('transparent')
+        img.trim()
+        img.format = 'PNG'
+        trimmed_data = img.make_blob()
+
+    trimmed_qimage = QImage()
+    trimmed_qimage.loadFromData(trimmed_data, 'PNG')
+    return trimmed_qimage
+
+######################################################
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
@@ -213,9 +259,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         #TODO - Add optional fallback to dummy sprite -Needed for watcher
 
 
-        qimage = QImage(image_location)
+        qimage = trim_to_opaque(QImage(image_location))
         required_size = self.required_size()
-        print(required_size)
 
         if required_size:
             rw = required_size.width()
@@ -316,6 +361,7 @@ class QThumbnail(QSpriteBase):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size)
+        print(self.sprite_image.rect())
         #TODO Thumbnail has incorrect offsets.
         # Placeholder shouldn't be able to zoom out at all.
     def required_size(self) -> QSize:
