@@ -809,6 +809,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.last_value = {}
         self.initial_calc = True
         self.update_sprite()
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
+
 
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
         editable_values = {}
@@ -867,7 +869,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                     return 0, 0
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
-                    return 0.10,1.00 #TODO HACK
+                    return 0.10,1.00
                 if self.calc_size.width() == 0:
                     return 1.00,1.00
                 if self.calc_size.height() == 0:
@@ -1004,6 +1006,8 @@ class QThumbnail(QSpriteBase):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size)
+        #TODO Thumbnail has incorrect offsets.
+        # Placeholder shouldn't be able to zoom out at all.
     def required_size(self) -> QSize:
         return QSize(100,61)
 
@@ -1093,11 +1097,10 @@ class QBackground(QSpriteBase):
 
     def required_size(self) -> QSize:
         return QSize(1280,720)
+
 class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
-        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
-
     def required_size(self) -> QSize:
         return QSize(0,0)
 
@@ -1131,38 +1134,44 @@ class QSpriteSlave(QGraphicsPixmapItem):
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: Path,
-                 size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080)):
+                 size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080),
+                 scale:float=1):
         super().__init__()
         self.sprite_size = size
         self.setPixmap(QPixmap(QImage(sprite)))
         self.setTransformationMode(Qt.SmoothTransformation)
+        self.setScale(scale)
+
+class QControllableSprites:
+    def __init__(self):
+        self.thumbnail = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
+                                      QRectF(0, 0, 128, 64),
+                                      Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
+
+        self.logo = QLogo(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
+                            QRectF(0, 0, 870, 330))
+        self.jacket = QJacket(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
+                                QRectF(0, 0, 502, 502))
+        self.background = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
+                                        SpriteType.BACKGROUND,
+                                        QRectF(0, 0, 1280, 720))
 
 class QMMSongSelectScene(QGraphicsScene):
-    def __init__(self):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
         super().__init__()
-        self.thumbnail_c = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
-                                    QRectF(0, 0, 128, 64),
-                                    Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
 
-        self.logo_c = QLogo(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
-                                QRectF(0, 0, 870, 330))
-        self.jacket_c = QJacket(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
-                                    QRectF(0,0,502,502))
-        self.background_c = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
-                                        SpriteType.BACKGROUND,
-                                        QRectF(0,0,1280,720))
         #####
-        self.jacket = QSpriteSlave(self.jacket_c, QPoint(1284, 130), rotation=7)
-        self.logo = QSpriteSlave(self.logo_c, QPoint(825, 537), scale=0.8)
-        self.background = QSpriteSlave(self.background_c,QPoint(0,0), scale=1.50)
-        self.thumbnail_1 = QSpriteSlave(self.thumbnail_c, QPoint(-98, -24), scale=1.25)
-        self.thumbnail_2 = QSpriteSlave(self.thumbnail_c, QPoint(-66, 90), scale=1.25)
-        self.thumbnail_3 = QSpriteSlave(self.thumbnail_c, QPoint(-34, 204), scale=1.25)
-        self.thumbnail_selected = QSpriteSlave(self.thumbnail_c, QPoint(-8, 332), scale=1.578125)
-        self.thumbnail_4 = QSpriteSlave(self.thumbnail_c, QPoint(44, 476), scale=1.25)
-        self.thumbnail_5 = QSpriteSlave(self.thumbnail_c, QPoint(108, 704), scale=1.25)
-        self.thumbnail_6 = QSpriteSlave(self.thumbnail_c, QPoint(140, 818), scale=1.25)
-        self.thumbnail_7 = QSpriteSlave(self.thumbnail_c, QPoint(168, 948), scale=1.25)
+        self.jacket = QSpriteSlave(jacket, QPoint(1284, 130), rotation=7)
+        self.logo = QSpriteSlave(logo, QPoint(825, 537), scale=0.8)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+        self.thumbnail_1 = QSpriteSlave(thumbnail, QPoint(-98, -24), scale=1.25)
+        self.thumbnail_2 = QSpriteSlave(thumbnail, QPoint(-66, 90), scale=1.25)
+        self.thumbnail_3 = QSpriteSlave(thumbnail, QPoint(-34, 204), scale=1.25)
+        self.thumbnail_selected = QSpriteSlave(thumbnail, QPoint(-8, 332), scale=1.578125)
+        self.thumbnail_4 = QSpriteSlave(thumbnail, QPoint(44, 476), scale=1.25)
+        self.thumbnail_5 = QSpriteSlave(thumbnail, QPoint(108, 704), scale=1.25)
+        self.thumbnail_6 = QSpriteSlave(thumbnail, QPoint(140, 818), scale=1.25)
+        self.thumbnail_7 = QSpriteSlave(thumbnail, QPoint(168, 948), scale=1.25)
         ######
         self.backdrop = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Backdrop.png')
         self.song_selector = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Song Selector.png')
@@ -1187,4 +1196,72 @@ class QMMSongSelectScene(QGraphicsScene):
         self.addItem(self.thumbnail_5)
         self.addItem(self.thumbnail_6)
         self.addItem(self.thumbnail_7)
+        self.addItem(self.top_layer_new_classics)
+class QFTSongSelectScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(1331, 205), rotation=-5 ,scale=0.97)
+        self.logo = QSpriteSlave(logo, QPoint(803, 515), scale=0.9)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+
+        ######
+        self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Base.png')
+        self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Middle Layer.png')
+        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png')
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer_new_classics)
+
+class QMMResultScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(108, 387), rotation=7, scale=0.9)
+        self.logo = QSpriteSlave(logo, QPoint(67, 784), scale=0.7)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+        ######
+        self.backdrop = QLayer(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png',scale=1.5)
+        self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Middle Layer.png')
+        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png')
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer_new_classics)
+class QFTResultScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo):
+        super().__init__()
+
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(164, 303), rotation=-5)
+        self.logo = QSpriteSlave(logo, QPoint(134, 663), scale=0.75)
+        ######
+        self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Base.png')
+        self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Middle Layer.png')
+        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png')
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+
+        self.addItem(self.backdrop)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
         self.addItem(self.top_layer_new_classics)
