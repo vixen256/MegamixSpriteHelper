@@ -817,13 +817,15 @@ class MainWindow(QMainWindow):
 
     def load_new_sprite_image(self,sprite:QSpriteBase):
         #TODO make watcher functional
-        #TODO make it remember last selected folder
         image_location = QFileDialog.getOpenFileName(self,
                                                  f"Open {sprite.type.value} image",
                                                  str(config.last_used_directory),
                                                  config.allowed_file_types)[0]
-
-        sprite.load_new_image(image_location)
+        if image_location == "":
+            print("User didn't select image")
+        else:
+            config.last_used_directory = Path(image_location).parent
+            sprite.load_new_image(image_location)
 
     def create_background_jacket_texture(self):
         #TODO make it work with new sprites
