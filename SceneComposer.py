@@ -232,6 +232,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.setPixmap(QPixmap(qimage))
         self.location = image_location
         self.initial_calc = True
+
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setValue(self.edit_controls[setting].initial_value)
+
         self.update_sprite()
 
     def update_sprite(self):
