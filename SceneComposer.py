@@ -1,5 +1,5 @@
 import io
-from decimal import Decimal, ROUND_HALF_UP
+import math
 from pathlib import Path, PurePath
 from typing import Callable
 
@@ -44,6 +44,10 @@ class Scene(Enum):
     FUTURE_TONE_RESULT = auto()
 
 ####################################################
+def round_up(number, decimal_places):
+    factor = 10 ** decimal_places
+    return math.ceil(number * factor) / factor
+
 def _has_transparent_corners(qimage):
     width = qimage.width()
     height = qimage.height()
@@ -102,13 +106,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                  sprite:Path,
                  sprite_type:SpriteType,
                  size:PySide6.QtCore.QRectF,
-                 scale:float=None):
+                 scale:float=None,
+                 offset:QPoint=QPoint(0,0)):
         QObject.__init__(self)
         QGraphicsPixmapItem.__init__(self)
         #Set default image and fallback dummy.
         self.dummy_location = sprite
         self.location = sprite
         self.sprite_size = size
+        self.offset=offset
         if scale:
             self.setScale(scale)
 
@@ -149,9 +155,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             }),
             (SpriteSetting.ZOOM, {
                 'initial_value': 1,
-                'decimals': 2,
-                'rough_step': 0.01,
-                'precise_step': 0.01
+                'decimals': 3,
+                'rough_step': 0.001,
+                'precise_step': 0.001
             })
         ]
         self.flipped_h = False
@@ -229,13 +235,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
                 width_factor = self.required_size().width() / self.sprite_image.width()
                 height_factor = self.required_size().height() / self.sprite_image.height()
-
+                #TODO Round it up to number of decimals specified in sprite settings
                 if width_factor > height_factor:
-                    return round(width_factor,3), 1.00
+                    return round_up(width_factor,3), 1.00
                 elif width_factor < height_factor:
-                    return round(height_factor,3), 1.00
+                    return round_up(height_factor,3), 1.00
                 else:
-                    return round(height_factor,3), 1.00
+                    return round_up(height_factor,3), 1.00
             case SpriteSetting.ROTATION:
                 return 0, 360
 
@@ -295,15 +301,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         painter.setRenderHint(QPainter.SmoothPixmapTransform)
 
         transform = QTransform()
-        transform.scale(zoom, zoom)
         transform.translate(horizontal_offset, vertical_offset)
+        transform.scale(zoom, zoom)
         transform.rotate(rotation)
 
         painter.setTransform(transform,combine=False)
-        painter.drawPixmap(0, 0, QPixmap(self.sprite_image))
+        painter.drawPixmap(0+self.offset.x(), 0+self.offset.y(), QPixmap(self.sprite_image))
         painter.end()
 
-        original_rect = QRectF(0, 0, self.sprite_image.width(), self.sprite_image.height())
+        original_rect = QRectF(0+self.offset.x(), 0+self.offset.y(), self.sprite_image.width(), self.sprite_image.height())
         self.calc_size = transform.mapRect(original_rect).size().toSize()
         self.x = int(transform.mapRect(original_rect).x()) - horizontal_offset
         self.y = int(transform.mapRect(original_rect).y()) - vertical_offset
@@ -360,10 +366,12 @@ class QThumbnail(QSpriteBase):
                  mask: Path):
 
         self.sprite_mask = QImage(mask)
-        super().__init__(sprite,SpriteType.THUMBNAIL,size)
-        print(self.sprite_image.rect())
-        #TODO Thumbnail has incorrect offsets.
-        # Placeholder shouldn't be able to zoom out at all.
+        super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
+        print("Loading new thumb")
+        self.load_new_image(self.location)
+        print(self.sprite_image.size())
+
+        #TODO Thumbnail is ignoring it's offset when zooming out
     def required_size(self) -> QSize:
         return QSize(100,61)
 
@@ -389,36 +397,6 @@ class QThumbnail(QSpriteBase):
     def update_pixmap(self):
         self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
 
-
-    def calculate_range(self,sprite_setting:SpriteSetting) -> None | tuple[int, int] | tuple[float, float]:
-        match sprite_setting:
-            case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.sprite.pixmap().width() * -1) + 100
-
-                if offset > 0:
-                    return 0, offset
-                else:
-                    return offset, 0
-
-            case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.sprite.pixmap().height() * -1) + 61
-
-                if offset > 0:
-                    return 0, offset
-                else:
-                    return offset, 0
-            case SpriteSetting.ZOOM:
-                width_factor = Decimal(100 / self.sprite.pixmap().width())
-                height_factor = Decimal(61 / self.sprite.pixmap().height())
-
-                if width_factor > height_factor:
-                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
-                elif width_factor < height_factor:
-                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
-                else:
-                    return 1.00, 1.00
-            case SpriteSetting.ROTATION:
-                return 0,360
 class QJacket(QSpriteBase):
     def __init__(self,sprite: Path,
                  size: PySide6.QtCore.QRectF):
