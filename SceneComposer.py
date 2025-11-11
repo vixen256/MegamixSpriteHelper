@@ -303,7 +303,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         transform = QTransform()
         transform.translate(horizontal_offset, vertical_offset)
         transform.scale(zoom, zoom)
+        transform.translate((image_size.width()/2)*zoom,(image_size.height()/2)*zoom)
         transform.rotate(rotation)
+        transform.translate(-(image_size.width()/2)*zoom,-(image_size.height()/2)*zoom)
 
         painter.setTransform(transform,combine=False)
         painter.drawPixmap(0+self.offset.x(), 0+self.offset.y(), QPixmap(self.sprite_image))
