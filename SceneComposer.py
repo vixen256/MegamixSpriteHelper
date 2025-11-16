@@ -305,18 +305,23 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 print(f"Required size for the sprite is {rw,rh}")
                 return
 
-        self.sprite_image = qimage
-        self.setPixmap(QPixmap(qimage))
         self.location = image_location
-        self.initial_calc = True
 
-        for setting in self.edit_controls:
-            self.edit_controls[setting].setValue(self.edit_controls[setting].initial_value)
-
+        self.sprite_image = qimage
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
         self.x = 0
         self.y = 0
-        self.rect = get_real_image_area(self.sprite_image)
+
+
+        self.initial_calc = True
+        self.last_value = {}
+        self.update_all_ranges(self.rect)
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setValue(self.edit_controls[setting].range[0])
+
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
+
         self.update_sprite()
     def apply_transformations_from_controls(self):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value

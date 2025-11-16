@@ -127,7 +127,8 @@ class EditableDoubleLabel(QWidget):
             #self.slider.sliderReleased.connect(self.slider_editing_finish)
             self.slider.valueChanged.connect(self.slider_value_changed)
 
-        self.set_range(range)
+        self.range = range
+        self.set_range(self.range)
 
         self.layout.addWidget(self.info_label)
         self.layout.addWidget(self.label)
@@ -223,6 +224,8 @@ class EditableDoubleLabel(QWidget):
 
         self.slider.setMinimum(minimum)
         self.slider.setMaximum(maximum)
+
+        self.range = (minimum,maximum)
 
         if int(range == 0):
             self.block_editing = True
