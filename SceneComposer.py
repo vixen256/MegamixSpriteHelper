@@ -146,7 +146,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.sprite_image = QImage(self.location)
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
-        self.calc_size = self.sprite_image.size() #TODO Remove
         self.x = 0
         self.y = 0
 
@@ -230,9 +229,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def calculate_range(self,sprite_setting:SpriteSetting,rect):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                #TODO
-                # Given Rectangle of sprite , I should use that to compare distance from sides of it
-                # to limit of Required size and return that as min,max values
                 area_over_req_size = rect.width() - self.required_size().width()
 
                 if area_over_req_size > 0:
@@ -253,9 +249,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
                     return 0.10,1.00
-                if self.calc_size.width() == 0:
+                if self.sprite_image.width() == 0:
                     return 1.00,1.00
-                if self.calc_size.height() == 0:
+                if self.sprite_image.height() == 0:
                     return 1.00,1.00
 
                 width_factor = self.required_size().width() / self.sprite_image.width()
@@ -268,7 +264,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 else:
                     return round_up(height_factor,3), 1.00
             case SpriteSetting.ROTATION:
-                return 0, 360
+                return -360,0
 
     def required_size(self) -> QSize:
         return self.sprite_size.size().toSize()
@@ -286,7 +282,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         #       -Success
         #       -Success.JacketFitted
         #
-        #TODO - Should allow for easy per-sprite adjustments after the sprite is loaded in without replacing whole function
         #TODO - Add optional fallback to dummy sprite -Needed for watcher
 
 
@@ -318,26 +313,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.last_value = {}
         self.update_all_ranges(self.rect)
         for setting in self.edit_controls:
-            self.edit_controls[setting].setValue(self.edit_controls[setting].range[0])
-
-        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
+            self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
 
         self.update_sprite()
-    def apply_transformations_from_controls(self):
-        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
-        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
-        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
-        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
-        image_size = self.sprite_image #TODO this includes transparent edges , but it shouldn't ig?
-
-        transform = QTransform()
-        transform.translate(horizontal_offset, vertical_offset)
-        transform.scale(zoom, zoom)
-        transform.translate((image_size.width() / 2) * zoom, (image_size.height() / 2) * zoom)
-        transform.rotate(rotation)
-        transform.translate(-(image_size.width() / 2) * zoom, -(image_size.height() / 2) * zoom)
-
-        return transform
 
     def update_sprite(self):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
@@ -367,12 +345,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         painter.drawPixmap(0+self.offset.x(), 0+self.offset.y(), QPixmap(self.sprite_image))
         painter.end()
 
-        original_rect = QRectF(0+self.t_edges["Left"],
-                               0+self.t_edges["Top"],
-                               self.sprite_image.width()-self.t_edges["Right"],
-                               self.sprite_image.height()-self.t_edges["Bottom"])
-
-        self.calc_size = transform.mapRect(original_rect).size().toSize()
         self.x = int(transformed_rect.x()) - horizontal_offset
         self.y = int(transformed_rect.y()) - vertical_offset
 
