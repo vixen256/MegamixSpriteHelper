@@ -48,48 +48,72 @@ def round_up(number, decimal_places):
     factor = 10 ** decimal_places
     return math.ceil(number * factor) / factor
 
-def _has_transparent_corners(qimage):
-    width = qimage.width()
-    height = qimage.height()
+def get_transparent_edge_pixels(image):
 
-    corners = [
-        (0, 0),  # Top-left
-        (width, 0),  # Top-right
-        (0, height),  # Bottom-left
-        (width, height)  # Bottom-right
-    ]
+    if not image.hasAlphaChannel():
+        return 0, 0, 0, 0
 
-    for x, y in corners:
-        if x < width and y < height:
-            pixel = qimage.pixel(x, y)
-            alpha = (pixel >> 24) & 0xFF
-            if alpha == 0:
-                return True
+    width = image.width()
+    height = image.height()
 
-    return False
-def trim_to_opaque(qimage):
-    if qimage.format() != QImage.Format_RGBA8888:
-        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+    top = 0
+    bottom = 0
+    left = 0
+    right = 0
 
+    for y in range(height):
+        row_has_opaque = False
+        for x in range(width):
+            if image.pixelColor(x, y).alpha() != 0:
+                row_has_opaque = True
+                break
+        if row_has_opaque:
+            break
+        top += 1
 
-    needs_trim = _has_transparent_corners(qimage)
+    for y in range(height - 1, -1, -1):
+        row_has_opaque = False
+        for x in range(width):
+            if image.pixelColor(x, y).alpha() != 0:
+                row_has_opaque = True
+                break
+        if row_has_opaque:
+            break
+        bottom += 1
 
-    if not needs_trim:
-        return qimage
+    for x in range(width):
+        col_has_opaque = False
+        for y in range(height):
+            if image.pixelColor(x, y).alpha() != 0:
+                col_has_opaque = True
+                break
+        if col_has_opaque:
+            break
+        left += 1
 
-    buffer = QBuffer()
-    buffer.open(QIODevice.ReadWrite)
-    qimage.save(buffer, "PNG")
+    for x in range(width - 1, -1, -1):
+        col_has_opaque = False
+        for y in range(height):
+            if image.pixelColor(x, y).alpha() != 0:
+                col_has_opaque = True
+                break
+        if col_has_opaque:
+            break
+        right += 1
 
-    with Image(blob=buffer.data().data()) as img:
-        img.background_color = Color('transparent')
-        img.trim()
-        img.format = 'PNG'
-        trimmed_data = img.make_blob()
+    edges = {
+    "Top": top,
+    "Bottom": bottom,
+    "Left": left,
+    "Right": right
+    }
+    return edges
 
-    trimmed_qimage = QImage()
-    trimmed_qimage.loadFromData(trimmed_data, 'PNG')
-    return trimmed_qimage
+def get_real_image_area(image:QImage) -> QRect:
+    t_edges = get_transparent_edge_pixels(image)
+    image_rect = image.rect()
+    adjusted_rect = image_rect.adjusted(t_edges["Left"],t_edges["Top"],-t_edges["Right"],-t_edges["Bottom"])
+    return adjusted_rect
 
 ######################################################
 class QScalingGraphicsScene(QGraphicsView):
@@ -114,18 +138,22 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.dummy_location = sprite
         self.location = sprite
         self.sprite_size = size
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.offset=offset
         if scale:
             self.setScale(scale)
 
         self.sprite_image = QImage(self.location)
-        self.calc_size = self.sprite_image.size()
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
+        self.calc_size = self.sprite_image.size() #TODO Remove
         self.x = 0
         self.y = 0
 
 
         #Create a scene that will crop image to max size
         self.sprite = QGraphicsPixmapItem()
+        self.sprite.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.sprite.setPixmap(QPixmap(self.sprite_image))
         self.sprite_scene = QGraphicsScene()
         self.sprite_scene.setSceneRect(self.sprite_size)
@@ -162,11 +190,12 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         ]
         self.flipped_h = False
         self.flipped_v = False
+        self.initial_calc = True
+        self.last_value = {}
         self.edit_controls = self.create_edit_controls()
 
-        self.last_value = {}
-        self.initial_calc = True
         self.update_sprite()
+
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
 
 
@@ -176,7 +205,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             parameters = setting[1]
             edit = EditableDoubleLabel(sprite=self,
                                        setting=setting[0],
-                                       range=self.calculate_range(setting[0]),
+                                       range=self.calculate_range(setting[0],self.rect),
                                        **parameters)
             edit.editingFinished.connect(self.update_sprite)
             editable_values[setting[0].value] = edit
@@ -198,33 +227,29 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         return pixmap
 
-    def calculate_range(self,sprite_setting:SpriteSetting):
+    def calculate_range(self,sprite_setting:SpriteSetting,rect):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                if self.calc_size.width() > 0:
-                    offset = self.required_size().width() - self.calc_size.width()
-                else:
-                    offset = (self.calc_size.width() * -1) + self.required_size().width()
+                #TODO
+                # Given Rectangle of sprite , I should use that to compare distance from sides of it
+                # to limit of Required size and return that as min,max values
+                area_over_req_size = rect.width() - self.required_size().width()
 
-                if offset > 0:
-                    return -offset, 0
-                elif 0 > offset:
-                    return offset+self.x, -self.x
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.x-self.offset.x(), -self.x-self.offset.x()
+
                 else:
-                    return 0, 0
+                    return -self.offset.x(),-self.offset.x()
 
             case SpriteSetting.VERTICAL_OFFSET:
-                if self.calc_size.height() > 0:
-                    offset = self.required_size().height() - self.calc_size.height()
-                else:
-                    offset = (self.calc_size.height() * -1) + self.required_size().height()
+                area_over_req_size = rect.height() - self.required_size().height()
 
-                if offset > 0:
-                    return -offset,0
-                elif 0 > offset:
-                    return offset-self.y, -self.y
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.y-self.offset.y(), -self.y-self.offset.y()
+
                 else:
-                    return 0, 0
+                    return -self.offset.y(),-self.offset.y()
+
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
                     return 0.10,1.00
@@ -245,14 +270,14 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.ROTATION:
                 return 0, 360
 
-    def required_size(self) -> None|QSize:
+    def required_size(self) -> QSize:
         return self.sprite_size.size().toSize()
 
-    def update_all_ranges(self):
+    def update_all_ranges(self,rect):
         for setting in self.edit_controls:
-            self.edit_controls[setting].set_range(self.calculate_range(setting))
+            self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
     def load_new_image(self,image_location):
-        #TODO - Must take inconsideration REAL area of the image - ignore transparent areas
+        #TODO - Must take in consideration REAL area of the image - ignore transparent areas
         #           Ideally check for transparent holes in images like jacket , background
 
         #TODO - Should return nice error codes , states
@@ -265,7 +290,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         #TODO - Add optional fallback to dummy sprite -Needed for watcher
 
 
-        qimage = trim_to_opaque(QImage(image_location))
+        qimage =QImage(image_location)
+        t_edges = get_transparent_edge_pixels(qimage)
         required_size = self.required_size()
 
         if required_size:
@@ -287,18 +313,40 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         for setting in self.edit_controls:
             self.edit_controls[setting].setValue(self.edit_controls[setting].initial_value)
 
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.x = 0
+        self.y = 0
+        self.rect = get_real_image_area(self.sprite_image)
         self.update_sprite()
+    def apply_transformations_from_controls(self):
+        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+        image_size = self.sprite_image #TODO this includes transparent edges , but it shouldn't ig?
+
+        transform = QTransform()
+        transform.translate(horizontal_offset, vertical_offset)
+        transform.scale(zoom, zoom)
+        transform.translate((image_size.width() / 2) * zoom, (image_size.height() / 2) * zoom)
+        transform.rotate(rotation)
+        transform.translate(-(image_size.width() / 2) * zoom, -(image_size.height() / 2) * zoom)
+
+        return transform
 
     def update_sprite(self):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
         horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
         vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
         rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+        image_size = self.sprite_image
 
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
         result.fill(Qt.transparent)
         painter = QPainter(result)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.setRenderHints(QPainter.RenderHint.LosslessImageRendering,)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
         transform = QTransform()
         transform.translate(horizontal_offset, vertical_offset)
@@ -307,14 +355,20 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         transform.rotate(rotation)
         transform.translate(-(image_size.width()/2)*zoom,-(image_size.height()/2)*zoom)
 
+        transformed_rect = transform.mapRect(self.rect)
+
         painter.setTransform(transform,combine=False)
         painter.drawPixmap(0+self.offset.x(), 0+self.offset.y(), QPixmap(self.sprite_image))
         painter.end()
 
-        original_rect = QRectF(0+self.offset.x(), 0+self.offset.y(), self.sprite_image.width(), self.sprite_image.height())
+        original_rect = QRectF(0+self.t_edges["Left"],
+                               0+self.t_edges["Top"],
+                               self.sprite_image.width()-self.t_edges["Right"],
+                               self.sprite_image.height()-self.t_edges["Bottom"])
+
         self.calc_size = transform.mapRect(original_rect).size().toSize()
-        self.x = int(transform.mapRect(original_rect).x()) - horizontal_offset
-        self.y = int(transform.mapRect(original_rect).y()) - vertical_offset
+        self.x = int(transformed_rect.x()) - horizontal_offset
+        self.y = int(transformed_rect.y()) - vertical_offset
 
         self.sprite.setPixmap(QPixmap(result))
         self.update_pixmap()
@@ -325,7 +379,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             for setting in self.edit_controls:
                 self.last_value[setting] = self.edit_controls[setting].value
 
-            self.update_all_ranges()
+            self.update_all_ranges(transformed_rect)
             self.initial_calc = False
         else:
             for setting in self.last_value:
@@ -337,7 +391,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                         break
 
         if recalculate_offsets:
-            self.update_all_ranges()
+            self.update_all_ranges(transformed_rect)
             for setting in self.edit_controls:
                 self.last_value[setting] = self.edit_controls[setting].value
 
@@ -369,9 +423,6 @@ class QThumbnail(QSpriteBase):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
-        print("Loading new thumb")
-        self.load_new_image(self.location)
-        print(self.sprite_image.size())
 
         #TODO Thumbnail is ignoring it's offset when zooming out
     def required_size(self) -> QSize:
@@ -385,7 +436,9 @@ class QThumbnail(QSpriteBase):
         result_pixmap.fill("transparent")  # This prevents ghost images from showing up
 
         painter = QPainter(result_pixmap)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
         painter.drawPixmap(0, 0, pixmap)
 
@@ -397,7 +450,8 @@ class QThumbnail(QSpriteBase):
         return result_pixmap
 
     def update_pixmap(self):
-        self.setPixmap(self.apply_mask_to_pixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size)))
+        self.pixmap_no_mask = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
+        self.setPixmap(self.apply_mask_to_pixmap(self.pixmap_no_mask))
 
 class QJacket(QSpriteBase):
     def __init__(self,sprite: Path,
@@ -439,6 +493,7 @@ class QLogo(QSpriteBase):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
         return QSize(0,0)
+    #TODO Offsets do not allow to freely move logo, it stays glued to 0,0
 
 
 

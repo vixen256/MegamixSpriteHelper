@@ -1,4 +1,5 @@
 import io
+import tempfile
 from pathlib import Path, PurePath
 import sys , os
 import math
@@ -7,11 +8,11 @@ from time import sleep
 from enum import Enum, auto
 
 import PIL.ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal
-from PySide6.QtGui import QPixmap, QPalette, QColor
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QBuffer, QIODevice, QByteArray
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsOpacityEffect
 from PIL import Image,ImageShow,ImageStat
-
+from wand.image import Image as WImage
 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -829,6 +830,8 @@ class MainWindow(QMainWindow):
 
     def create_background_jacket_texture(self):
         #TODO make it work with new sprites
+
+
         jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
         jacket_composite.alpha_composite(SceneComposer.Jacket.jacket, (1286, 2))
 
@@ -842,23 +845,25 @@ class MainWindow(QMainWindow):
 
         return background_jacket_texture
     def create_logo_texture(self):
-        # TODO make it work with new sprites
-        logo_fix_status = False
-        if logo_fix_status:
-            logo = texture_filtering_fix(SceneComposer.Logo.logo,102)
-            x = 1
-            y = 1
-        else:
-            logo = SceneComposer.Logo.logo
-            x = 2
-            y = 2
-        logo_texture = Image.new('RGBA', (1024, 512))
-        logo_texture.alpha_composite(logo,(x,y))
+        logo = self.C_Sprites.logo.pixmap()
+        logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+        logo_texture.fill(Qt.transparent)
+        painter = QPainter(logo_texture)
+        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.drawPixmap(2,2,logo)
+        painter.end()
         return logo_texture
-    def create_thumbnail_texture(self):
-        # TODO make it work with new sprites
-        thumbnail_texture = Image.new('RGBA', (128, 64))
-        thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
+    def create_thumbnail_texture(self) -> QImage:
+        #TODO , Take sprite_image , redo all transformations , skip applying mask and use Magick to apply mask instead
+        thumbnail = QPixmap(self.C_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_texture.fill(Qt.transparent)
+        painter = QPainter(thumbnail_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(0, 0, thumbnail)
+        painter.end()
         return thumbnail_texture
 
     def export_background_jacket_button_callback(self):
@@ -878,16 +883,46 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture = self.create_thumbnail_texture()
-            thumbnail_texture.save(save_location, "png")
+            mask = str(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png")
+            self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
+            #thumbnail_texture.save(save_location, "png")
     def export_logo_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Logo Texture.png", "Images (*.png)")[0]
-
-        if save_location == "":
+        filename, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save Image",
+            str(config.last_used_directory) + "/Logo Texture.png",
+            "PNG Files (*.png)"
+        )
+        if filename == "":
             print("Directory wasn't chosen")
         else:
-            config.last_used_directory = Path(save_location).parent
+            config.last_used_directory = Path(filename).parent
             logo_texture = self.create_logo_texture()
-            logo_texture.save(save_location, "png")
+            logo_texture.save(filename, "png")
+
+    def export_qimage_with_mask(self,qimage:QImage, mask_path:str, output_path:str):
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+            temp_path = temp_file.name
+
+        try:
+            if not qimage.save(temp_path):
+                raise ValueError("Failed to save QImage to temporary file")
+
+            with WImage(filename=temp_path) as img:
+                with WImage(filename=mask_path) as mask_img:
+                    if img.size != mask_img.size:
+                        mask_img.resize(img.width, img.height)
+
+                    img.composite(mask_img, operator='copy_alpha')
+
+                    img.save(filename=output_path)
+
+        except Exception as e:
+            print(f"Error during image processing: {str(e)}")
+            raise
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
 
     def generate_spr_db_button_callback(self):
         spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
