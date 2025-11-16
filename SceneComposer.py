@@ -341,6 +341,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
     def update_sprite(self):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        zoom_inverse = 1/zoom
         horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
         vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
         rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
@@ -354,8 +355,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
         transform = QTransform()
-        transform.translate(horizontal_offset, vertical_offset)
         transform.scale(zoom, zoom)
+        transform.translate(horizontal_offset*zoom_inverse, vertical_offset*zoom_inverse)
         transform.translate((image_size.width()/2)*zoom,(image_size.height()/2)*zoom)
         transform.rotate(rotation)
         transform.translate(-(image_size.width()/2)*zoom,-(image_size.height()/2)*zoom)
