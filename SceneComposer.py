@@ -4,13 +4,14 @@ from pathlib import Path, PurePath
 from typing import Callable
 
 import PySide6
+from PIL.ImageTransform import AffineTransform
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QBuffer, QIODevice
 from enum import Enum, auto, StrEnum
 from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
-from wand.color import Color
-from wand.image import Image
+
+from PIL import Image, ImageShow
 
 from widgets import EditableDoubleLabel
 
@@ -51,7 +52,13 @@ def round_up(number, decimal_places):
 def get_transparent_edge_pixels(image):
 
     if not image.hasAlphaChannel():
-        return 0, 0, 0, 0
+        edges = {
+            "Top": 0,
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0
+        }
+        return edges
 
     width = image.width()
     height = image.height()
@@ -113,6 +120,7 @@ def get_real_image_area(image:QImage) -> QRect:
     t_edges = get_transparent_edge_pixels(image)
     image_rect = image.rect()
     adjusted_rect = image_rect.adjusted(t_edges["Left"],t_edges["Top"],-t_edges["Right"],-t_edges["Bottom"])
+    print(adjusted_rect)
     return adjusted_rect
 
 ######################################################
@@ -196,7 +204,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_sprite()
 
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
-
+        print(f"{self.type} - {self.pixmap().hasAlpha()}")
 
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
         editable_values = {}
@@ -317,7 +325,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.update_sprite()
 
-    def update_sprite(self):
+    def update_sprite(self,hq_output=False):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
         zoom_inverse = 1/zoom
         horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
@@ -332,17 +340,35 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        transform = QTransform()
-        transform.scale(zoom, zoom)
-        transform.translate(horizontal_offset*zoom_inverse, vertical_offset*zoom_inverse)
-        transform.translate((image_size.width()/2)*zoom,(image_size.height()/2)*zoom)
-        transform.rotate(rotation)
-        transform.translate(-(image_size.width()/2)*zoom,-(image_size.height()/2)*zoom)
+        t_ns = QTransform()
+        t_ns.translate(horizontal_offset, vertical_offset)
+        t_ns.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_ns.rotate(rotation)
+        t_ns.translate(-(image_size.width() / 2), -(image_size.height() / 2))
 
-        transformed_rect = transform.mapRect(self.rect)
+        t_s = QTransform()
+        t_s.translate(horizontal_offset, vertical_offset)
+        t_s.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_s.rotate(rotation)
+        t_s.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+        t_s.scale(zoom, zoom)
 
-        painter.setTransform(transform,combine=False)
-        painter.drawPixmap(0+self.offset.x(), 0+self.offset.y(), QPixmap(self.sprite_image))
+
+        if hq_output:
+            with Image.open(self.location) as image:
+                width = int(image_size.width() * zoom)
+                height = int(image_size.height() * zoom)
+                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqpixmap()
+
+            painter.setTransform(t_ns,combine=False)
+            painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
+        else:
+            painter.setTransform(t_s, combine=False)
+            drawn_image = QPixmap(self.sprite_image)
+            painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+
+
+        transformed_rect = t_s.mapRect(self.rect)
         painter.end()
 
         self.x = int(transformed_rect.x()) - horizontal_offset

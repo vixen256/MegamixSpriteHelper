@@ -829,32 +829,42 @@ class MainWindow(QMainWindow):
             sprite.load_new_image(image_location)
 
     def create_background_jacket_texture(self):
-        #TODO make it work with new sprites
+        self.C_Sprites.background.update_sprite(hq_output=True)
+        self.C_Sprites.jacket.update_sprite(hq_output=True)
 
+        background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
+        background_jacket_texture.fill(Qt.transparent)
+        painter = QPainter(background_jacket_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(SceneComposer.Jacket.jacket, (1286, 2))
+        #TODO need to add background fix for white edges
+        painter.drawPixmap(1,1,self.C_Sprites.background.pixmap())
+        painter.drawPixmap(1286, 2,self.C_Sprites.jacket.pixmap())
+        painter.end()
 
-        background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        background_composite.alpha_composite(SceneComposer.Background.background, (1, 1), (0, 0, 1280, 720))
-        background_composite = texture_filtering_fix(background_composite,255)
-
-        background_jacket_texture = Image.new('RGBA', (2048, 1024))
-        background_jacket_texture.alpha_composite(background_composite)
-        background_jacket_texture.alpha_composite(jacket_composite)
+        #background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
+        #background_composite.alpha_composite(SceneComposer.Background.background, (1, 1), (0, 0, 1280, 720))
+        #background_composite = texture_filtering_fix(background_composite,255)
 
         return background_jacket_texture
-    def create_logo_texture(self):
+    def create_logo_texture(self) -> QImage:
+        self.C_Sprites.logo.update_sprite(hq_output=True)
+
         logo = self.C_Sprites.logo.pixmap()
         logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
         logo_texture.fill(Qt.transparent)
         painter = QPainter(logo_texture)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
         painter.drawPixmap(2,2,logo)
         painter.end()
         return logo_texture
     def create_thumbnail_texture(self) -> QImage:
-        #TODO , Take sprite_image , redo all transformations , skip applying mask and use Magick to apply mask instead
+        self.C_Sprites.thumbnail.update_sprite(hq_output=True)
+
         thumbnail = QPixmap(self.C_Sprites.thumbnail.pixmap_no_mask)
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
         thumbnail_texture.fill(Qt.transparent)
@@ -877,7 +887,6 @@ class MainWindow(QMainWindow):
             background_jacket_texture.save(save_location,"png")
     def export_thumbnail_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
-
         if save_location == "":
             print("Directory wasn't chosen")
         else:
@@ -885,7 +894,6 @@ class MainWindow(QMainWindow):
             thumbnail_texture = self.create_thumbnail_texture()
             mask = str(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png")
             self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
-            #thumbnail_texture.save(save_location, "png")
     def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(
             None,
