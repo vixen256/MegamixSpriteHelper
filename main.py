@@ -8,10 +8,11 @@ from time import sleep
 from enum import Enum, auto
 
 import PIL.ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QBuffer, QIODevice, QByteArray
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QBuffer, QIODevice, QByteArray, QRectF
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsOpacityEffect
 from PIL import Image,ImageShow,ImageStat
+from copykitten import copy_image
 from wand.image import Image as WImage
 
 from concurrent.futures import ThreadPoolExecutor
@@ -647,7 +648,11 @@ class MainWindow(QMainWindow):
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
+
+        self.main_box.copy_to_clipboard_button.clicked.connect(lambda: self.generate_preview(OutputTarget.CLIPBOARD))
+        self.main_box.open_preview_button.clicked.connect(lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER))
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
+
         self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite("Horizontal"))
@@ -733,7 +738,27 @@ class MainWindow(QMainWindow):
         self.main_box.graphics_scene_view3.setScene(self.FT_SongSelect)
         self.main_box.graphics_scene_view.setScene(self.MM_Result)
         self.main_box.graphics_scene_view2.setScene(self.FT_Result)
+    def generate_preview(self,target:OutputTarget):
+        #Update sprites so they use HQ versions
+        self.C_Sprites.jacket.update_sprite(hq_output=True)
+        self.C_Sprites.background.update_sprite(hq_output=True)
+        self.C_Sprites.thumbnail.update_sprite(hq_output=True)
+        self.C_Sprites.logo.update_sprite(hq_output=True)
 
+        preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
+        painter = QPainter(preview)
+        self.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
+        self.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
+        self.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
+        self.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
+        painter.end()
+        output = Image.fromqimage(preview)
+        match target:
+            case OutputTarget.CLIPBOARD:
+                copy_image(output.tobytes(), preview.width(), preview.height())
+
+            case OutputTarget.IMAGE_VIEWER:
+                ImageShow.show(output)
     def watcher_file_modified_action(self,path):
         #TODO Modify to use new sprites
         sleep(2)
@@ -789,24 +814,7 @@ class MainWindow(QMainWindow):
         self.reload_images()
         self.draw_image_grid()
 
-    def export_background_jacket_logo_farc_button_callback(self):
-        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
-        if output_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(output_location)
-
-            QImage(self.create_background_jacket_texture()).save(str(config.script_directory / 'Images/Background Texture.png'))
-            QImage(self.create_logo_texture()).save(str(config.script_directory / 'Images/Logo Texture.png'))
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-
-            output_location = output_location
-            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-                logo_state = True
-            else:
-                logo_state = False
-            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
 
     def has_logo_checkbox_callback(self):
         #TODO Make logo disabling functional
@@ -907,6 +915,24 @@ class MainWindow(QMainWindow):
             config.last_used_directory = Path(filename).parent
             logo_texture = self.create_logo_texture()
             logo_texture.save(filename, "png")
+    def export_background_jacket_logo_farc_button_callback(self):
+        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
+
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(output_location)
+
+            QImage(self.create_background_jacket_texture()).save(str(config.script_directory / 'Images/Background Texture.png'))
+            QImage(self.create_logo_texture()).save(str(config.script_directory / 'Images/Logo Texture.png'))
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+
+            output_location = output_location
+            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+                logo_state = True
+            else:
+                logo_state = False
+            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
 
     def export_qimage_with_mask(self,qimage:QImage, mask_path:str, output_path:str):
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
