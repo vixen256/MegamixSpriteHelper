@@ -797,8 +797,8 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(output_location)
 
-            Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
-            Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
+            QImage(self.create_background_jacket_texture()).save(str(config.script_directory / 'Images/Background Texture.png'))
+            QImage(self.create_logo_texture()).save(str(config.script_directory / 'Images/Logo Texture.png'))
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
 
             output_location = output_location
