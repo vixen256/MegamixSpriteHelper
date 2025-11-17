@@ -639,12 +639,6 @@ class MainWindow(QMainWindow):
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
 
-        #Connect buttons with their functionality
-        self.main_box.load_background_button.clicked.connect(lambda: self.load_new_sprite_image(self.C_Sprites.background))
-        self.main_box.load_thumbnail_button.clicked.connect(lambda: self.load_new_sprite_image(self.C_Sprites.thumbnail))
-        self.main_box.load_logo_button.clicked.connect(lambda: self.load_new_sprite_image(self.C_Sprites.logo))
-        self.main_box.load_jacket_button.clicked.connect(lambda: self.load_new_sprite_image(self.C_Sprites.jacket))
-
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
@@ -682,6 +676,12 @@ class MainWindow(QMainWindow):
 
     def current_sprite_tab_switcher(self,tab):
         self.main_box.sprite_controls.setCurrentIndex(tab)
+
+        self.main_box.load_image_button.clicked.disconnect()
+
+        sprite = self.main_box.current_sprite_combobox.currentText()
+        self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
+        self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
     def flip_current_sprite(self,flip_type):
         #TODO Modify to work with new sprites
@@ -824,17 +824,28 @@ class MainWindow(QMainWindow):
             print("Checkbox isn't checked")
 
 
-    def load_new_sprite_image(self,sprite:QSpriteBase):
+    def load_new_sprite_image(self,sprite):
+        sprite_object = None
+        match sprite:
+            case "Background":
+                sprite_object = self.C_Sprites.background
+            case "Jacket":
+                sprite_object = self.C_Sprites.jacket
+            case "Thumbnail":
+                sprite_object = self.C_Sprites.thumbnail
+            case "Logo":
+                sprite_object = self.C_Sprites.logo
+
         #TODO make watcher functional
         image_location = QFileDialog.getOpenFileName(self,
-                                                 f"Open {sprite.type.value} image",
+                                                 f"Open {sprite_object.type.value} image",
                                                  str(config.last_used_directory),
                                                  config.allowed_file_types)[0]
         if image_location == "":
             print("User didn't select image")
         else:
             config.last_used_directory = Path(image_location).parent
-            sprite.load_new_image(image_location)
+            sprite_object.load_new_image(image_location)
 
     def create_background_jacket_texture(self):
         self.C_Sprites.background.update_sprite(hq_output=True)

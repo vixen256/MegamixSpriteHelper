@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcInehoc.ui'
-##
-## Created by: Qt User Interface Compiler version 6.9.3
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -146,34 +136,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.load_background_button = QPushButton(self.grid)
-        self.load_background_button.setObjectName(u"load_background_button")
 
-        self.horizontalLayout.addWidget(self.load_background_button)
-
-        self.load_logo_button = QPushButton(self.grid)
-        self.load_logo_button.setObjectName(u"load_logo_button")
-
-        self.horizontalLayout.addWidget(self.load_logo_button)
-
-
-        self.load_buttons_box.addLayout(self.horizontalLayout)
-
-        self.load_buttons_box_row2 = QHBoxLayout()
-        self.load_buttons_box_row2.setSpacing(5)
-        self.load_buttons_box_row2.setObjectName(u"load_buttons_box_row2")
-        self.load_jacket_button = QPushButton(self.grid)
-        self.load_jacket_button.setObjectName(u"load_jacket_button")
-
-        self.load_buttons_box_row2.addWidget(self.load_jacket_button)
-
-        self.load_thumbnail_button = QPushButton(self.grid)
-        self.load_thumbnail_button.setObjectName(u"load_thumbnail_button")
-
-        self.load_buttons_box_row2.addWidget(self.load_thumbnail_button)
-
-
-        self.load_buttons_box.addLayout(self.load_buttons_box_row2)
 
         self.load_buttons_box_row3 = QHBoxLayout()
         self.load_buttons_box_row3.setSpacing(5)
@@ -205,6 +168,13 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addWidget(self.current_sprite_combobox)
 
+        self.sprite_options_v_layout = QVBoxLayout()
+        self.sprite_options_v_layout.setContentsMargins(-1, 0, -1, -1)
+        self.load_image_button = QPushButton(self.grid)
+        self.load_image_button.setText("Load Image")
+        self.sprite_options_v_layout.addWidget(self.load_image_button)
+        self.load_buttons_box.addLayout(self.sprite_options_v_layout)
+
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout_2.setContentsMargins(-1, 0, -1, -1)
@@ -217,6 +187,7 @@ class Ui_MainWindow(object):
         self.flip_vertical_button.setObjectName(u"flip_vertical_button")
 
         self.horizontalLayout_2.addWidget(self.flip_vertical_button)
+        self.sprite_options_v_layout.addLayout(self.horizontalLayout_2)
 
 
         self.load_buttons_box.addLayout(self.horizontalLayout_2)
@@ -488,10 +459,6 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        self.load_background_button.setText(QCoreApplication.translate("MainWindow", u"Load Background", None))
-        self.load_logo_button.setText(QCoreApplication.translate("MainWindow", u"Load Logo", None))
-        self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
-        self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.has_logo_checkbox.setText(QCoreApplication.translate("MainWindow", u"Has logo?", None))
         self.new_classics_checkbox.setText(QCoreApplication.translate("MainWindow", u"New Classics?", None))
         self.current_sprite_combobox.setItemText(0, QCoreApplication.translate("MainWindow", u"Jacket", None))
