@@ -187,7 +187,7 @@ class Ui_MainWindow(object):
         self.flip_vertical_button.setObjectName(u"flip_vertical_button")
 
         self.horizontalLayout_2.addWidget(self.flip_vertical_button)
-        self.sprite_options_v_layout.addLayout(self.horizontalLayout_2)
+        #self.sprite_options_v_layout.addLayout(self.horizontalLayout_2)
 
 
         self.load_buttons_box.addLayout(self.horizontalLayout_2)
