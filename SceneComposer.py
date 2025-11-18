@@ -239,7 +239,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 area_over_req_size = rect.width() - self.required_size().width()
 
                 if area_over_req_size > 0:
-                    return -area_over_req_size-self.x-self.offset.x(), -self.x-self.offset.x()
+                    return -area_over_req_size-self.x+self.offset.x(), -self.x-self.offset.x()
 
                 else:
                     return -self.offset.x(),-self.offset.x()
@@ -261,15 +261,33 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 if self.sprite_image.height() == 0:
                     return 1.00,1.00
 
-                width_factor = self.required_size().width() / self.sprite_image.width()
-                height_factor = self.required_size().height() / self.sprite_image.height()
-                #TODO Round it up to number of decimals specified in sprite settings
-                if width_factor > height_factor:
+                width_factor = self.required_size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
+                height_factor = self.required_size().height() / (self.sprite_image.height()-self.t_edges["Left"]-self.t_edges["Right"])
+
+                image_w = (self.sprite_image.size() * width_factor)
+                image_h = (self.sprite_image.size() * height_factor)
+
+                image_w_pass = False
+                image_h_pass = False
+
+                if image_w.width() >= self.required_size().width() and image_w.height() >= self.required_size().height():
+                    image_w_pass = True
+                if image_h.width() >= self.required_size().width() and image_h.height() >= self.required_size().height():
+                    image_h_pass = True
+
+                if image_w_pass and image_h_pass:
+                    image_w_area = image_w.width() * image_w.height()
+                    image_h_area = image_h.width() * image_h.height()
+
+                    if image_w_area >= image_h_area:
+                        return round_up(width_factor,3), 1.00
+                    else:
+                        return round_up(height_factor,3), 1.00
+                elif image_w_pass:
                     return round_up(width_factor,3), 1.00
-                elif width_factor < height_factor:
-                    return round_up(height_factor,3), 1.00
                 else:
-                    return round_up(height_factor,3), 1.00
+                    return round_up(height_factor,3),1.00
+
             case SpriteSetting.ROTATION:
                 return -360,0
 
@@ -401,6 +419,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def set_initial_values(self):
         for setting in self.edit_controls:
             self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
+        self.update_sprite()
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
 
@@ -433,9 +452,6 @@ class QThumbnail(QSpriteBase):
         return QSize(100,61)
 
     def apply_mask_to_pixmap(self, pixmap:QPixmap) -> QPixmap:
-        #TODO Needs to apply mask with // Probably only for final image.
-        # (Wand) magick image.png mask.png -compose CopyOpacity -composite result.png
-
         result_pixmap = QPixmap(self.sprite.pixmap().size())
         result_pixmap.fill("transparent")  # This prevents ghost images from showing up
 
