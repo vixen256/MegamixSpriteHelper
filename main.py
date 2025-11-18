@@ -654,6 +654,7 @@ class MainWindow(QMainWindow):
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
+        self.main_box.new_classics_checkbox.checkStateChanged.connect(self.toggle_new_classics)
 
         self.display_scenes()
 
@@ -825,6 +826,16 @@ class MainWindow(QMainWindow):
         else:
             print("Checkbox isn't checked")
             self.C_Sprites.logo.toggle_logo(False)
+    def toggle_new_classics(self):
+        if self.main_box.new_classics_checkbox.checkState() == Qt.CheckState.Checked:
+            state = True
+        else:
+            state = False
+        self.MM_SongSelect.toggle_new_classics(state)
+        self.FT_SongSelect.toggle_new_classics(state)
+        self.MM_Result.toggle_new_classics(state)
+        self.FT_Result.toggle_new_classics(state)
+
 
 
     def load_new_sprite_image(self,sprite):

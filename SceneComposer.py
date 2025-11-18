@@ -617,7 +617,7 @@ class QLayer(QGraphicsPixmapItem):
                  scale:float=1):
         super().__init__()
         self.sprite_size = size
-        self.setPixmap(QPixmap(QImage(sprite)))
+        self.setPixmap(QPixmap(sprite))
         self.setTransformationMode(Qt.SmoothTransformation)
         self.setScale(scale)
 
@@ -655,8 +655,8 @@ class QMMSongSelectScene(QGraphicsScene):
         self.backdrop = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Backdrop.png')
         self.song_selector = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Song Selector.png')
         self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Middle Layer.png')
-        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png')
+        #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
@@ -675,7 +675,14 @@ class QMMSongSelectScene(QGraphicsScene):
         self.addItem(self.thumbnail_5)
         self.addItem(self.thumbnail_6)
         self.addItem(self.thumbnail_7)
-        self.addItem(self.top_layer_new_classics)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self,state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png'))
+        else:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png'))
+
 class QFTSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -687,8 +694,8 @@ class QFTSongSelectScene(QGraphicsScene):
         ######
         self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Base.png')
         self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Middle Layer.png')
-        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png')
+        #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
@@ -698,7 +705,13 @@ class QFTSongSelectScene(QGraphicsScene):
         self.addItem(self.middle_layer)
         self.addItem(self.jacket)
         self.addItem(self.logo)
-        self.addItem(self.top_layer_new_classics)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png'))
+        else:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png'))
 
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
@@ -711,8 +724,8 @@ class QMMResultScene(QGraphicsScene):
         ######
         self.backdrop = QLayer(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png',scale=1.5)
         self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Middle Layer.png')
-        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png')
+        #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
@@ -722,7 +735,14 @@ class QMMResultScene(QGraphicsScene):
         self.addItem(self.middle_layer)
         self.addItem(self.jacket)
         self.addItem(self.logo)
-        self.addItem(self.top_layer_new_classics)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png'))
+        else:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png'))
+
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -733,8 +753,8 @@ class QFTResultScene(QGraphicsScene):
         ######
         self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Base.png')
         self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Middle Layer.png')
-        self.top_layer_new_classics = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png')
+        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png')
+        #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
@@ -743,4 +763,10 @@ class QFTResultScene(QGraphicsScene):
         self.addItem(self.middle_layer)
         self.addItem(self.jacket)
         self.addItem(self.logo)
-        self.addItem(self.top_layer_new_classics)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'))
+        else:
+            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png'))
