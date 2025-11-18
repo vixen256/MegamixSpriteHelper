@@ -481,6 +481,16 @@ class QJacket(QSpriteBase):
     def required_size(self) -> QSize:
         return QSize(500,500)
 
+    def set_initial_values(self):
+        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
+        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
+        self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
+
+        if self.sprite_image.size().width() / self.sprite_image.size().height() == 1:
+            self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[0])
+        else:
+            self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
+
     def update_pixmap(self):
         self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
 
