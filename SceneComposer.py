@@ -487,7 +487,7 @@ class QJacket(QSpriteBase):
         image_fix.fill(Qt.transparent)
 
         painter = QPainter(image_fix)
-        painter.setOpacity(144/255)
+        painter.setOpacity(50 / 255)
         painter.drawImage(0,0,image_s.scaled(w+2, h+2))
         painter.setOpacity(255)
         painter.drawImage(1,1,image)

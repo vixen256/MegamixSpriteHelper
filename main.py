@@ -872,14 +872,10 @@ class MainWindow(QMainWindow):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        #TODO need to add background fix for white edges
+        painter.drawPixmap(0,0,self.C_Sprites.background.pixmap().scaled(1282,722))
         painter.drawPixmap(1,1,self.C_Sprites.background.pixmap())
         painter.drawPixmap(1286, 2,self.C_Sprites.jacket.pixmap())
         painter.end()
-
-        #background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        #background_composite.alpha_composite(SceneComposer.Background.background, (1, 1), (0, 0, 1280, 720))
-        #background_composite = texture_filtering_fix(background_composite,255)
 
         return background_jacket_texture
     def create_logo_texture(self) -> QImage:
