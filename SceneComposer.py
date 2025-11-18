@@ -120,7 +120,6 @@ def get_real_image_area(image:QImage) -> QRect:
     t_edges = get_transparent_edge_pixels(image)
     image_rect = image.rect()
     adjusted_rect = image_rect.adjusted(t_edges["Left"],t_edges["Top"],-t_edges["Right"],-t_edges["Bottom"])
-    print(adjusted_rect)
     return adjusted_rect
 
 ######################################################
@@ -204,7 +203,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_sprite()
 
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
-        print(f"{self.type} - {self.pixmap().hasAlpha()}")
 
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
         editable_values = {}
@@ -320,10 +318,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.initial_calc = True
         self.last_value = {}
         self.update_all_ranges(self.rect)
-        for setting in self.edit_controls:
-            self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
 
         self.update_sprite()
+        self.set_initial_values()
 
     def update_sprite(self,hq_output=False):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
@@ -400,7 +397,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 self.last_value[setting] = self.edit_controls[setting].value
 
         self.SpriteUpdated.emit()
-
+    def set_initial_values(self):
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
 
@@ -497,7 +496,66 @@ class QLogo(QSpriteBase):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
         return QSize(0,0)
-    #TODO Offsets do not allow to freely move logo, it stays glued to 0,0
+
+    def calculate_range(self,sprite_setting:SpriteSetting,rect):
+
+        match sprite_setting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                space = self.sprite_size.size().width() - rect.width()
+                #need to split this value based on area avaiable on different sides
+
+                if space > 0:
+                    return (-self.x-self.offset.x(),
+                            -self.x-self.offset.x()+space)
+
+                else:
+                    return (-self.offset.x()+(space/2),
+                            -self.offset.x()-(space/2))
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                space =  self.sprite_size.size().height() - rect.height()
+
+                if space > 0:
+                    return (-self.y-self.offset.y(),
+                            -self.y-self.offset.y()+space)
+
+                else:
+                    return (-self.offset.y()+(space/2),
+                            -self.offset.y()-(space/2))
+
+            case SpriteSetting.ZOOM:
+
+                width_factor = self.sprite_size.size().width() / self.sprite_image.width()
+                height_factor = self.sprite_size.size().height() / self.sprite_image.height()
+
+                #TODO Round it up to number of decimals specified in sprite settings
+                if width_factor > 1:
+                    width_factor = 1
+                if height_factor > 1:
+                    height_factor = 1
+
+                if width_factor > height_factor:
+                    return 0.10,round_up(width_factor,3)
+                elif width_factor < height_factor:
+                    return 0.10,round_up(height_factor,3)
+                else:
+                    return 0.10,round_up(height_factor,3)
+            case SpriteSetting.ROTATION:
+                return -360,0
+
+    def set_initial_values(self):
+        hor_range = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range
+        hor_center = (hor_range[1] + hor_range[0]) / 2
+
+        ver_range = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].range
+        ver_center = (ver_range[1]+ver_range[0])/2
+
+        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(hor_center)
+        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(ver_center)
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
+        self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
+
+
 
 
 

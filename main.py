@@ -98,7 +98,6 @@ class ThumbnailWidget(QWidget):
         else:
             self.add_id_field(False)
     def add_id_field(self, can_be_removed=False, i_id=None):
-        #print("called add")
         if can_be_removed:
             id_field = ThumbnailIDFieldWidget(variant=False ,inferred_id = i_id)
         else:
@@ -112,7 +111,6 @@ class ThumbnailWidget(QWidget):
         self.thumb_count_request.emit()
 
     def remove_id_field(self,widget):
-        print("remove")
         self.ui.formLayout.removeRow(widget)
         self.id_field_list.remove(widget)
         self.thumb_count_request.emit()
@@ -246,14 +244,12 @@ class ThumbnailWindow(QWidget):
         for entry in main_window.thumbnail_creator.known_ids:
             if str(image_path) == entry[0]:
                 inferred_id_list.append((image_path,entry[1]))
-                #print(f"inferring {entry[1]} from YAML")
                 break
 
         if inferred_id_list == []:
             if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
                 id_list = [Path(image_path).stem]
                 inferred_id_list.append([image_path,id_list])
-                #print(f"inferring {id_list} from file name")
             else:
                 inferred_id_list.append((image_path,[]))
         return inferred_id_list
