@@ -645,8 +645,8 @@ class MainWindow(QMainWindow):
 
         self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
-        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite("Horizontal"))
-        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite("Vertical"))
+        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Horizontal))
+        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Vertical))
 
 
 
@@ -680,35 +680,20 @@ class MainWindow(QMainWindow):
         self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
     def flip_current_sprite(self,flip_type):
-        #TODO Modify to work with new sprites
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
             case "Background":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Background.flipped_h = not SceneComposer.Background.flipped_h
-                    case "Vertical":
-                        SceneComposer.Background.flipped_v = not SceneComposer.Background.flipped_v
+                self.C_Sprites.background.sprite_image.flip(flip_type)
+                self.C_Sprites.background.update_sprite()
             case "Jacket":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Jacket.flipped_h = not SceneComposer.Jacket.flipped_h
-                    case "Vertical":
-                        SceneComposer.Jacket.flipped_v = not SceneComposer.Jacket.flipped_v
+                self.C_Sprites.jacket.sprite_image.flip(flip_type)
+                self.C_Sprites.jacket.update_sprite()
             case "Logo":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Logo.flipped_h = not SceneComposer.Logo.flipped_h
-                    case "Vertical":
-                        SceneComposer.Logo.flipped_v = not SceneComposer.Logo.flipped_v
+                self.C_Sprites.logo.sprite_image.flip(flip_type)
+                self.C_Sprites.logo.update_sprite()
             case "Thumbnail":
-                match flip_type:
-                    case "Horizontal":
-                        self.thumbnail.flipped_h = not self.thumbnail.flipped_h
-                    case "Vertical":
-                        self.thumbnail.flipped_v = not self.thumbnail.flipped_v
-        self.reload_images()
-        self.draw_image_grid()
+                self.C_Sprites.thumbnail.sprite_image.flip(flip_type)
+                self.C_Sprites.thumbnail.update_sprite()
 
     def display_scenes(self):
         self.C_Sprites = QControllableSprites()
