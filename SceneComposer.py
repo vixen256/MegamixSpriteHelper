@@ -150,6 +150,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         if scale:
             self.setScale(scale)
 
+        self.controls_enabled = True
         self.sprite_image = QImage(self.location)
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
@@ -506,6 +507,21 @@ class QLogo(QSpriteBase):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
         return QSize(0,0)
+    def toggle_logo(self,state):
+        if state:
+            self.update_sprite()
+            for setting in self.edit_controls:
+                self.edit_controls[setting].setEnabled(True)
+            self.controls_enabled = True
+            self.SpriteUpdated.emit()
+        else:
+            self.setPixmap(QPixmap())
+            for setting in self.edit_controls:
+                self.edit_controls[setting].setEnabled(False)
+            self.controls_enabled = False
+            self.SpriteUpdated.emit()
+
+
 
     def calculate_range(self,sprite_setting:SpriteSetting,rect):
 

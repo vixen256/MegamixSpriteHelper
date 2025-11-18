@@ -655,11 +655,13 @@ class MainWindow(QMainWindow):
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
 
+        self.display_scenes()
+
         #Make sure that tab matches options shown on start
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
 
 
-        self.display_scenes()
+
 
     def resizeEvent(self,event):
         #Todo allow resizing by grabbing top/bottom edge too
@@ -678,6 +680,24 @@ class MainWindow(QMainWindow):
         sprite = self.main_box.current_sprite_combobox.currentText()
         self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
         self.main_box.load_image_button.setText(f"Load {sprite} Image")
+
+        match sprite:
+            case "Background":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.background.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.background.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.background.controls_enabled)
+            case "Jacket":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+            case "Logo":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+            case "Thumbnail":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
 
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
@@ -801,8 +821,10 @@ class MainWindow(QMainWindow):
         #TODO Make logo disabling functional
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             print("Checkbox is checked")
+            self.C_Sprites.logo.toggle_logo(True)
         else:
             print("Checkbox isn't checked")
+            self.C_Sprites.logo.toggle_logo(False)
 
 
     def load_new_sprite_image(self,sprite):
