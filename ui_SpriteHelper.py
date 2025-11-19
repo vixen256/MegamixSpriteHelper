@@ -157,7 +157,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box_row3.addWidget(self.new_classics_checkbox)
 
 
-        self.load_buttons_box.addLayout(self.load_buttons_box_row3)
+
 
         self.current_sprite_combobox = QComboBox(self.grid)
         self.current_sprite_combobox.addItem("")
@@ -323,6 +323,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setWidget(self.image_edit_area_widget_properties)
 
         self.load_buttons_box.addWidget(self.image_edit_scroll_area)
+        self.load_buttons_box.addLayout(self.load_buttons_box_row3)
 
         self.image_tab_vertical_layout = QVBoxLayout()
         self.image_tab_vertical_layout.setSpacing(5)
