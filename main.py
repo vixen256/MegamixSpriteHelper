@@ -736,6 +736,7 @@ class MainWindow(QMainWindow):
         self.FT_Result = QFTResultScene(self.C_Sprites.jacket,
                                             self.C_Sprites.logo)
 
+
         self.main_box.graphics_scene_view1.setScene(self.MM_SongSelect)
         self.main_box.graphics_scene_view3.setScene(self.FT_SongSelect)
         self.main_box.graphics_scene_view.setScene(self.MM_Result)
@@ -762,61 +763,20 @@ class MainWindow(QMainWindow):
             case OutputTarget.IMAGE_VIEWER:
                 ImageShow.show(output)
     def watcher_file_modified_action(self,path):
-        #TODO Modify to use new sprites
         sleep(2)
         keep_watching_path = False
-        if path == SceneComposer.Jacket.location:
-            print("Jacket image was changed")
-            result = SceneComposer.Jacket.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Jacket image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Jacket.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
 
-                if result["Jacket Force Fit"]:
-                    real_width = SceneComposer.Jacket.edges[2] - SceneComposer.Jacket.edges[0]
-                    real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
-
-                    print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
-                    self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].setValue(result["Zoom"])
-                    print(f"Set jacket's zoom to {result["Zoom"]}.")
-
-        if path == SceneComposer.Logo.location:
-            print("Logo image was changed")
-            result = SceneComposer.Logo.update_sprite(path)
-            if result["Outcome"] == State.UPDATED:
-                self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.ZOOM))
-                keep_watching_path = True
-
-        if path == SceneComposer.Background.location:
-            print("Background image was changed")
-            result = SceneComposer.Background.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Background image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Background.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
-
-        if path == SceneComposer.Thumbnail.location:
-            print("Thumbnail image was changed")
-            result = SceneComposer.Thumbnail.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Thumbnail image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Thumbnail.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
+        for sprite in self.C_Sprites.list:
+            if path == sprite.location:
+                print(f"{sprite.type.value} image was changed")
+                if sprite.load_new_image(path,fallback=True) == "Updated":
+                     keep_watching_path = True
 
         if keep_watching_path:
             self.watcher.removePath(path)
             self.watcher.addPath(path)
         else:
             self.watcher.removePath(path)
-
-        self.reload_images()
-        self.draw_image_grid()
-
-
 
     def has_logo_checkbox_callback(self):
         #TODO Make logo disabling functional
@@ -859,7 +819,8 @@ class MainWindow(QMainWindow):
             print("User didn't select image")
         else:
             config.last_used_directory = Path(image_location).parent
-            sprite_object.load_new_image(image_location)
+            if sprite_object.load_new_image(image_location) == "Updated":
+                self.watcher.addPath(image_location)
 
     def create_background_jacket_texture(self):
         self.C_Sprites.background.update_sprite(hq_output=True)

@@ -297,37 +297,29 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def update_all_ranges(self,rect):
         for setting in self.edit_controls:
             self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
-    def load_new_image(self,image_location):
-        #TODO - Must take in consideration REAL area of the image - ignore transparent areas
-        #           Ideally check for transparent holes in images like jacket , background
-
-        #TODO - Should return nice error codes , states
-        #       -Image.TooSmall
-        #       -Image.ContainsTransparency
-        #       -Success
-        #       -Success.JacketFitted
-        #
-        #TODO - Add optional fallback to dummy sprite -Needed for watcher
-
-
+    def load_new_image(self,image_location,fallback=False):
         qimage =QImage(image_location)
-        t_edges = get_transparent_edge_pixels(qimage)
         required_size = self.required_size()
 
-        if required_size:
-            rw = required_size.width()
-            rh = required_size.height()
-            w = qimage.width()
-            h = qimage.height()
+        rw = required_size.width()
+        rh = required_size.height()
+        w = qimage.width()
+        h = qimage.height()
 
-            if (w, h) < (rw, rh):
+        if (w, h) < (rw, rh):
+            if fallback:
+                print(f"Image for {self.type.value} is no longer meeting minimum required size. Falling back to dummy image.")
+                self.location = self.dummy_location
+                self.sprite_image = QImage(self.location)
+                return "Fallback"
+            else:
                 print(f"Chosen image for {self.type.value} is too small. It's size is {w,h}")
                 print(f"Required size for the sprite is {rw,rh}")
-                return
+                return "Image too small"
+        else:
+            self.location = image_location
+            self.sprite_image = qimage
 
-        self.location = image_location
-
-        self.sprite_image = qimage
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
         self.x = 0
@@ -340,6 +332,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.update_sprite()
         self.set_initial_values()
+        return "Updated"
 
     def update_sprite(self,hq_output=False):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
@@ -650,6 +643,8 @@ class QControllableSprites:
         self.background = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
                                         SpriteType.BACKGROUND,
                                         QRectF(0, 0, 1280, 720))
+
+        self.list = [self.thumbnail,self.logo,self.jacket,self.background]
 
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
