@@ -705,17 +705,13 @@ class MainWindow(QMainWindow):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
             case "Background":
-                self.C_Sprites.background.sprite_image.flip(flip_type)
-                self.C_Sprites.background.update_sprite()
+                self.C_Sprites.background.toggle_flip(flip_type)
             case "Jacket":
-                self.C_Sprites.jacket.sprite_image.flip(flip_type)
-                self.C_Sprites.jacket.update_sprite()
+                self.C_Sprites.jacket.toggle_flip(flip_type)
             case "Logo":
-                self.C_Sprites.logo.sprite_image.flip(flip_type)
-                self.C_Sprites.logo.update_sprite()
+                self.C_Sprites.logo.toggle_flip(flip_type)
             case "Thumbnail":
-                self.C_Sprites.thumbnail.sprite_image.flip(flip_type)
-                self.C_Sprites.thumbnail.update_sprite()
+                self.C_Sprites.thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
         self.C_Sprites = QControllableSprites()

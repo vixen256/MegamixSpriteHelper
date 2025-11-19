@@ -359,7 +359,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             with Image.open(self.location) as image:
                 width = int(image_size.width() * zoom)
                 height = int(image_size.height() * zoom)
-                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqpixmap()
+                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqimage()
 
             painter.setTransform(t_ns,combine=False)
             painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
@@ -375,7 +375,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.x = int(transformed_rect.x()) - horizontal_offset
         self.y = int(transformed_rect.y()) - vertical_offset
 
-        self.sprite.setPixmap(QPixmap(result))
+        self.sprite.setPixmap(QPixmap(self._apply_flips(result)))
         self.update_pixmap()
 
         recalculate_offsets = False
@@ -405,6 +405,21 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         for setting in self.edit_controls:
             self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
         self.update_sprite()
+    def _apply_flips(self,image:QImage):
+        if self.flipped_h:
+            image.flip(Qt.Orientation.Horizontal)
+        if self.flipped_v:
+            image.flip(Qt.Orientation.Vertical)
+        return image
+    def toggle_flip(self,flip_type):
+        match flip_type:
+            case Qt.Orientation.Vertical:
+                self.flipped_v = not self.flipped_v
+            case Qt.Orientation.Horizontal:
+                self.flipped_h = not self.flipped_v
+
+        self.update_sprite()
+
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
 
