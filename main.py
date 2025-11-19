@@ -783,9 +783,11 @@ class MainWindow(QMainWindow):
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             print("Checkbox is checked")
             self.C_Sprites.logo.toggle_logo(True)
+            self.main_box.export_logo_button.setEnabled(True)
         else:
             print("Checkbox isn't checked")
             self.C_Sprites.logo.toggle_logo(False)
+            self.main_box.export_logo_button.setEnabled(False)
     def toggle_new_classics(self):
         if self.main_box.new_classics_checkbox.checkState() == Qt.CheckState.Checked:
             state = True
