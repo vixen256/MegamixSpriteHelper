@@ -1,38 +1,23 @@
 import re
 import string
-import time
 from enum import Enum
-from threading import Lock
 
-from pyqt_advanced_slider import Slider
-
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt, Signal, QTimer)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                           QFont, QFontDatabase, QGradient, QIcon,
-                           QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform, QMouseEvent)
-from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplication, QCheckBox,
-                               QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-                               QLabel, QLayout, QMainWindow, QPushButton,
-                               QScrollArea, QSizePolicy, QSpacerItem, QSpinBox,
-                               QVBoxLayout, QWidget, QScrollBar, QSlider, QComboBox, QCompleter)
+from PySide6.QtCore import (QSize, Qt, Signal, QTimer)
+from PySide6.QtGui import (QBrush, QColor, QFont, QPalette, QMouseEvent)
+from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
+                               QLabel, QPushButton,
+                               QSpinBox,
+                               QVBoxLayout, QWidget, QSlider)
 from superqt import QDoubleSlider, QSearchableComboBox
-from superqt.utils import qdebounced, qthrottled
+from superqt.utils import qthrottled
 
-
-class QLabel_clickable(QLabel):
-    clicked=Signal()
-
-    def mousePressEvent(self, ev):
-        self.clicked.emit()
 
 class Stylesheet(Enum):
     SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
     SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(171,237,253);border-radius: 2px;}"
     ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
+    SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
 
 class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, *args, **kwargs):

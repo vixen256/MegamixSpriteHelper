@@ -12,7 +12,6 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QCo
                                QTabWidget, QVBoxLayout, QWidget, QGraphicsView)
 
 from SceneComposer import QScalingGraphicsScene
-from widgets import QLabel_clickable
 import resources
 
 class Ui_MainWindow(object):
@@ -65,12 +64,9 @@ class Ui_MainWindow(object):
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
-        self.mm_result_preview = QLabel_clickable(self.grid)
-        self.mm_result_preview.setObjectName(u"mm_result_preview")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy2.setHorizontalStretch(1)
         sizePolicy2.setVerticalStretch(1)
-        sizePolicy2.setHeightForWidth(self.mm_result_preview.sizePolicy().hasHeightForWidth())
 
         self.graphics_scene_view = QScalingGraphicsScene()
         self.graphics_scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)

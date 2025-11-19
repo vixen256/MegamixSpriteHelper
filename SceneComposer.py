@@ -1,25 +1,17 @@
-import io
 import math
-from pathlib import Path, PurePath
+from enum import Enum, auto, StrEnum
+from pathlib import Path
 from typing import Callable
 
 import PySide6
-from PIL.ImageTransform import AffineTransform
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QBuffer, QIODevice
-from enum import Enum, auto, StrEnum
-from PySide6.QtGui import QColor, QImage, QPixmap, QPainter, QTransform
+from PIL import Image
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
 
-from PIL import Image, ImageShow
-
 from widgets import EditableDoubleLabel
 
-
-class ThumbnailCheck(Enum):
-    FULLY_OPAQUE = [15293.325646817684]
-    SPRITE_HELPER_EXPORTED = [15409.511583194137]
-    SPRITE_HELPER_EXPORTED_OLD = [15403.198932036757]
 
 class State(Enum):
     FALLBACK = auto()
@@ -227,13 +219,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         pixmap.fill("transparent")
 
         painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         scene.render(painter, QRectF(pixmap.rect()), source_rect)
         painter.end()
 
         return pixmap
 
-    def calculate_range(self,sprite_setting:SpriteSetting,rect):
+    def calculate_range(self,sprite_setting,rect):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
                 area_over_req_size = rect.width() - self.required_size().width()
@@ -343,7 +335,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         image_size = self.sprite_image
 
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
-        result.fill(Qt.transparent)
+        result.fill(Qt.GlobalColor.transparent)
         painter = QPainter(result)
         painter.setRenderHints(QPainter.RenderHint.LosslessImageRendering,)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -440,7 +432,6 @@ class QThumbnail(QSpriteBase):
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
 
-        #TODO Thumbnail is ignoring it's offset when zooming out
     def required_size(self) -> QSize:
         return QSize(100,61)
 
@@ -465,7 +456,6 @@ class QThumbnail(QSpriteBase):
     def update_pixmap(self):
         self.pixmap_no_mask = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         self.setPixmap(self.apply_mask_to_pixmap(self.pixmap_no_mask))
-
 class QJacket(QSpriteBase):
     def __init__(self,sprite: Path,
                  size: PySide6.QtCore.QRectF):
@@ -476,8 +466,8 @@ class QJacket(QSpriteBase):
         h = image.height()
         image_s = image
 
-        image_fix = QImage(QSize(502,502), QImage.Format_ARGB32)
-        image_fix.fill(Qt.transparent)
+        image_fix = QImage(QSize(502,502), QImage.Format.Format_ARGB32)
+        image_fix.fill(Qt.GlobalColor.transparent)
 
         painter = QPainter(image_fix)
         painter.setOpacity(50 / 255)
@@ -503,14 +493,12 @@ class QJacket(QSpriteBase):
 
     def update_pixmap(self):
         self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
-
 class QBackground(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.BACKGROUND,size)
 
     def required_size(self) -> QSize:
         return QSize(1280,720)
-
 class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
@@ -537,7 +525,7 @@ class QLogo(QSpriteBase):
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
                 space = self.sprite_size.size().width() - rect.width()
-                #need to split this value based on area avaiable on different sides
+                #need to split this value based on area available on different sides
 
                 if space > 0:
                     return (-self.x-self.offset.x(),
@@ -590,10 +578,6 @@ class QLogo(QSpriteBase):
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
         self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
 
-
-
-
-
 class QSpriteSlave(QGraphicsPixmapItem):
 
     def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None):
@@ -603,11 +587,10 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.rotation = rotation
         self.scale = scale
         self.setPos(position)
-        self.setTransformationMode(Qt.SmoothTransformation)
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
 
         self.update_sprite()
     def update_sprite(self):
-        #TODO It gets scaled wrong when image has transparency as it doesn't get included in calc
         if self.scale:
             self.setPixmap(self.tracked.pixmap())
             self.setScale(self.scale)
@@ -618,7 +601,6 @@ class QSpriteSlave(QGraphicsPixmapItem):
             image = self.pixmap().toImage()
             image = image.transformed(QTransform().rotate(self.rotation))
             self.setPixmap(QPixmap(image))
-
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: Path,
@@ -627,7 +609,7 @@ class QLayer(QGraphicsPixmapItem):
         super().__init__()
         self.sprite_size = size
         self.setPixmap(QPixmap(sprite))
-        self.setTransformationMode(Qt.SmoothTransformation)
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.setScale(scale)
 
 class QControllableSprites:
@@ -670,7 +652,7 @@ class QMMSongSelectScene(QGraphicsScene):
         #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
-        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+        self.setBackgroundBrush(Qt.GlobalColor.black)
 
         self.addItem(self.backdrop)
         self.addItem(self.background)
@@ -693,7 +675,6 @@ class QMMSongSelectScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png'))
         else:
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png'))
-
 class QFTSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -709,7 +690,7 @@ class QFTSongSelectScene(QGraphicsScene):
         #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
-        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+        self.setBackgroundBrush(Qt.GlobalColor.black)
 
         self.addItem(self.backdrop)
         self.addItem(self.background)
@@ -723,7 +704,6 @@ class QFTSongSelectScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png'))
         else:
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png'))
-
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -739,7 +719,7 @@ class QMMResultScene(QGraphicsScene):
         #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
-        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+        self.setBackgroundBrush(Qt.GlobalColor.black)
 
         self.addItem(self.backdrop)
         self.addItem(self.background)
@@ -753,7 +733,6 @@ class QMMResultScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png'))
         else:
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png'))
-
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -768,7 +747,7 @@ class QFTResultScene(QGraphicsScene):
         #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png')
         ######
         self.setSceneRect(0, 0, 1920, 1080)
-        self.setBackgroundBrush(Qt.black) #TODO , make it grab color of background app.
+        self.setBackgroundBrush(Qt.GlobalColor.black)
 
         self.addItem(self.backdrop)
         self.addItem(self.middle_layer)
@@ -781,3 +760,21 @@ class QFTResultScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'))
         else:
             self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png'))
+
+class QPreviewScenes:
+    def __init__(self,C_Sprites:QControllableSprites):
+        self.MM_SongSelect = QMMSongSelectScene(C_Sprites.jacket,
+                                                C_Sprites.logo,
+                                                C_Sprites.background,
+                                                C_Sprites.thumbnail)
+
+        self.FT_SongSelect = QFTSongSelectScene(C_Sprites.jacket,
+                                                C_Sprites.logo,
+                                                C_Sprites.background)
+
+        self.MM_Result = QMMResultScene(C_Sprites.jacket,
+                                        C_Sprites.logo,
+                                        C_Sprites.background)
+
+        self.FT_Result = QFTResultScene(C_Sprites.jacket,
+                                        C_Sprites.logo)

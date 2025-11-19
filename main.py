@@ -1,32 +1,31 @@
 import io
-import tempfile
-from pathlib import Path, PurePath
-import sys , os
 import math
-import yaml
-from time import sleep
+import os
+import sys
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
+from pathlib import Path, PurePath
+from time import sleep
 
 import PIL.ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QBuffer, QIODevice, QByteArray, QRectF
+import yaml
+from PIL import Image, ImageShow
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy, QGraphicsPixmapItem, QGraphicsScene, QGraphicsView, QGraphicsOpacityEffect
-from PIL import Image,ImageShow,ImageStat
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 from copykitten import copy_image
 from wand.image import Image as WImage
 
-from concurrent.futures import ThreadPoolExecutor
-
-from SceneComposer import State, SpriteType, Scene, SpriteSetting, QThumbnail, QSpriteBase, QMMSongSelectScene, QControllableSprites, QFTSongSelectScene, QFTResultScene, QMMResultScene
 from FarcCreator import FarcCreator
+from SceneComposer import Scene, QControllableSprites, QPreviewScenes
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
-
+from ui_SpriteHelper import Ui_MainWindow
+from ui_ThumbnailIDField import Ui_ThumbnailIDField
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
 from ui_ThumbnailWidget import Ui_ThumbnailWidget
-from ui_ThumbnailIDField import  Ui_ThumbnailIDField
-from ui_SpriteHelper import Ui_MainWindow
+from widgets import Stylesheet
 
-from widgets import Stylesheet,EditableDoubleLabel
 
 class OutputTarget(Enum):
     CLIPBOARD = auto()
@@ -246,7 +245,7 @@ class ThumbnailWindow(QWidget):
                 inferred_id_list.append((image_path,entry[1]))
                 break
 
-        if inferred_id_list == []:
+        if not inferred_id_list:
             if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
                 id_list = [Path(image_path).stem]
                 inferred_id_list.append([image_path,id_list])
@@ -301,7 +300,7 @@ class ThumbnailWindow(QWidget):
     def select_file_for_thumbnails(self):
         selected_files = QFileDialog.getOpenFileNames(self,"Choose images to load",str(config.last_used_directory),config.allowed_file_types)[0]
 
-        if selected_files == []:
+        if not selected_files:
             print("No files were selected")
         else:
             print(Path(selected_files[0]).parent)
@@ -330,7 +329,7 @@ class ThumbnailWindow(QWidget):
 
     def scan_folder_for_thumbnails(self):
         #TODO Change it to select specific files.
-        #TODO Needs to skip over problematic files.
+
         selected_folder = QFileDialog.getExistingDirectory(self, "Choose folder containing thumbnails", str(config.last_used_directory))
 
         if selected_folder == "":
@@ -392,7 +391,7 @@ class ThumbnailWindow(QWidget):
                 all_thumb_data.append(thumb_data)
 
             thumb_unique_count = 0
-            for thumb in all_thumb_data:
+            for _ in all_thumb_data:
                 thumb_unique_count = thumb_unique_count + 1
 
             texture_size = self.calculate_texture_grid(thumb_unique_count)
@@ -420,9 +419,6 @@ class ThumbnailWindow(QWidget):
                     thumb = 0
                 else:
                     x = x + 128 + 2
-            #print(thumbnail_positions[0][0])
-            #TODO fix sorting. Needs to sort by id that's now a string so it shits itself
-            #thumbnail_positions.sort()
 
             for data in thumbnail_positions:
                 print(data)
@@ -492,16 +488,16 @@ class ThumbnailWindow(QWidget):
 
     def calculate_texture_grid(self,thumb_amount):
         if thumb_amount <= 0:
-            return (0, 0)
+            return 0, 0
 
         if thumb_amount == 1:
             tex_width = 256
             tex_height = 256
-            return (tex_width,tex_height)
+            return tex_width,tex_height
         elif thumb_amount <= 3:
             tex_width = 512
             tex_height = 256
-            return (tex_width, tex_height)
+            return tex_width, tex_height
         else:
             tex_width = 1024
 
@@ -573,10 +569,10 @@ class ThumbnailWindow(QWidget):
 ###################################################################################################
 
 def check_for_files():
-    #TODO add new files to the list
     missing_files = []
     required_files = [
         config.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png',
+        config.script_directory / 'Images/Dummy/Thumbnail-Maskv3.png',
         config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
         config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
@@ -625,6 +621,11 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
+        color = self.palette().color(QPalette.ColorRole.Window)
+        self.main_box.graphics_scene_view.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view1.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view2.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view3.setBackgroundBrush(color)
 
         check_for_files()
 
@@ -645,8 +646,8 @@ class MainWindow(QMainWindow):
 
         self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
-        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Horizontal))
-        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Vertical))
+        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
+        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
 
 
 
@@ -718,29 +719,19 @@ class MainWindow(QMainWindow):
 
     def display_scenes(self):
         self.C_Sprites = QControllableSprites()
+        self.P_Scenes = QPreviewScenes(self.C_Sprites)
+
         self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
         self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        self.MM_SongSelect = QMMSongSelectScene(self.C_Sprites.jacket,
-                                                self.C_Sprites.logo,
-                                                self.C_Sprites.background,
-                                                self.C_Sprites.thumbnail)
-        self.FT_SongSelect = QFTSongSelectScene(self.C_Sprites.jacket,
-                                                self.C_Sprites.logo,
-                                                self.C_Sprites.background)
-        self.MM_Result = QMMResultScene(self.C_Sprites.jacket,
-                                                self.C_Sprites.logo,
-                                                self.C_Sprites.background)
-        self.FT_Result = QFTResultScene(self.C_Sprites.jacket,
-                                            self.C_Sprites.logo)
+        self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
+        self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
+        self.main_box.graphics_scene_view.setScene(self.P_Scenes.MM_Result)
+        self.main_box.graphics_scene_view2.setScene(self.P_Scenes.FT_Result)
 
 
-        self.main_box.graphics_scene_view1.setScene(self.MM_SongSelect)
-        self.main_box.graphics_scene_view3.setScene(self.FT_SongSelect)
-        self.main_box.graphics_scene_view.setScene(self.MM_Result)
-        self.main_box.graphics_scene_view2.setScene(self.FT_Result)
     def generate_preview(self,target:OutputTarget):
         #Update sprites so they use HQ versions
         self.C_Sprites.jacket.update_sprite(hq_output=True)
@@ -750,10 +741,10 @@ class MainWindow(QMainWindow):
 
         preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
-        self.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
-        self.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
-        self.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
-        self.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
+        self.P_Scenes.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
+        self.P_Scenes.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
+        self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
+        self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
         painter.end()
         output = Image.fromqimage(preview)
         match target:
@@ -779,7 +770,6 @@ class MainWindow(QMainWindow):
             self.watcher.removePath(path)
 
     def has_logo_checkbox_callback(self):
-        #TODO Make logo disabling functional
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             print("Checkbox is checked")
             self.C_Sprites.logo.toggle_logo(True)
@@ -793,10 +783,10 @@ class MainWindow(QMainWindow):
             state = True
         else:
             state = False
-        self.MM_SongSelect.toggle_new_classics(state)
-        self.FT_SongSelect.toggle_new_classics(state)
-        self.MM_Result.toggle_new_classics(state)
-        self.FT_Result.toggle_new_classics(state)
+        self.P_Scenes.MM_SongSelect.toggle_new_classics(state)
+        self.P_Scenes.FT_SongSelect.toggle_new_classics(state)
+        self.P_Scenes.MM_Result.toggle_new_classics(state)
+        self.P_Scenes.FT_Result.toggle_new_classics(state)
 
 
 
@@ -812,7 +802,6 @@ class MainWindow(QMainWindow):
             case "Logo":
                 sprite_object = self.C_Sprites.logo
 
-        #TODO make watcher functional
         image_location = QFileDialog.getOpenFileName(self,
                                                  f"Open {sprite_object.type.value} image",
                                                  str(config.last_used_directory),
@@ -829,7 +818,7 @@ class MainWindow(QMainWindow):
         self.C_Sprites.jacket.update_sprite(hq_output=True)
 
         background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
-        background_jacket_texture.fill(Qt.transparent)
+        background_jacket_texture.fill(Qt.GlobalColor.transparent)
         painter = QPainter(background_jacket_texture)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -846,7 +835,7 @@ class MainWindow(QMainWindow):
 
         logo = self.C_Sprites.logo.pixmap()
         logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
-        logo_texture.fill(Qt.transparent)
+        logo_texture.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo_texture)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -859,7 +848,7 @@ class MainWindow(QMainWindow):
 
         thumbnail = QPixmap(self.C_Sprites.thumbnail.pixmap_no_mask)
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
-        thumbnail_texture.fill(Qt.transparent)
+        thumbnail_texture.fill(Qt.GlobalColor.transparent)
         painter = QPainter(thumbnail_texture)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -964,8 +953,8 @@ class MainWindow(QMainWindow):
                         has_old_tmb_farc = True
                     elif farc_file.name[:14] == "spr_sel_pvtmb_":
                         has_new_tmb_farc = True
-                if has_new_tmb_farc == True:
-                    if has_old_tmb_farc == True:
+                if has_new_tmb_farc:
+                    if has_old_tmb_farc:
                         farc_list.remove(Path(spr_path + "/spr_sel_pvtmb.farc"))
                         show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
                                                     "\n"
