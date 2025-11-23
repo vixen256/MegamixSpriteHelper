@@ -416,7 +416,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case Qt.Orientation.Vertical:
                 self.flipped_v = not self.flipped_v
             case Qt.Orientation.Horizontal:
-                self.flipped_h = not self.flipped_v
+                self.flipped_h = not self.flipped_h
 
         self.update_sprite()
 
