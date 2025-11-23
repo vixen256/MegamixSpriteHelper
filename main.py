@@ -11,10 +11,9 @@ from time import sleep
 import PIL.ImageShow
 import yaml
 from PIL import Image, ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
-from copykitten import copy_image
 from wand.image import Image as WImage
 
 from FarcCreator import FarcCreator
@@ -742,13 +741,20 @@ class MainWindow(QMainWindow):
         self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
         self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
         painter.end()
-        output = Image.fromqimage(preview)
+
         match target:
             case OutputTarget.CLIPBOARD:
-                copy_image(output.tobytes(), preview.width(), preview.height())
+                clipboard = QGuiApplication.clipboard()
+                clipboard.setImage(preview)
 
             case OutputTarget.IMAGE_VIEWER:
-                ImageShow.show(output)
+                temp_dir = QStandardPaths.writableLocation(QStandardPaths.TempLocation)
+                temp_file = os.path.join(temp_dir, "qt_image.png")
+
+                if preview.save(temp_file, "JPEG"):
+                    url = QUrl.fromLocalFile(temp_file)
+                    QDesktopServices.openUrl(url)
+
     def watcher_file_modified_action(self,path):
         sleep(2)
         keep_watching_path = False
