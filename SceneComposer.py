@@ -189,6 +189,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         ]
         self.flipped_h = False
         self.flipped_v = False
+        self.is_visible = True
         self.initial_calc = True
         self.last_value = {}
         self.edit_controls = self.create_edit_controls()
@@ -362,14 +363,17 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqimage()
 
             painter.setTransform(t_ns,combine=False)
-            painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
         else:
             painter.setTransform(t_s, combine=False)
             drawn_image = QPixmap(self.sprite_image)
-            painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
 
 
         transformed_rect = t_s.mapRect(self.rect)
+
         painter.end()
 
         self.x = int(transformed_rect.x()) - horizontal_offset
@@ -419,6 +423,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 self.flipped_h = not self.flipped_h
 
         self.update_sprite()
+    def toggle_visibility(self,state):
+        self.is_visible = state
+        self.update_sprite()
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setEnabled(state)
+        self.controls_enabled = state
+        self.SpriteUpdated.emit()
 
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
@@ -519,19 +530,8 @@ class QLogo(QSpriteBase):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
         return QSize(0,0)
-    def toggle_logo(self,state):
-        if state:
-            self.update_sprite()
-            for setting in self.edit_controls:
-                self.edit_controls[setting].setEnabled(True)
-            self.controls_enabled = True
-            self.SpriteUpdated.emit()
-        else:
-            self.setPixmap(QPixmap())
-            for setting in self.edit_controls:
-                self.edit_controls[setting].setEnabled(False)
-            self.controls_enabled = False
-            self.SpriteUpdated.emit()
+
+
 
 
 

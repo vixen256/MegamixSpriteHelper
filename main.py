@@ -773,13 +773,16 @@ class MainWindow(QMainWindow):
 
     def has_logo_checkbox_callback(self):
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-            print("Checkbox is checked")
-            self.C_Sprites.logo.toggle_logo(True)
-            self.main_box.export_logo_button.setEnabled(True)
+            state = True
         else:
-            print("Checkbox isn't checked")
-            self.C_Sprites.logo.toggle_logo(False)
-            self.main_box.export_logo_button.setEnabled(False)
+            state = False
+
+        self.C_Sprites.logo.toggle_visibility(state)
+        self.main_box.export_logo_button.setEnabled(state)
+        if self.main_box.current_sprite_combobox.currentText() == "Logo":
+            self.main_box.load_image_button.setEnabled(state)
+            self.main_box.flip_vertical_button.setEnabled(state)
+            self.main_box.flip_horizontal_button.setEnabled(state)
     def toggle_new_classics(self):
         if self.main_box.new_classics_checkbox.checkState() == Qt.CheckState.Checked:
             state = True
