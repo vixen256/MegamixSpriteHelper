@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path, PurePath
@@ -17,7 +18,7 @@ from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, Q
 from wand.image import Image as WImage
 
 from FarcCreator import FarcCreator
-from SceneComposer import Scene, QControllableSprites, QPreviewScenes
+from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField
@@ -730,10 +731,24 @@ class MainWindow(QMainWindow):
 
     def generate_preview(self,target:OutputTarget):
         #Update sprites so they use HQ versions
-        self.C_Sprites.jacket.update_sprite(hq_output=True)
-        self.C_Sprites.background.update_sprite(hq_output=True)
-        self.C_Sprites.thumbnail.update_sprite(hq_output=True)
-        self.C_Sprites.logo.update_sprite(hq_output=True)
+        Jacket_Z = False
+        Background_Z = False
+        Thumbnail_Z = False
+        Logo_Z = False
+
+        if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            Jacket_Z = True
+        if self.C_Sprites.background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            Background_Z = True
+        if self.C_Sprites.thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            Thumbnail_Z = True
+        if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            Logo_Z = True
+
+        self.C_Sprites.jacket.update_sprite(hq_output=Jacket_Z)
+        self.C_Sprites.background.update_sprite(hq_output=Background_Z)
+        self.C_Sprites.thumbnail.update_sprite(hq_output=Thumbnail_Z)
+        self.C_Sprites.logo.update_sprite(hq_output=Logo_Z)
 
         preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
@@ -752,7 +767,7 @@ class MainWindow(QMainWindow):
                 temp_dir = QStandardPaths.writableLocation(QStandardPaths.TempLocation)
                 temp_file = os.path.join(temp_dir, "qt_image.png")
 
-                if preview.save(temp_file, "JPEG"):
+                if preview.save(temp_file, "PNG"):
                     url = QUrl.fromLocalFile(temp_file)
                     QDesktopServices.openUrl(url)
 
