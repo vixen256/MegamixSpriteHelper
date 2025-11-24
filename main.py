@@ -562,7 +562,8 @@ class ThumbnailWindow(QWidget):
 
 
         self.main_box.mod_name_lineedit.combo_box.removeItem(self.main_box.mod_name_lineedit.combo_box.currentIndex())
-        self.main_box.mod_name_lineedit.label.setText("")
+        self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
+        self.main_box.mod_name_lineedit.label_set_placeholder_text()
 
 
 ###################################################################################################

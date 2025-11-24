@@ -18,6 +18,7 @@ class Stylesheet(Enum):
     ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
     SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
+    LABEL_PLACEHOLDER = ".QLabel {color: rgb(155,155,155);}"
 
 class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, *args, **kwargs):
@@ -246,6 +247,8 @@ class SongpackNameInput(QWidget):
         self.label = QLabel()
         self.label.mousePressEvent = self.on_label_clicked
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setText("Enter your mod name here")
+        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
 
         self.combo_box = QSearchableComboBox()
         self.combo_box.setEditable(True)
@@ -283,8 +286,17 @@ class SongpackNameInput(QWidget):
         self.combo_box.setVisible(True)
         self.combo_box.setFocus()
 
+    def label_set_placeholder_text(self):
+        self.label.setText("Enter your mod name here")
+        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
+
     def finish_editing(self):
-        self.label.setText(self.get_filtered_text())
+        if self.get_filtered_text():
+            self.label.setText(self.get_filtered_text())
+            self.label.setStyleSheet("")
+        else:
+            self.label_set_placeholder_text()
+
 
         self.combo_box.setVisible(False)
         self.label.setVisible(True)
