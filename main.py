@@ -730,25 +730,15 @@ class MainWindow(QMainWindow):
 
 
     def generate_preview(self,target:OutputTarget):
-        #Update sprites so they use HQ versions
-        Jacket_Z = False
-        Background_Z = False
-        Thumbnail_Z = False
-        Logo_Z = False
-
+        #Update sprites if the zoom was changed
         if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            Jacket_Z = True
+            self.C_Sprites.jacket.update_sprite(hq_output=True)
         if self.C_Sprites.background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            Background_Z = True
+            self.C_Sprites.background.update_sprite(hq_output=True)
         if self.C_Sprites.thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            Thumbnail_Z = True
+            self.C_Sprites.thumbnail.update_sprite(hq_output=True)
         if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            Logo_Z = True
-
-        self.C_Sprites.jacket.update_sprite(hq_output=Jacket_Z)
-        self.C_Sprites.background.update_sprite(hq_output=Background_Z)
-        self.C_Sprites.thumbnail.update_sprite(hq_output=Thumbnail_Z)
-        self.C_Sprites.logo.update_sprite(hq_output=Logo_Z)
+            self.C_Sprites.logo.update_sprite(hq_output=True)
 
         preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
