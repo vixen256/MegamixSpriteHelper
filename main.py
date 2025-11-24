@@ -948,6 +948,7 @@ class MainWindow(QMainWindow):
         else:
             spr_db = Manager()
             farc_list = []
+            new_thumb_farc_count = 0
             config.last_used_directory = Path(spr_path)
             for spr in Path(spr_path).iterdir():
                 _temp_file = Path(spr)
@@ -960,16 +961,25 @@ class MainWindow(QMainWindow):
                     if farc_file.name == "spr_sel_pvtmb.farc":
                         has_old_tmb_farc = True
                     elif farc_file.name[:14] == "spr_sel_pvtmb_":
+                        new_thumb_farc_count = new_thumb_farc_count +1
                         has_new_tmb_farc = True
                 if has_new_tmb_farc:
                     if has_old_tmb_farc:
                         farc_list.remove(Path(spr_path + "/spr_sel_pvtmb.farc"))
-                        show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
+                        show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db was skipped."
                                                     "\n"
-                                                    "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to avoid issues.")
-                        print("Separate thumbnail farc files found , not including old combined thumbnail farc in generated database!")
+                                                    "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to generate sprite database.")
+                        print("Found Both old and new thumbnail farc formats. Skipping database generation.")
+                        return
                     else:
                         print("Only separate thumbnail farc files found.")
+                    if new_thumb_farc_count > 1:
+                        show_message_box("Warning", "You have included multiple new thumbnail farcs in your mod! Generating spr_db was skipped."
+                                                    "\n"
+                                                    "\nPlease include only 1 thumbnail farc in your mod to generate sprite database.")
+                        print("Multiple new thumbnail farc's found. Skipping database generation.")
+                        return
+
                 for farc_file in farc_list:
                     farc_reader = read_farc(farc_file)
                     add_farc_to_Manager(farc_reader, spr_db)
