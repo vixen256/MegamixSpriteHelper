@@ -774,8 +774,10 @@ class MainWindow(QMainWindow):
     def has_logo_checkbox_callback(self):
         if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
             state = True
+            self.main_box.export_logo_button.setToolTip("")
         else:
             state = False
+            self.main_box.export_logo_button.setToolTip("Logo is disabled.")
 
         self.C_Sprites.logo.toggle_visibility(state)
         self.main_box.export_logo_button.setEnabled(state)
