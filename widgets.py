@@ -303,8 +303,7 @@ class SongpackNameInput(QWidget):
 
     def get_filtered_text(self):
         mod_string = self.combo_box.currentText()
-        mod_string = mod_string.translate(str.maketrans('', '', string.punctuation)).lower()
-        mod_string = re.sub(r'[^A-Za-z0-9 ]+', '', mod_string)
+        mod_string = re.sub(r'[^A-Za-z0-9_ ]+', '', mod_string)
 
         return "_".join(mod_string.split())
 

@@ -400,8 +400,8 @@ class ThumbnailWindow(QWidget):
                 return
 
             thumbnail_texture = Image.new('RGBA', texture_size)
-            x=2
-            y=2
+            x=0
+            y=0
             thumb = 0
             thumbnail_positions = []
 
@@ -414,11 +414,11 @@ class ThumbnailWindow(QWidget):
                     thumbnail_positions.append([pad_number(thumb_id), (x, y)])
 
                 if thumb == 7:
-                    x = 2
-                    y = y + 64 + 2
+                    x = 0
+                    y = y + 64
                     thumb = 0
                 else:
-                    x = x + 128 + 2
+                    x = x + 128
 
             for data in thumbnail_positions:
                 print(data)
