@@ -12,7 +12,7 @@ from time import sleep
 import PIL.ImageShow
 import yaml
 from PIL import Image, ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QBuffer, QIODevice
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 from wand.image import Image as WImage
@@ -328,8 +328,6 @@ class ThumbnailWindow(QWidget):
             self.update_thumbnail_count_labels()
 
     def scan_folder_for_thumbnails(self):
-        #TODO Change it to select specific files.
-
         selected_folder = QFileDialog.getExistingDirectory(self, "Choose folder containing thumbnails", str(config.last_used_directory))
 
         if selected_folder == "":
@@ -341,19 +339,8 @@ class ThumbnailWindow(QWidget):
             with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
                 futures = []
 
-                if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
+                if True:
                     for file in Path(selected_folder).rglob('*'):
-                        if Path(file).suffix in config.readable_extensions:
-                            try:
-                                with Image.open(file) as open_image:
-                                    if open_image.size == (128, 64):
-                                        print(f"found thumbnail at: {file}")
-                                        futures.append(executor.submit(self.infer_thumbnail_id, file))
-                            except PIL.UnidentifiedImageError:
-                                print("Skipping invalid file")
-                                continue
-                else:
-                    for file in Path(selected_folder).iterdir():
                         if Path(file).suffix in config.readable_extensions:
                             try:
                                 with Image.open(file) as open_image:
@@ -420,6 +407,7 @@ class ThumbnailWindow(QWidget):
                 else:
                     x = x + 128
 
+            thumbnail_positions.sort(key=lambda x: int(x[0]))
             for data in thumbnail_positions:
                 print(data)
 
@@ -431,9 +419,9 @@ class ThumbnailWindow(QWidget):
                 config.last_used_directory = Path(chosen_dir)
                 self.save_pack_name()
                 thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
+                compression = self.main_box.farc_compression_combobox.currentEnum()
 
-
-                FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose((Image.FLIP_TOP_BOTTOM)),chosen_dir,mod_name,compression)
 
                 #Remember ID's used for images
                 remember_data = []
@@ -490,22 +478,18 @@ class ThumbnailWindow(QWidget):
         if thumb_amount <= 0:
             return 0, 0
 
-        if thumb_amount == 1:
-            tex_width = 256
-            tex_height = 256
+        if thumb_amount < 8:
+            tex_width = 128 * thumb_amount
+            tex_height = 64
             return tex_width,tex_height
-        elif thumb_amount <= 3:
-            tex_width = 512
-            tex_height = 256
-            return tex_width, tex_height
         else:
             tex_width = 1024
 
             rows = math.ceil(thumb_amount / 7) # there will be 7 columns
 
             total_height = rows * 66 # Height of a thumbnail plus 2 pixels of a gap
-            tex_height = self.next_power_of_two(total_height)
-            area = (tex_width , tex_height)
+            #tex_height = self.next_power_of_two(total_height)
+            area = (tex_width , total_height)
         return area
 
     def save_pack_name(self):
@@ -843,7 +827,7 @@ class MainWindow(QMainWindow):
         painter.end()
 
         return background_jacket_texture
-    def create_logo_texture(self) -> QImage:
+    def create_logo_texture(self):
         self.C_Sprites.logo.update_sprite(hq_output=True)
 
         logo = self.C_Sprites.logo.pixmap()
@@ -909,16 +893,17 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(output_location)
 
-            QImage(self.create_background_jacket_texture()).save(str(config.script_directory / 'Images/Background Texture.png'))
-            QImage(self.create_logo_texture()).save(str(config.script_directory / 'Images/Logo Texture.png'))
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.FLIP_TOP_BOTTOM)
 
-            output_location = output_location
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+            compression = self.main_box.farc_compression_dropdown.currentEnum()
+            print(compression)
+
             if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-                logo_state = True
+                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.FLIP_TOP_BOTTOM)
             else:
-                logo_state = False
-            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
+                logo = None
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression)
 
     def export_qimage_with_mask(self,qimage:QImage, mask_path:str, output_path:str):
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
@@ -946,7 +931,6 @@ class MainWindow(QMainWindow):
 
     def generate_spr_db_button_callback(self):
         spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
-        #TODO add warning about using multiple new thumbnail files in single mod. Should prevent user from generating sprite database until this gets fixed
 
         if spr_path == "":
             print("Folder wasn't chosen")

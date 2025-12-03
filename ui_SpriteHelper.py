@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QCo
                                QLabel, QLayout, QMainWindow, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
                                QTabWidget, QVBoxLayout, QWidget, QGraphicsView)
+from superqt import QEnumComboBox
+from FarcCreator import Compression
 
 from SceneComposer import QScalingGraphicsScene
 import resources
@@ -360,6 +362,18 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.farc_song_id_spinbox)
 
+
+        self.farc_compression_label = QLabel(self.to_farc_tab)
+        self.farc_compression_label.setText("Compression:")
+
+        self.verticalLayout_3.addWidget(self.farc_compression_label)
+
+        self.farc_compression_dropdown = QEnumComboBox()
+        self.farc_compression_dropdown.setEnumClass(Compression)
+
+        self.verticalLayout_3.addWidget(self.farc_compression_dropdown)
+
+
         self.farc_export_button = QPushButton(self.to_farc_tab)
         self.farc_export_button.setObjectName(u"farc_export_button")
 
@@ -389,6 +403,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(4, 4, 4, 4)
         self.open_preview_button = QPushButton(self.to_image_tab)
+        self.open_preview_button.setSizePolicy(sizePolicy)
+        self.open_preview_button.setMaximumSize(QSize(195, 16777215))
         self.open_preview_button.setObjectName(u"open_preview_button")
 
         self.verticalLayout_4.addWidget(self.open_preview_button)
