@@ -488,8 +488,8 @@ class ThumbnailWindow(QWidget):
             rows = math.ceil(thumb_amount / 7) # there will be 7 columns
 
             total_height = rows * 66 # Height of a thumbnail plus 2 pixels of a gap
-            #tex_height = self.next_power_of_two(total_height)
-            area = (tex_width , total_height)
+            tex_height = self.next_power_of_two(total_height)
+            area = (tex_width , tex_height)
         return area
 
     def save_pack_name(self):
