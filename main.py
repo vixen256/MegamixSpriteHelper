@@ -3,13 +3,13 @@ import math
 import os
 import sys
 import tempfile
-import time
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path, PurePath
 from time import sleep
 
 import PIL.ImageShow
+import magic
 import yaml
 from PIL import Image, ImageShow
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QBuffer, QIODevice
@@ -422,6 +422,20 @@ class ThumbnailWindow(QWidget):
                 compression = self.main_box.farc_compression_combobox.currentEnum()
 
                 FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose((Image.FLIP_TOP_BOTTOM)),chosen_dir,mod_name,compression)
+
+                msgBox = QMessageBox()
+                msgBox.setWindowTitle(" ")
+                msgBox.setText("Thumbnail farc created successfully.")
+                msgBox.setIcon(QMessageBox.Icon.Question)
+                msgBox.setInformativeText("Do you want to generate sprite database?")
+                msgBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msgBox.setDefaultButton(QMessageBox.StandardButton.Yes)
+                ret = msgBox.exec()
+                match ret:
+                    case QMessageBox.StandardButton.Yes:
+                        main_window.generate_spr_db_button_callback(path=chosen_dir)
+                    case QMessageBox.StandardButton.No:
+                        print("No")
 
                 #Remember ID's used for images
                 remember_data = []
@@ -869,6 +883,7 @@ class MainWindow(QMainWindow):
                 logo = None
             FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression)
 
+
     def export_qimage_with_mask(self,qimage:QImage, mask_path:str, output_path:str):
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             temp_path = temp_file.name
@@ -893,8 +908,11 @@ class MainWindow(QMainWindow):
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
 
-    def generate_spr_db_button_callback(self):
-        spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
+    def generate_spr_db_button_callback(self,path=None):
+        spr_path = path
+        if spr_path is None:
+            spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
+
 
         if spr_path == "":
             print("Folder wasn't chosen")
