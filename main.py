@@ -418,7 +418,7 @@ class ThumbnailWindow(QWidget):
             else:
                 config.last_used_directory = Path(chosen_dir)
                 self.save_pack_name()
-                thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
+                thumbnail_texture.save(str(config.script_directory) + "/Thumbnail Texture.png","png")
                 compression = self.main_box.farc_compression_combobox.currentEnum()
 
                 FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose((Image.FLIP_TOP_BOTTOM)),chosen_dir,mod_name,compression)
@@ -552,45 +552,6 @@ class ThumbnailWindow(QWidget):
 
 
 ###################################################################################################
-
-def check_for_files():
-    missing_files = []
-    required_files = [
-        config.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png',
-        config.script_directory / 'Images/Dummy/Thumbnail-Maskv3.png',
-        config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png',
-        config.script_directory / 'Images/MM UI - Song Select/Backdrop.png',
-        config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
-        config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
-        config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
-        config.script_directory / 'Images/MM UI - Song Select/Top Layer - New Classics.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Top Layer - New Classics.png',
-        config.script_directory / 'Images/FT UI - Song Select/Base.png',
-        config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
-        config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
-        config.script_directory / 'Images/FT UI - Song Select/Top Layer - New Classics.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Base.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'
-    ]
-
-    for file_path in required_files:
-        if not file_path.is_file():
-            missing_files.append(str(PurePath(file_path.as_posix()).relative_to(config.script_directory.parent))+ "\n")
-        else:
-            pass
-    if not len(missing_files) == 0:
-        error_window = QMessageBox()
-        error_window.setWindowTitle("Error has occurred!")
-        error_window.setText(f"Images are missing:\n{''.join(missing_files)}")
-        error_window.exec()
-        quit("Images are missing")
 def show_message_box(title,contents):
     message_box = QMessageBox()
     message_box.setModal(True)
@@ -611,8 +572,6 @@ class MainWindow(QMainWindow):
         self.main_box.graphics_scene_view1.setBackgroundBrush(color)
         self.main_box.graphics_scene_view2.setBackgroundBrush(color)
         self.main_box.graphics_scene_view3.setBackgroundBrush(color)
-
-        check_for_files()
 
         #Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
@@ -706,6 +665,11 @@ class MainWindow(QMainWindow):
         self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+
+        self.C_Sprites.thumbnail.load_new_image(u":icon/Images/Example Sprites/Thumbnail.png")
+        self.C_Sprites.logo.load_new_image(u":icon/Images/Example Sprites/Logo.png")
+        self.C_Sprites.jacket.load_new_image(u":icon/Images/Example Sprites/Jacket.png")
+        self.C_Sprites.background.load_new_image(u":icon/Images/Example Sprites/Background.png")
 
         self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
         self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
@@ -870,7 +834,7 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture = self.create_thumbnail_texture()
-            mask = str(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png")
+            mask = u":icon/Images/Dummy/Thumbnail-Maskv3.png"
             self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
     def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(

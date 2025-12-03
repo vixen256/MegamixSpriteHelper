@@ -1,3 +1,4 @@
+import io
 import math
 from enum import Enum, auto, StrEnum
 from pathlib import Path
@@ -5,7 +6,7 @@ from typing import Callable
 
 import PySide6
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
@@ -123,10 +124,25 @@ class QScalingGraphicsScene(QGraphicsView):
         self.fitInView(self.scene().sceneRect())
 
 
+def qresource_to_bytes(location):
+    file = QFile(location)
+    if not file.exists():
+        raise FileNotFoundError(f"Resource {location} not found")
+
+    if file.open(QIODevice.ReadOnly):
+        data = file.readAll()
+        file.close()
+
+        image_data = bytes(data)
+        return io.BytesIO(image_data)
+    else:
+        raise IOError(f"Cannot open resource {location}")
+
+
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
     def __init__(self,
-                 sprite:Path,
+                 sprite:str,
                  sprite_type:SpriteType,
                  size:PySide6.QtCore.QRectF,
                  scale:float=None,
@@ -357,6 +373,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
 
         if hq_output:
+            if isinstance(self.location, str):
+                if self.location.startswith(":"):
+                    self.location = qresource_to_bytes(self.location)
             with Image.open(self.location) as image:
                 width = int(image_size.width() * zoom)
                 height = int(image_size.height() * zoom)
@@ -451,9 +470,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             print(f"Image saved to: {filename}")
 class QThumbnail(QSpriteBase):
     def __init__(self,
-                 sprite: Path,
+                 sprite: str,
                  size: PySide6.QtCore.QRectF,
-                 mask: Path):
+                 mask: str):
 
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
@@ -483,7 +502,7 @@ class QThumbnail(QSpriteBase):
         self.pixmap_no_mask = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         self.setPixmap(self.apply_mask_to_pixmap(self.pixmap_no_mask))
 class QJacket(QSpriteBase):
-    def __init__(self,sprite: Path,
+    def __init__(self,sprite: str,
                  size: PySide6.QtCore.QRectF):
         super().__init__(sprite,SpriteType.JACKET,size)
 
@@ -618,7 +637,7 @@ class QSpriteSlave(QGraphicsPixmapItem):
             self.setPixmap(QPixmap(image))
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
-                 sprite: Path,
+                 sprite: str,
                  size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080),
                  scale:float=1):
         super().__init__()
@@ -629,15 +648,15 @@ class QLayer(QGraphicsPixmapItem):
 
 class QControllableSprites:
     def __init__(self):
-        self.thumbnail = QThumbnail(Path(Path.cwd() / "Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png"),
+        self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
                                       QRectF(0, 0, 128, 64),
-                                      Path(Path.cwd() / "Images/Dummy/Thumbnail-Maskv3.png"))
+                                      u":icon/Images/Dummy/Thumbnail-Maskv3.png")
 
-        self.logo = QLogo(Path(Path.cwd() / "Images/Dummy/SONG_LOGO_DUMMY.png"),
+        self.logo = QLogo(u":icon/Images/Dummy/SONG_LOGO_DUMMY.png",
                             QRectF(0, 0, 870, 330))
-        self.jacket = QJacket(Path(Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png'),
+        self.jacket = QJacket(u":icon/Images/Dummy/SONG_JK_DUMMY.png",
                                 QRectF(0, 0, 502, 502))
-        self.background = QSpriteBase(Path(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png'),
+        self.background = QSpriteBase(u":icon/Images/Dummy/SONG_BG_DUMMY.png",
                                         SpriteType.BACKGROUND,
                                         QRectF(0, 0, 1280, 720))
 
@@ -660,11 +679,10 @@ class QMMSongSelectScene(QGraphicsScene):
         self.thumbnail_6 = QSpriteSlave(thumbnail, QPoint(140, 818), scale=1.25)
         self.thumbnail_7 = QSpriteSlave(thumbnail, QPoint(168, 948), scale=1.25)
         ######
-        self.backdrop = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Backdrop.png')
-        self.song_selector = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Song Selector.png')
-        self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Middle Layer.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png')
-        #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png')
+        self.backdrop = QLayer(u":icon/Images/MM UI - Song Select/Backdrop.png")
+        self.song_selector = QLayer(u":icon/Images/MM UI - Song Select/Song Selector.png")
+        self.middle_layer = QLayer(u":icon/Images/MM UI - Song Select/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -687,9 +705,9 @@ class QMMSongSelectScene(QGraphicsScene):
 
     def toggle_new_classics(self,state):
         if state:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
         else:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer.png"))
 class QFTSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -699,10 +717,9 @@ class QFTSongSelectScene(QGraphicsScene):
         self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
 
         ######
-        self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Base.png')
-        self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Middle Layer.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png')
-        #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png')
+        self.backdrop = QLayer(u":icon/Images/FT UI - Song Select/Base.png")
+        self.middle_layer = QLayer(u":icon/Images/FT UI - Song Select/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -716,9 +733,9 @@ class QFTSongSelectScene(QGraphicsScene):
 
     def toggle_new_classics(self, state):
         if state:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
         else:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -728,10 +745,9 @@ class QMMResultScene(QGraphicsScene):
         self.logo = QSpriteSlave(logo, QPoint(67, 784), scale=0.7)
         self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
         ######
-        self.backdrop = QLayer(Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png',scale=1.5)
-        self.middle_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Middle Layer.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png')
-        #self.top_layer = QLayer(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png')
+        self.backdrop = QLayer(u":icon/Images/Dummy/SONG_BG_DUMMY.png",scale=1.5)
+        self.middle_layer = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -745,9 +761,9 @@ class QMMResultScene(QGraphicsScene):
 
     def toggle_new_classics(self, state):
         if state:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
         else:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer.png"))
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -756,10 +772,9 @@ class QFTResultScene(QGraphicsScene):
         self.jacket = QSpriteSlave(jacket, QPoint(164, 303), rotation=-5)
         self.logo = QSpriteSlave(logo, QPoint(134, 663), scale=0.75)
         ######
-        self.backdrop = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Base.png')
-        self.middle_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Middle Layer.png')
-        self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png')
-        #self.top_layer = QLayer(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png')
+        self.backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png")
+        self.middle_layer = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -772,9 +787,9 @@ class QFTResultScene(QGraphicsScene):
 
     def toggle_new_classics(self, state):
         if state:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png"))
         else:
-            self.top_layer.setPixmap(QPixmap(Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png'))
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer.png"))
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
