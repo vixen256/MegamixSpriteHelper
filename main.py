@@ -12,7 +12,7 @@ import PIL.ImageShow
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
@@ -736,7 +736,7 @@ class MainWindow(QMainWindow):
                 clipboard.setImage(preview)
 
             case OutputTarget.IMAGE_VIEWER:
-                temp_dir = QStandardPaths.writableLocation(QStandardPaths.TempLocation)
+                temp_dir = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.TempLocation)
                 temp_file = os.path.join(temp_dir, "qt_image.png")
 
                 if preview.save(temp_file, "PNG"):
@@ -879,7 +879,14 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture = self.create_thumbnail_texture()
-            mask = u":icon/Images/Dummy/Thumbnail-Maskv3.png"
+            file = QFile(":icon/Images/Dummy/Thumbnail-Maskv3.png")
+            if not file.open(QIODevice.OpenModeFlag.ReadOnly):
+                raise FileNotFoundError(f"Resource not found")
+
+            data = file.readAll()
+            file.close()
+            mask = bytes(data)
+
             self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
     def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(
@@ -902,20 +909,20 @@ class MainWindow(QMainWindow):
         else:
             config.last_used_directory = Path(output_location)
 
-            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.FLIP_TOP_BOTTOM)
+            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
             compression = self.main_box.farc_compression_dropdown.currentEnum()
             print(compression)
 
             if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.FLIP_TOP_BOTTOM)
+                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 logo = None
             FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression)
 
 
-    def export_qimage_with_mask(self,qimage:QImage, mask_path:str, output_path:str):
+    def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             temp_path = temp_file.name
 
@@ -924,7 +931,7 @@ class MainWindow(QMainWindow):
                 raise ValueError("Failed to save QImage to temporary file")
 
             with WImage(filename=temp_path) as img:
-                with WImage(filename=mask_path) as mask_img:
+                with WImage(blob=mask) as mask_img:
                     if img.size != mask_img.size:
                         mask_img.resize(img.width, img.height)
 

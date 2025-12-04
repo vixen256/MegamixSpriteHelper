@@ -85,5 +85,3 @@ class FarcCreator:
         farc = KKdLib.farc()
         farc.add_file(KKdLib.farc_file(name="spr_sel_pvtmb_"+mod_name+".bin", data=spr.pack()))
         farc.write(output_location + '/spr_sel_pvtmb_' + mod_name + '.farc')
-
-        #Sorting doesn't work properly. Instead of sorting by number it treats them as strings.
