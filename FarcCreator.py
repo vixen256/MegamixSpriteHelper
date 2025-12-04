@@ -38,7 +38,7 @@ class FarcCreator:
 
 
         if logo_texture is not None:
-            txp.add_texture_pillow("SH Texture #2",logo_texture,Compression.RGBA.name)
+            txp.add_texture_pillow("SH Texture #2",logo_texture,compression.name)
 
             logo = KKdLib.sprite_info()
             logo.name = str("SONG_LOGO" + song_id)
