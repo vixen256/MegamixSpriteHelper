@@ -5,14 +5,14 @@ import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
-from pathlib import Path, PurePath
+from pathlib import Path
 from time import sleep
 
 import PIL.ImageShow
-import magic
+
 import yaml
-from PIL import Image, ImageShow
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QBuffer, QIODevice
+from PIL import Image
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 from wand.image import Image as WImage
@@ -421,7 +421,7 @@ class ThumbnailWindow(QWidget):
                 thumbnail_texture.save(str(config.script_directory) + "/Thumbnail Texture.png","png")
                 compression = self.main_box.farc_compression_combobox.currentEnum()
 
-                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose((Image.FLIP_TOP_BOTTOM)),chosen_dir,mod_name,compression)
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
 
                 msgBox = QMessageBox()
                 msgBox.setWindowTitle(" ")
@@ -488,7 +488,7 @@ class ThumbnailWindow(QWidget):
             p *= 2
         return p
 
-    def calculate_texture_grid(self,thumb_amount):
+    def calculate_texture_grid(self, thumb_amount):
         if thumb_amount <= 0:
             return 0, 0
 
@@ -499,11 +499,11 @@ class ThumbnailWindow(QWidget):
         else:
             tex_width = 1024
 
-            rows = math.ceil(thumb_amount / 7) # there will be 7 columns
+            rows = math.ceil(thumb_amount / 7)
 
-            total_height = rows * 66 # Height of a thumbnail plus 2 pixels of a gap
+            total_height = rows * 66  # Height of a thumbnail plus 2 pixels of a gap
             tex_height = self.next_power_of_two(total_height)
-            area = (tex_width , tex_height)
+            area = (tex_width, tex_height)
         return area
 
     def save_pack_name(self):
@@ -680,10 +680,7 @@ class MainWindow(QMainWindow):
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        self.C_Sprites.thumbnail.load_new_image(u":icon/Images/Example Sprites/Thumbnail.png")
-        self.C_Sprites.logo.load_new_image(u":icon/Images/Example Sprites/Logo.png")
         self.C_Sprites.jacket.load_new_image(u":icon/Images/Example Sprites/Jacket.png")
-        self.C_Sprites.background.load_new_image(u":icon/Images/Example Sprites/Background.png")
 
         self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
         self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
@@ -785,8 +782,19 @@ class MainWindow(QMainWindow):
             print("User didn't select image")
         else:
             config.last_used_directory = Path(image_location).parent
-            if sprite_object.load_new_image(image_location) == "Updated":
-                self.watcher.addPath(image_location)
+            ret= sprite_object.load_new_image(image_location)
+            match ret[0]:
+                case "Updated":
+                    self.watcher.addPath(image_location)
+                case "Image too small":
+                    iw = ret[1]
+                    ih = ret[2]
+                    rw = ret[3]
+                    rh = ret[4]
+
+                    show_message_box(f"{sprite} image is too small.",
+                                     f"Required image size for {sprite} is {rw}x{rh}.\n"
+                                     f"Loaded image is {iw}x{ih}, ignoring transparent area.")
 
     def create_background_jacket_texture(self):
         self.C_Sprites.background.update_sprite(hq_output=True)
@@ -910,9 +918,8 @@ class MainWindow(QMainWindow):
 
     def generate_spr_db_button_callback(self,path=None):
         spr_path = path
-        if spr_path is None:
+        if spr_path is False:
             spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
-
 
         if spr_path == "":
             print("Folder wasn't chosen")

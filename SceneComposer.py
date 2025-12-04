@@ -325,11 +325,11 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 print(f"Real Image size is {iw}x{ih}")
                 self.location = self.dummy_location
                 self.sprite_image = QImage(self.location)
-                return "Fallback"
+                return ["Fallback" , iw,ih,rw,rh]
             else:
                 print(f"Chosen image for {self.type.value} is too small. It's size is {iw,ih}")
                 print(f"Required size for the sprite is {rw,rh}")
-                return "Image too small"
+                return ["Image too small",iw,ih,rw,rh]
         else:
             self.location = image_location
             self.sprite_image = qimage
@@ -346,7 +346,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.update_sprite()
         self.set_initial_values()
-        return "Updated"
+        return ["Updated"]
 
     def update_sprite(self,hq_output=False):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
