@@ -5,6 +5,7 @@ import KKdLib
 class Compression(Enum):
     ATI2 = "YCbCr"
     DXT5 = "DXT5"
+    BC7 = "BC7 (Slow)"
     RGBA = "Uncompressed"
 
     def __str__(self):
