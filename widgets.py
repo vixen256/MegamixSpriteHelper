@@ -1,9 +1,8 @@
 import re
-import string
 from enum import Enum
 
 from PySide6.QtCore import (QSize, Qt, Signal, QTimer)
-from PySide6.QtGui import (QBrush, QColor, QFont, QPalette, QMouseEvent)
+from PySide6.QtGui import (QBrush, QColor, QFont, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
                                QSpinBox,
@@ -83,7 +82,7 @@ class EditableDoubleLabel(QWidget):
         font1.setKerning(True)
 
         self.info_label = QLabel()
-        self.info_label.setText(f"{sprite.type.value + " " + setting.value}")
+        self.info_label.setText(f"{sprite.type.value} {setting.value}")
         self.info_label.setFont(font1)
 
         self.label = QLabel()
