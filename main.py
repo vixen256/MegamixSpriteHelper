@@ -15,7 +15,30 @@ from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
-from wand.image import Image as WImage
+
+try:
+    from wand.image import Image as WImage
+except ImportError:
+    from PySide6.QtWidgets import QMessageBox, QApplication
+    from PySide6.QtCore import Qt
+    import sys
+
+    app = QApplication.instance()
+    if not app:
+        app = QApplication(sys.argv)
+
+
+    message_box = QMessageBox()
+    message_box.setModal(True)
+    message_box.setTextFormat(Qt.TextFormat.RichText)
+    message_box.setWindowTitle("ImageMagick is not installed")
+    message_box.setText("Please install ImageMagick with 'Install development headers and libraries for C and C++ checked. \n"
+                        "<a href='https://docs.wand-py.org/en/latest/guide/install.html#install-imagemagick-on-windows'>More Info</a>")
+    message_box.setIcon(QMessageBox.Icon.Critical)
+    message_box.exec()
+
+    sys.exit(1)
+
 
 from FarcCreator import FarcCreator
 from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
