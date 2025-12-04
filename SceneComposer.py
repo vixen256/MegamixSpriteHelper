@@ -314,15 +314,20 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         rh = required_size.height()
         w = qimage.width()
         h = qimage.height()
+        trans_edges = get_transparent_edge_pixels(qimage)
 
-        if (w, h) < (rw, rh):
+        iw = w-trans_edges["Left"]-trans_edges["Right"]
+        ih = h-trans_edges["Top"]-trans_edges["Bottom"]
+
+        if (iw, ih ) < (rw, rh):
             if fallback:
                 print(f"Image for {self.type.value} is no longer meeting minimum required size. Falling back to dummy image.")
+                print(f"Real Image size is {iw}x{ih}")
                 self.location = self.dummy_location
                 self.sprite_image = QImage(self.location)
                 return "Fallback"
             else:
-                print(f"Chosen image for {self.type.value} is too small. It's size is {w,h}")
+                print(f"Chosen image for {self.type.value} is too small. It's size is {iw,ih}")
                 print(f"Required size for the sprite is {rw,rh}")
                 return "Image too small"
         else:
