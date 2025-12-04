@@ -345,6 +345,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
         self.song_id_label = QLabel(self.to_farc_tab)
         self.song_id_label.setObjectName(u"song_id_label")
+        self.song_id_label.setMaximumSize(QSize(195, 16777215))
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
@@ -354,6 +355,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addWidget(self.song_id_label)
 
         self.farc_song_id_spinbox = QDoubleSpinBox(self.to_farc_tab)
+        self.farc_song_id_spinbox.setMaximumSize(QSize(195, 16777215))
         self.farc_song_id_spinbox.setObjectName(u"farc_song_id_spinbox")
         self.farc_song_id_spinbox.setDecimals(0)
         self.farc_song_id_spinbox.setMinimum(1.000000000000000)
@@ -364,22 +366,26 @@ class Ui_MainWindow(object):
 
 
         self.farc_compression_label = QLabel(self.to_farc_tab)
+        self.farc_compression_label.setMaximumSize(QSize(195, 16777215))
         self.farc_compression_label.setText("Compression:")
 
         self.verticalLayout_3.addWidget(self.farc_compression_label)
 
         self.farc_compression_dropdown = QEnumComboBox()
+        self.farc_compression_dropdown.setMaximumSize(QSize(195, 16777215))
         self.farc_compression_dropdown.setEnumClass(Compression)
 
         self.verticalLayout_3.addWidget(self.farc_compression_dropdown)
 
 
         self.farc_export_button = QPushButton(self.to_farc_tab)
+        self.farc_export_button.setMaximumSize(QSize(195, 16777215))
         self.farc_export_button.setObjectName(u"farc_export_button")
 
         self.verticalLayout_3.addWidget(self.farc_export_button)
 
         self.farc_create_thumbnail_button = QPushButton(self.to_farc_tab)
+        self.farc_create_thumbnail_button.setMaximumSize(QSize(195, 16777215))
         self.farc_create_thumbnail_button.setObjectName(u"farc_create_thumbnail_button")
 
         self.verticalLayout_3.addWidget(self.farc_create_thumbnail_button)
