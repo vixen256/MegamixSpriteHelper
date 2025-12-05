@@ -227,8 +227,8 @@ class ThumbnailWindow(QWidget):
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_CONFLICT.value)
                     left_to_fillout = left_to_fillout + 1
 
-        self.main_box.thumbnails_to_fillout_label.setText(f"Thumbnails that need their ID filled out: {left_to_fillout}")
-        self.main_box.thumbnails_loaded_label.setText(f"Thumbnails loaded: {loaded_thumbs}")
+        self.main_box.thumbnails_to_fillout_label.setText(f"ID's left to fill out: {left_to_fillout}")
+        self.main_box.thumbnails_loaded_label.setText(f"Unique Thumbnails loaded: {loaded_thumbs}")
 
         if left_to_fillout > 0:
             self.main_box.export_farc_button.setDisabled(True)

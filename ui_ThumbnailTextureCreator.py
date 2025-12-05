@@ -125,8 +125,8 @@ class Ui_ThumbnailTextureCreator(object):
 
     def retranslateUi(self, ThumbnailTextureCreator):
         ThumbnailTextureCreator.setWindowTitle(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnail Texture Creator", None))
-        self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails that need their ID filled out: 0", None))
-        self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnails loaded: 0", None))
+        self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"ID's left to fill out: 0", None))
+        self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Unique Thumbnails loaded: 0", None))
         self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
