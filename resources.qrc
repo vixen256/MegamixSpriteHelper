@@ -1,17 +1,14 @@
 <RCC>
   <qresource prefix="icon">
     <file>Images/Dummy/Base.png</file>
+    <file>Images/Minus.png</file>
+    <file>Images/Plus.png</file>
     <file>Images/Dummy/SONG_BG_DUMMY.png</file>
     <file>Images/Dummy/SONG_JK_DUMMY.png</file>
     <file>Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png</file>
     <file>Images/Dummy/SONG_LOGO_DUMMY.png</file>
-    <file>Images/Dummy/Thumbnail-Mask.png</file>
-    <file>Images/Dummy/Thumbnail-Maskv2.png</file>
     <file>Images/Dummy/Thumbnail-Maskv3.png</file>
-    <file>Images/Example Sprites/Background.png</file>
     <file>Images/Example Sprites/Jacket.png</file>
-    <file>Images/Example Sprites/Logo.png</file>
-    <file>Images/Example Sprites/Thumbnail.png</file>
     <file>Images/FT UI - Results Screen/Base.png</file>
     <file>Images/FT UI - Results Screen/Middle Layer.png</file>
     <file>Images/FT UI - Results Screen/Top Layer.png</file>

@@ -261,7 +261,7 @@ class SongpackNameInput(QWidget):
 
         self.delete_button = QPushButton()
         self.delete_button.setPalette(palette)
-        self.delete_button.setText("-")
+        self.delete_button.setIcon(QPixmap(":icon/Images/Minus.png"))
         self.delete_button.setFixedSize(30,27)
 
         self.combo_box.installEventFilter(self)

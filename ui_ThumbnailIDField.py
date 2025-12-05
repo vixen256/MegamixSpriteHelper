@@ -47,6 +47,7 @@ class Ui_ThumbnailIDField(object):
                                 self.id_line_button.setMinimumSize(QSize(30, 27))
                                 self.id_line_button.setMaximumSize(QSize(30, 27))
                                 self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                                self.id_line_button.setIcon(QPixmap(":icon/Images/Minus.png"))
                                 palette = QPalette()
                                 brush = QBrush(QColor(235,51,101, 255))
                                 brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -67,6 +68,7 @@ class Ui_ThumbnailIDField(object):
                                 self.id_line_button.setMinimumSize(QSize(30, 27))
                                 self.id_line_button.setMaximumSize(QSize(30, 27))
                                 self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                                self.id_line_button.setIcon(QPixmap(":icon/Images/Plus.png"))
                                 palette = QPalette()
                                 brush = QBrush(QColor(51, 235, 101, 255))
                                 brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -85,11 +87,9 @@ class Ui_ThumbnailIDField(object):
                 Form.setWindowTitle(QCoreApplication.translate("Form", u"Form", None))
                 match variant:
                     case False:#Remove
-                        self.id_line_button.setText(QCoreApplication.translate("Form", u"-", None))
                         self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Set additional ID", None))
 
                     case True:#Add
-                        self.id_line_button.setText(QCoreApplication.translate("Form", u"+", None))
                         self.song_id_spinbox.setSpecialValueText(QCoreApplication.translate("Form", u"Set Song ID", None))
                 # retranslateUi
 
