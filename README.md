@@ -24,9 +24,12 @@ When running from source:
 - Contents of requirements.txt
 
 # Special Thanks
-- Hiki8man: [Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
+- [Hiki8man](https://github.com/hiki8man/): [Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
 - [Vixen256](https://github.com/vixen256): [KKdLib-py](https://github.com/vixen256/KKdLib-py)
+- [korenkonder](https://github.com/korenkonder): [KKdlib](https://github.com/korenkonder/KKdLib) 
+- [Microsoft](https://github.com/microsoft): [DirectXTex](https://github.com/microsoft/DirectXTex)
 - [ふらすこ](https://www.pixiv.net/en/artworks/134599002): Image I used as placeholder for thumbnail.
+
 
 # Preview
 
