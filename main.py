@@ -1,38 +1,54 @@
 import io
-import time
-from pathlib import Path, PurePath
-import sys , os
 import math
-import re
-import string
-import yaml
-from time import sleep
+import os
+import sys
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
+from pathlib import Path
+from time import sleep
 
 import PIL.ImageShow
-from PySide6.QtCore import Qt, Slot, QFileSystemWatcher, QSize, Signal
-from PySide6.QtGui import QPixmap, QPalette, QColor
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFrame, QFileDialog, QLabel, QSpacerItem, QSizePolicy
-from PIL import Image,ImageShow,ImageStat
-from PIL.ImageShow import Viewer
 
-from concurrent.futures import ThreadPoolExecutor
+import yaml
+from PIL import Image
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
+from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
 
-from copykitten import copy_image
-from decimal import Decimal, ROUND_HALF_UP
+try:
+    from wand.image import Image as WImage
+except ImportError:
+    from PySide6.QtWidgets import QMessageBox, QApplication
+    from PySide6.QtCore import Qt
+    import sys
 
-from superqt.utils import qthrottled
+    app = QApplication.instance()
+    if not app:
+        app = QApplication(sys.argv)
 
-from SceneComposer import SceneComposer, State, SpriteType, Scene , SpriteSetting
+
+    message_box = QMessageBox()
+    message_box.setModal(True)
+    message_box.setTextFormat(Qt.TextFormat.RichText)
+    message_box.setWindowTitle("ImageMagick is not installed")
+    message_box.setText("Please install ImageMagick with 'Install development headers and libraries for C and C++ checked. \n"
+                        "<a href='https://docs.wand-py.org/en/latest/guide/install.html#install-imagemagick-on-windows'>More Info</a>")
+    message_box.setIcon(QMessageBox.Icon.Critical)
+    message_box.exec()
+
+    sys.exit(1)
+
+
 from FarcCreator import FarcCreator
+from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
 from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
-
+from ui_SpriteHelper import Ui_MainWindow
+from ui_ThumbnailIDField import Ui_ThumbnailIDField
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
 from ui_ThumbnailWidget import Ui_ThumbnailWidget
-from ui_ThumbnailIDField import  Ui_ThumbnailIDField
-from ui_SpriteHelper import Ui_MainWindow
+from widgets import Stylesheet
 
-from widgets import Stylesheet,EditableDoubleLabel
 
 class OutputTarget(Enum):
     CLIPBOARD = auto()
@@ -104,7 +120,6 @@ class ThumbnailWidget(QWidget):
         else:
             self.add_id_field(False)
     def add_id_field(self, can_be_removed=False, i_id=None):
-        #print("called add")
         if can_be_removed:
             id_field = ThumbnailIDFieldWidget(variant=False ,inferred_id = i_id)
         else:
@@ -118,7 +133,6 @@ class ThumbnailWidget(QWidget):
         self.thumb_count_request.emit()
 
     def remove_id_field(self,widget):
-        print("remove")
         self.ui.formLayout.removeRow(widget)
         self.id_field_list.remove(widget)
         self.thumb_count_request.emit()
@@ -213,8 +227,8 @@ class ThumbnailWindow(QWidget):
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_CONFLICT.value)
                     left_to_fillout = left_to_fillout + 1
 
-        self.main_box.thumbnails_to_fillout_label.setText(f"Thumbnails that need their ID filled out: {left_to_fillout}")
-        self.main_box.thumbnails_loaded_label.setText(f"Thumbnails loaded: {loaded_thumbs}")
+        self.main_box.thumbnails_to_fillout_label.setText(f"ID's left to fill out: {left_to_fillout}")
+        self.main_box.thumbnails_loaded_label.setText(f"Unique Thumbnails loaded: {loaded_thumbs}")
 
         if left_to_fillout > 0:
             self.main_box.export_farc_button.setDisabled(True)
@@ -252,14 +266,12 @@ class ThumbnailWindow(QWidget):
         for entry in main_window.thumbnail_creator.known_ids:
             if str(image_path) == entry[0]:
                 inferred_id_list.append((image_path,entry[1]))
-                #print(f"inferring {entry[1]} from YAML")
                 break
 
-        if inferred_id_list == []:
+        if not inferred_id_list:
             if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
                 id_list = [Path(image_path).stem]
                 inferred_id_list.append([image_path,id_list])
-                #print(f"inferring {id_list} from file name")
             else:
                 inferred_id_list.append((image_path,[]))
         return inferred_id_list
@@ -311,7 +323,7 @@ class ThumbnailWindow(QWidget):
     def select_file_for_thumbnails(self):
         selected_files = QFileDialog.getOpenFileNames(self,"Choose images to load",str(config.last_used_directory),config.allowed_file_types)[0]
 
-        if selected_files == []:
+        if not selected_files:
             print("No files were selected")
         else:
             print(Path(selected_files[0]).parent)
@@ -339,8 +351,6 @@ class ThumbnailWindow(QWidget):
             self.update_thumbnail_count_labels()
 
     def scan_folder_for_thumbnails(self):
-        #TODO Change it to select specific files.
-        #TODO Needs to skip over problematic files.
         selected_folder = QFileDialog.getExistingDirectory(self, "Choose folder containing thumbnails", str(config.last_used_directory))
 
         if selected_folder == "":
@@ -352,19 +362,8 @@ class ThumbnailWindow(QWidget):
             with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
                 futures = []
 
-                if self.main_box.search_subfolders_checkbox.checkState() == Qt.CheckState.Checked:
+                if True:
                     for file in Path(selected_folder).rglob('*'):
-                        if Path(file).suffix in config.readable_extensions:
-                            try:
-                                with Image.open(file) as open_image:
-                                    if open_image.size == (128, 64):
-                                        print(f"found thumbnail at: {file}")
-                                        futures.append(executor.submit(self.infer_thumbnail_id, file))
-                            except PIL.UnidentifiedImageError:
-                                print("Skipping invalid file")
-                                continue
-                else:
-                    for file in Path(selected_folder).iterdir():
                         if Path(file).suffix in config.readable_extensions:
                             try:
                                 with Image.open(file) as open_image:
@@ -402,7 +401,7 @@ class ThumbnailWindow(QWidget):
                 all_thumb_data.append(thumb_data)
 
             thumb_unique_count = 0
-            for thumb in all_thumb_data:
+            for _ in all_thumb_data:
                 thumb_unique_count = thumb_unique_count + 1
 
             texture_size = self.calculate_texture_grid(thumb_unique_count)
@@ -411,8 +410,8 @@ class ThumbnailWindow(QWidget):
                 return
 
             thumbnail_texture = Image.new('RGBA', texture_size)
-            x=2
-            y=2
+            x=0
+            y=0
             thumb = 0
             thumbnail_positions = []
 
@@ -425,15 +424,13 @@ class ThumbnailWindow(QWidget):
                     thumbnail_positions.append([pad_number(thumb_id), (x, y)])
 
                 if thumb == 7:
-                    x = 2
-                    y = y + 64 + 2
+                    x = 0
+                    y = y + 64
                     thumb = 0
                 else:
-                    x = x + 128 + 2
-            #print(thumbnail_positions[0][0])
-            #TODO fix sorting. Needs to sort by id that's now a string so it shits itself
-            #thumbnail_positions.sort()
+                    x = x + 128
 
+            thumbnail_positions.sort(key=lambda x: int(x[0]))
             for data in thumbnail_positions:
                 print(data)
 
@@ -444,10 +441,24 @@ class ThumbnailWindow(QWidget):
             else:
                 config.last_used_directory = Path(chosen_dir)
                 self.save_pack_name()
-                thumbnail_texture.save(str(config.script_directory) + "/Images/Thumbnail Texture.png","png")
+                thumbnail_texture.save(str(config.script_directory) + "/Thumbnail Texture.png","png")
+                compression = self.main_box.farc_compression_combobox.currentEnum()
 
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
 
-                FarcCreator.create_thumbnail_farc(thumbnail_positions,str(config.script_directory) + "/Images/Thumbnail Texture.png",chosen_dir,mod_name)
+                msgBox = QMessageBox()
+                msgBox.setWindowTitle(" ")
+                msgBox.setText("Thumbnail farc created successfully.")
+                msgBox.setIcon(QMessageBox.Icon.Question)
+                msgBox.setInformativeText("Do you want to generate sprite database?")
+                msgBox.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msgBox.setDefaultButton(QMessageBox.StandardButton.Yes)
+                ret = msgBox.exec()
+                match ret:
+                    case QMessageBox.StandardButton.Yes:
+                        main_window.generate_spr_db_button_callback(path=chosen_dir)
+                    case QMessageBox.StandardButton.No:
+                        print("No")
 
                 #Remember ID's used for images
                 remember_data = []
@@ -500,26 +511,22 @@ class ThumbnailWindow(QWidget):
             p *= 2
         return p
 
-    def calculate_texture_grid(self,thumb_amount):
+    def calculate_texture_grid(self, thumb_amount):
         if thumb_amount <= 0:
-            return (0, 0)
+            return 0, 0
 
-        if thumb_amount == 1:
-            tex_width = 256
-            tex_height = 256
-            return (tex_width,tex_height)
-        elif thumb_amount <= 3:
-            tex_width = 512
-            tex_height = 256
-            return (tex_width, tex_height)
+        if thumb_amount < 8:
+            tex_width = 128 * thumb_amount
+            tex_height = 64
+            return tex_width,tex_height
         else:
             tex_width = 1024
 
-            rows = math.ceil(thumb_amount / 7) # there will be 7 columns
+            rows = math.ceil(thumb_amount / 7)
 
-            total_height = rows * 66 # Height of a thumbnail plus 2 pixels of a gap
+            total_height = rows * 66  # Height of a thumbnail plus 2 pixels of a gap
             tex_height = self.next_power_of_two(total_height)
-            area = (tex_width , tex_height)
+            area = (tex_width, tex_height)
         return area
 
     def save_pack_name(self):
@@ -577,83 +584,17 @@ class ThumbnailWindow(QWidget):
 
 
         self.main_box.mod_name_lineedit.combo_box.removeItem(self.main_box.mod_name_lineedit.combo_box.currentIndex())
-        self.main_box.mod_name_lineedit.label.setText("")
+        self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
+        self.main_box.mod_name_lineedit.label_set_placeholder_text()
 
 
 ###################################################################################################
-
-def texture_filtering_fix(image,opacity):
-    #Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
-    t_edge = Image.new(image.mode,(image.size[0],image.size[1]))
-    t_edge.alpha_composite(image)
-    t_edge = t_edge.resize((image.size[0]+2,image.size[1]+2))
-    r,g,b,a = t_edge.split()
-    a = a.point(lambda  x: opacity if x > 0 else 0) #Set 102 opacity, that is 40% from 256. For Background 100% is recommended
-    t_edge = Image.merge(image.mode,(r,g,b,a))
-    t_edge.alpha_composite(image,(1,1))
-    return t_edge
-
-def check_for_files():
-    missing_files = []
-    required_files = [
-        config.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png',
-        config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png',
-        config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png',
-        config.script_directory / 'Images/MM UI - Song Select/Backdrop.png',
-        config.script_directory / 'Images/MM UI - Song Select/Song Selector.png',
-        config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png',
-        config.script_directory / 'Images/MM UI - Song Select/Top Layer.png',
-        config.script_directory / 'Images/MM UI - Song Select/Top Layer - New Classics.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png',
-        config.script_directory / 'Images/MM UI - Results Screen/Top Layer - New Classics.png',
-        config.script_directory / 'Images/FT UI - Song Select/Base.png',
-        config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png',
-        config.script_directory / 'Images/FT UI - Song Select/Top Layer.png',
-        config.script_directory / 'Images/FT UI - Song Select/Top Layer - New Classics.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Base.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png',
-        config.script_directory / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'
-    ]
-
-    for file_path in required_files:
-        if not file_path.is_file():
-            missing_files.append(str(PurePath(file_path.as_posix()).relative_to(config.script_directory.parent))+ "\n")
-        else:
-            pass
-    if not len(missing_files) == 0:
-        error_window = QMessageBox()
-        error_window.setWindowTitle("Error has occurred!")
-        error_window.setText(f"Images are missing:\n{''.join(missing_files)}")
-        error_window.exec()
-        quit("Images are missing")
 def show_message_box(title,contents):
     message_box = QMessageBox()
     message_box.setModal(True)
     message_box.setWindowTitle(title)
     message_box.setText(contents)
     message_box.exec()
-
-@Slot()
-def draw_combined_preview_to(target):
-    #TODO use pixmap.save to avoid re-rendering the scenes
-    new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
-    composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
-    composite.alpha_composite(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state))
-    composite.alpha_composite(SceneComposer.Megamix_Result.compose_scene(new_classics_state),(0, 1080))
-    composite.alpha_composite(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state), (1920, 0))
-    composite.alpha_composite(SceneComposer.FutureTone_Result.compose_scene(new_classics_state), (1920, 1080))
-
-    match target:
-        case OutputTarget.CLIPBOARD:
-            pixels = composite.tobytes()
-            copy_image(pixels, composite.width, composite.height)
-
-        case OutputTarget.IMAGE_VIEWER:
-            ImageShow.show(composite)
 
 class MainWindow(QMainWindow):
 
@@ -663,17 +604,11 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
-
-        #Create dictionary that will contain all sprite controls
-        self.edit_control = {}
-        # TODO add all edit controls via list from SceneComposer
-        self.add_edit_control(SceneComposer.Background)
-        self.add_edit_control(SceneComposer.Jacket)
-        self.add_edit_control(SceneComposer.Thumbnail)
-        self.add_edit_control(SceneComposer.Logo)
-
-        check_for_files()
-        self.reload_images()
+        color = self.palette().color(QPalette.ColorRole.Window)
+        self.main_box.graphics_scene_view.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view1.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view2.setBackgroundBrush(color)
+        self.main_box.graphics_scene_view3.setBackgroundBrush(color)
 
         #Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
@@ -681,48 +616,35 @@ class MainWindow(QMainWindow):
         #Start watching for file updates of loaded files
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
-        self.watcher.addPath(str(SceneComposer.Background.location))
-        self.watcher.addPath(str(SceneComposer.Jacket.location))
-        self.watcher.addPath(str(SceneComposer.Logo.location))
-        self.watcher.addPath(str(SceneComposer.Thumbnail.location))
 
-        #Connect buttons with their functionality
-        self.main_box.load_background_button.clicked.connect(self.load_background_button_callback)
-        self.main_box.load_thumbnail_button.clicked.connect(self.load_thumbnail_button_callback)
-        self.main_box.load_logo_button.clicked.connect(self.load_logo_button_callback)
-        self.main_box.load_jacket_button.clicked.connect(self.load_jacket_button_callback)
-        self.main_box.copy_to_clipboard_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.CLIPBOARD))
-        self.main_box.open_preview_button.clicked.connect(lambda: draw_combined_preview_to(OutputTarget.IMAGE_VIEWER))
         self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
         self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
         self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
+
+        self.main_box.copy_to_clipboard_button.clicked.connect(lambda: self.generate_preview(OutputTarget.CLIPBOARD))
+        self.main_box.open_preview_button.clicked.connect(lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER))
         self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
+
         self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
-        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite("Horizontal"))
-        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite("Vertical"))
-        #Connect spinboxes with functions that update their sprites
-        self.spinbox_editing_finished_trigger("on")
-        #Allow previews to be opened in external viewer
-        self.main_box.mm_song_selector_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.MEGAMIX_SONG_SELECT))
-        self.main_box.ft_song_selector_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.FUTURE_TONE_SONG_SELECT))
-        self.main_box.mm_result_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.MEGAMIX_RESULT))
-        self.main_box.ft_result_preview.clicked.connect(lambda: self.view_pixmap_external(Scene.FUTURE_TONE_RESULT))
-        self.main_box.mm_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.main_box.ft_song_selector_preview.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.main_box.mm_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.main_box.ft_result_preview.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
+        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
+
+
 
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
 
         #Connect checkboxes with their functions
         self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
-        self.main_box.new_classics_checkbox.checkStateChanged.connect(self.refresh_image_grid)
+        self.main_box.new_classics_checkbox.checkStateChanged.connect(self.toggle_new_classics)
 
-        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()) # Make sure that tab matches options shown on start
+        self.display_scenes()
 
-        print("Initial Draw")
-        self.draw_image_grid()
+        #Make sure that tab matches options shown on start
+        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
+
+
+
 
     def resizeEvent(self,event):
         #Todo allow resizing by grabbing top/bottom edge too
@@ -736,330 +658,100 @@ class MainWindow(QMainWindow):
     def current_sprite_tab_switcher(self,tab):
         self.main_box.sprite_controls.setCurrentIndex(tab)
 
+        self.main_box.load_image_button.clicked.disconnect()
 
-    def view_pixmap_external(self,scene):
-        #TODO use pixmap.save to not re-render scene
-        new_classics_state = main_window.main_box.new_classics_checkbox.isChecked()
-        match scene:
-            case Scene.MEGAMIX_SONG_SELECT:
-                ImageShow.show(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state))
-            case Scene.FUTURE_TONE_SONG_SELECT:
-                ImageShow.show(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state))
-            case Scene.MEGAMIX_RESULT:
-                ImageShow.show(SceneComposer.Megamix_Result.compose_scene(new_classics_state))
-            case Scene.FUTURE_TONE_RESULT:
-                ImageShow.show(SceneComposer.FutureTone_Result.compose_scene(new_classics_state))
+        sprite = self.main_box.current_sprite_combobox.currentText()
+        self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
+        self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
-    def draw_scene(self, ui_scene):
-        new_classics_state = self.main_box.new_classics_checkbox.isChecked()
-        match ui_scene:
-            case Scene.MEGAMIX_SONG_SELECT:
-                self.main_box.mm_song_selector_preview.setPixmap(SceneComposer.Megamix_Song_Select.compose_scene(new_classics_state).toqpixmap())
-            case Scene.FUTURE_TONE_SONG_SELECT:
-                self.main_box.ft_song_selector_preview.setPixmap(SceneComposer.FutureTone_Song_Select.compose_scene(new_classics_state).toqpixmap())
-            case Scene.MEGAMIX_RESULT:
-                self.main_box.mm_result_preview.setPixmap(SceneComposer.Megamix_Result.compose_scene(new_classics_state).toqpixmap())
-            case Scene.FUTURE_TONE_RESULT:
-                self.main_box.ft_result_preview.setPixmap(SceneComposer.FutureTone_Result.compose_scene(new_classics_state).toqpixmap())
-
-    def draw_image_grid(self):
-        start_time = time.time()
-        with ThreadPoolExecutor() as executor:
-            for scene in config.scenes_to_draw:
-                executor.submit(self.draw_scene,scene)
-        print("--- %s seconds ---" % (time.time() - start_time))
-
-        Jacket_state = SceneComposer.check_sprite(SpriteType.JACKET)
-        Background_state = SceneComposer.check_sprite(SpriteType.BACKGROUND)
-
-        if Jacket_state == False or Background_state == False:
-            failed_check = []
-            if not Jacket_state:
-                print("Jacket is fucked up")
-                failed_check.append("Jacket")
-            else:
-                print("Jacket is fine")
-            if not Background_state:
-                print("Background is fucked up")
-                failed_check.append("Background")
-            else:
-                print("Background is fine")
-
-            self.main_box.export_background_jacket_button.setEnabled(False)
-            self.main_box.export_background_jacket_button.setToolTip(f"{' and '.join(failed_check)} area isn't fully filled by opaque image!")
-            self.main_box.farc_export_button.setEnabled(False)
-            self.main_box.farc_export_button.setToolTip(f"{' and '.join(failed_check)} area isn't fully filled by opaque image!")
-        else:
-            print("Jacket is fine")
-            print("Background is fine")
-            self.main_box.export_background_jacket_button.setEnabled(True)
-            self.main_box.export_background_jacket_button.setToolTip("")
-            self.main_box.farc_export_button.setEnabled(True)
-            self.main_box.farc_export_button.setToolTip("")
-
-        Thumbnail_state = SceneComposer.check_sprite(SpriteType.THUMBNAIL)
-
-        if not Thumbnail_state:
-            print("Thumbnail is fucked up")
-            self.main_box.export_thumbnail_button.setEnabled(False)
-            self.main_box.export_thumbnail_button.setToolTip("Thumbnail isn't fully filled by opaque image!")
-        else:
-            print("Thumbnail is fine")
-            self.main_box.export_thumbnail_button.setEnabled(True)
-            self.main_box.export_thumbnail_button.setToolTip("")
-
-    def add_edit_control(self,sprite):
-        editable_values = {}
-
-        for setting in sprite.sprite_settings:
-            parameters = setting[1]
-            edit = EditableDoubleLabel(sprite=sprite,setting=setting[0], range=sprite.calculate_range(setting[0]),**parameters)
-            editable_values[setting[0].value] = edit
-
-            #TODO make it properly, not hardcode
-            match sprite:
-                case SceneComposer.Background:
-                    self.main_box.verticalLayout_8.addWidget(edit)
-                case SceneComposer.Jacket:
-                    self.main_box.verticalLayout_10.addWidget(edit)
-                case SceneComposer.Thumbnail:
-                    self.main_box.verticalLayout_12.addWidget(edit)
-                case SceneComposer.Logo:
-                    self.main_box.verticalLayout_11.addWidget(edit)
-
-
-        self.edit_control[sprite.type.value] = editable_values
-
-    @qthrottled(timeout=30)
-    def jacket_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.JACKET]:
-            self.edit_control[SpriteType.JACKET][control].block_drawing = True
-
-        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.JACKET]:
-            self.edit_control[SpriteType.JACKET][control].block_drawing = False
-        print("Jacket Triggered draw")
-        self.draw_image_grid()
-    @qthrottled(timeout=30)
-    def logo_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.LOGO]:
-            self.edit_control[SpriteType.LOGO][control].block_drawing = True
-
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.LOGO]:
-            self.edit_control[SpriteType.LOGO][control].block_drawing = False
-        print("Logo Trigered draw")
-        self.draw_image_grid()
-    @qthrottled(timeout=30)
-    def background_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.BACKGROUND]:
-            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = True
-
-        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.BACKGROUND]:
-            self.edit_control[SpriteType.BACKGROUND][control].block_drawing = False
-        print("Background Triggered draw")
-        self.draw_image_grid()
-    @qthrottled(timeout=30)
-    def thumbnail_value_edit_trigger(self):
-        for control in self.edit_control[SpriteType.THUMBNAIL]:
-            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = True
-
-        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-        self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-        for control in self.edit_control[SpriteType.THUMBNAIL]:
-            self.edit_control[SpriteType.THUMBNAIL][control].block_drawing = False
-        print("Thumbnail triggered draw")
-        self.draw_image_grid()
+        match sprite:
+            case "Background":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.background.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.background.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.background.controls_enabled)
+            case "Jacket":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+            case "Logo":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+            case "Thumbnail":
+                self.main_box.load_image_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
 
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
             case "Background":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Background.flipped_h = not SceneComposer.Background.flipped_h
-                    case "Vertical":
-                        SceneComposer.Background.flipped_v = not SceneComposer.Background.flipped_v
+                self.C_Sprites.background.toggle_flip(flip_type)
             case "Jacket":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Jacket.flipped_h = not SceneComposer.Jacket.flipped_h
-                    case "Vertical":
-                        SceneComposer.Jacket.flipped_v = not SceneComposer.Jacket.flipped_v
+                self.C_Sprites.jacket.toggle_flip(flip_type)
             case "Logo":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Logo.flipped_h = not SceneComposer.Logo.flipped_h
-                    case "Vertical":
-                        SceneComposer.Logo.flipped_v = not SceneComposer.Logo.flipped_v
+                self.C_Sprites.logo.toggle_flip(flip_type)
             case "Thumbnail":
-                match flip_type:
-                    case "Horizontal":
-                        SceneComposer.Thumbnail.flipped_h = not SceneComposer.Thumbnail.flipped_h
-                    case "Vertical":
-                        SceneComposer.Thumbnail.flipped_v = not SceneComposer.Thumbnail.flipped_v
-        self.reload_images()
-        self.draw_image_grid()
+                self.C_Sprites.thumbnail.toggle_flip(flip_type)
 
-    def reload_images(self):
-        SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
-                                              self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
+    def display_scenes(self):
+        self.C_Sprites = QControllableSprites()
+        self.P_Scenes = QPreviewScenes(self.C_Sprites)
 
-        SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
-                                          self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
+        self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
+        self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
+        self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
+        self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                        self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
+        self.C_Sprites.jacket.load_new_image(u":icon/Images/Example Sprites/Jacket.png")
 
-        SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                             self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
+        self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
+        self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
+        self.main_box.graphics_scene_view.setScene(self.P_Scenes.MM_Result)
+        self.main_box.graphics_scene_view2.setScene(self.P_Scenes.FT_Result)
 
-    def spinbox_editing_finished_trigger(self,state):
-        if state == "on":
-            self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].editingFinished.connect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].editingFinished.connect(self.jacket_value_edit_trigger)
 
-            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].editingFinished.connect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].editingFinished.connect(self.logo_value_edit_trigger)
+    def generate_preview(self,target:OutputTarget):
+        #Update sprites if the zoom was changed
+        if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.C_Sprites.jacket.update_sprite(hq_output=True)
+        if self.C_Sprites.background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.C_Sprites.background.update_sprite(hq_output=True)
+        if self.C_Sprites.thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.C_Sprites.thumbnail.update_sprite(hq_output=True)
+        if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.C_Sprites.logo.update_sprite(hq_output=True)
 
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].editingFinished.connect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].editingFinished.connect(self.background_value_edit_trigger)
+        preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
+        painter = QPainter(preview)
+        self.P_Scenes.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
+        self.P_Scenes.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
+        self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
+        self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
+        painter.end()
 
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].editingFinished.connect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].editingFinished.connect(self.thumbnail_value_edit_trigger)
+        match target:
+            case OutputTarget.CLIPBOARD:
+                clipboard = QGuiApplication.clipboard()
+                clipboard.setImage(preview)
 
-        else:
-            self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].editingFinished.disconnect(self.jacket_value_edit_trigger)
-            self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].editingFinished.disconnect(self.jacket_value_edit_trigger)
+            case OutputTarget.IMAGE_VIEWER:
+                temp_dir = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.TempLocation)
+                temp_file = os.path.join(temp_dir, "qt_image.png")
 
-            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].editingFinished.disconnect(self.logo_value_edit_trigger)
-            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].editingFinished.disconnect(self.logo_value_edit_trigger)
-
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].editingFinished.disconnect(self.background_value_edit_trigger)
-            self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].editingFinished.disconnect(self.background_value_edit_trigger)
-
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
-            self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].editingFinished.disconnect(self.thumbnail_value_edit_trigger)
+                if preview.save(temp_file, "PNG"):
+                    url = QUrl.fromLocalFile(temp_file)
+                    QDesktopServices.openUrl(url)
 
     def watcher_file_modified_action(self,path):
-        sleep(2) #TODO replace sleep with detection is the modified file there
+        sleep(2)
         keep_watching_path = False
-        if path == SceneComposer.Jacket.location:
-            print("Jacket image was changed")
-            result = SceneComposer.Jacket.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Jacket image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Jacket.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
 
-                if result["Jacket Force Fit"]:
-                    real_width = SceneComposer.Jacket.edges[2] - SceneComposer.Jacket.edges[0]
-                    real_height = SceneComposer.Jacket.edges[3] - SceneComposer.Jacket.edges[1]
-
-                    print(f"Image is {real_width}x{real_height}. Imported jacket is 1:1 aspect ratio.")
-                    self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].setValue(result["Zoom"])
-                    print(f"Set jacket's zoom to {result["Zoom"]}.")
-
-        if path == SceneComposer.Logo.location:
-            print("Logo image was changed")
-            result = SceneComposer.Logo.update_sprite(path)
-            if result["Outcome"] == State.UPDATED:
-                self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.ZOOM))
-                keep_watching_path = True
-
-        if path == SceneComposer.Background.location:
-            print("Background image was changed")
-            result = SceneComposer.Background.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Background image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Background.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
-
-        if path == SceneComposer.Thumbnail.location:
-            print("Thumbnail image was changed")
-            result = SceneComposer.Thumbnail.update_sprite(path)
-            if result["Outcome"] == State.FALLBACK:
-                print("Thumbnail image no longer meets requirements. Falling back to Dummy sprite")
-                self.watcher.addPath(str(SceneComposer.Thumbnail.dummy_location))
-            elif result["Outcome"] == State.UPDATED:
-                keep_watching_path = True
+        for sprite in self.C_Sprites.list:
+            if path == sprite.location:
+                print(f"{sprite.type.value} image was changed")
+                if sprite.load_new_image(path,fallback=True) == "Updated":
+                     keep_watching_path = True
 
         if keep_watching_path:
             self.watcher.removePath(path)
@@ -1067,254 +759,109 @@ class MainWindow(QMainWindow):
         else:
             self.watcher.removePath(path)
 
-        self.reload_images()
-        self.draw_image_grid()
+    def has_logo_checkbox_callback(self):
+        if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+            state = True
+            self.main_box.export_logo_button.setToolTip("")
+        else:
+            state = False
+            self.main_box.export_logo_button.setToolTip("Logo is disabled.")
+
+        self.C_Sprites.logo.toggle_visibility(state)
+        self.main_box.export_logo_button.setEnabled(state)
+        if self.main_box.current_sprite_combobox.currentText() == "Logo":
+            self.main_box.load_image_button.setEnabled(state)
+            self.main_box.flip_vertical_button.setEnabled(state)
+            self.main_box.flip_horizontal_button.setEnabled(state)
+    def toggle_new_classics(self):
+        if self.main_box.new_classics_checkbox.checkState() == Qt.CheckState.Checked:
+            state = True
+        else:
+            state = False
+        self.P_Scenes.MM_SongSelect.toggle_new_classics(state)
+        self.P_Scenes.FT_SongSelect.toggle_new_classics(state)
+        self.P_Scenes.MM_Result.toggle_new_classics(state)
+        self.P_Scenes.FT_Result.toggle_new_classics(state)
+
+
+
+    def load_new_sprite_image(self,sprite):
+        sprite_object = None
+        match sprite:
+            case "Background":
+                sprite_object = self.C_Sprites.background
+            case "Jacket":
+                sprite_object = self.C_Sprites.jacket
+            case "Thumbnail":
+                sprite_object = self.C_Sprites.thumbnail
+            case "Logo":
+                sprite_object = self.C_Sprites.logo
+
+        image_location = QFileDialog.getOpenFileName(self,
+                                                 f"Open {sprite_object.type.value} image",
+                                                 str(config.last_used_directory),
+                                                 config.allowed_file_types)[0]
+        if image_location == "":
+            print("User didn't select image")
+        else:
+            config.last_used_directory = Path(image_location).parent
+            ret= sprite_object.load_new_image(image_location)
+            match ret[0]:
+                case "Updated":
+                    self.watcher.addPath(image_location)
+                case "Image too small":
+                    iw = ret[1]
+                    ih = ret[2]
+                    rw = ret[3]
+                    rh = ret[4]
+
+                    show_message_box(f"{sprite} image is too small.",
+                                     f"Required image size for {sprite} is {rw}x{rh}.\n"
+                                     f"Loaded image is {iw}x{ih}, ignoring transparent area.")
 
     def create_background_jacket_texture(self):
-        jacket_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        jacket_composite.alpha_composite(SceneComposer.Jacket.jacket, (1286, 2))
+        self.C_Sprites.background.update_sprite(hq_output=True)
+        self.C_Sprites.jacket.update_sprite(hq_output=True)
 
-        background_composite = Image.new('RGBA', (2048, 1024), (0, 0, 0, 0))
-        background_composite.alpha_composite(SceneComposer.Background.background, (1, 1), (0, 0, 1280, 720))
-        background_composite = texture_filtering_fix(background_composite,255)
+        background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
+        background_jacket_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(background_jacket_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        background_jacket_texture = Image.new('RGBA', (2048, 1024))
-        background_jacket_texture.alpha_composite(background_composite)
-        background_jacket_texture.alpha_composite(jacket_composite)
+        painter.drawPixmap(0,0,self.C_Sprites.background.pixmap().scaled(1282,722))
+        painter.drawPixmap(1,1,self.C_Sprites.background.pixmap())
+        painter.drawPixmap(1286, 2,self.C_Sprites.jacket.pixmap())
+        painter.end()
 
         return background_jacket_texture
     def create_logo_texture(self):
-        logo_fix_status = False
-        if logo_fix_status:
-            logo = texture_filtering_fix(SceneComposer.Logo.logo,102)
-            x = 1
-            y = 1
-        else:
-            logo = SceneComposer.Logo.logo
-            x = 2
-            y = 2
-        logo_texture = Image.new('RGBA', (1024, 512))
-        logo_texture.alpha_composite(logo,(x,y))
+        self.C_Sprites.logo.update_sprite(hq_output=True)
+
+        logo = self.C_Sprites.logo.pixmap()
+        logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+        logo_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(logo_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(2,2,logo)
+        painter.end()
         return logo_texture
-    def create_thumbnail_texture(self):
-        thumbnail_texture = Image.new('RGBA', (128, 64))
-        thumbnail_texture.alpha_composite(SceneComposer.Thumbnail.thumbnail)
+    def create_thumbnail_texture(self) -> QImage:
+        self.C_Sprites.thumbnail.update_sprite(hq_output=True)
+
+        thumbnail = QPixmap(self.C_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(thumbnail_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(0, 0, thumbnail)
+        painter.end()
         return thumbnail_texture
-
-
-    def export_background_jacket_logo_farc_button_callback(self):
-        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
-
-        if output_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(output_location)
-
-            Image.Image.save(self.create_background_jacket_texture(), (config.script_directory / 'Images/Background Texture.png'))
-            Image.Image.save(self.create_logo_texture(), (config.script_directory / 'Images/Logo Texture.png'))
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-
-            output_location = output_location
-            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-                logo_state = True
-            else:
-                logo_state = False
-            FarcCreator.create_jk_bg_logo_farc(song_id, str(config.script_directory / 'Images/Background Texture.png'), str(config.script_directory / 'Images/Logo Texture.png'), output_location, logo_state)
-
-
-
-    def refresh_image_grid(self):
-        self.draw_image_grid()
-
-    def has_logo_checkbox_callback(self):
-        #TODO Figure out what to do with this shit
-        #Needs a better way of removing the tab
-        if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
-            #Make options to tweak logo visible
-            self.main_box.current_sprite_combobox.addItem("Logo")
-            #Enable buttons related to logos
-            self.main_box.load_logo_button.setEnabled(True)
-            self.main_box.export_logo_button.setEnabled(True)
-            #Draw Logo
-            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-            self.draw_image_grid()
-        else:
-            # Make options to tweak logo invisible
-            self.main_box.current_sprite_combobox.removeItem(3)
-            #Disable buttons related to logos
-            self.main_box.load_logo_button.setDisabled(True)
-            self.main_box.export_logo_button.setDisabled(True)
-            # Hide Logo
-            SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                            self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-            self.draw_image_grid()
-
-    #TODO Simplify loading sprites into single function
-    def load_background_button_callback(self):
-        open_background = QFileDialog.getOpenFileName(self, "Open background image", str(config.last_used_directory), config.allowed_file_types)[0]
-
-        if open_background == '':
-            print("Background image wasn't chosen")
-        else:
-            try:
-                result = SceneComposer.Background.update_sprite(open_background,False)
-
-                if result["Outcome"] == State.UPDATED:
-                    SceneComposer.Background.flipped_h = False
-                    SceneComposer.Background.flipped_v = False
-                    config.last_used_directory = Path(open_background).parent
-
-                    self.watcher.removePath(str(SceneComposer.Background.location))
-                    self.watcher.addPath(str(SceneComposer.Background.location))
-
-                    self.spinbox_editing_finished_trigger("off")
-
-                    for control in self.edit_control[SpriteType.BACKGROUND]:
-                        self.edit_control[SpriteType.BACKGROUND][control].reset_value()
-
-                    SceneComposer.Background.post_process(self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                                          self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].value,
-                                                          self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ROTATION].value,
-                                                          self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].value)
-
-                    self.edit_control[SpriteType.BACKGROUND][SpriteSetting.ZOOM].set_range(SceneComposer.Background.calculate_range(SpriteSetting.ZOOM))
-                    self.edit_control[SpriteType.BACKGROUND][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-                    self.edit_control[SpriteType.BACKGROUND][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Background.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-                    self.spinbox_editing_finished_trigger("on")
-
-                    self.draw_image_grid()
-
-                elif result["Outcome"] == State.IMAGE_TOO_SMALL:
-                    config.last_used_directory = Path(open_background).parent
-                    show_message_box(result["Window Title"], result["Description"])
-            except PIL.UnidentifiedImageError:
-                config.last_used_directory = Path(open_background).parent
-                print("Couldn't load image. Image might be corrupted")
-    def load_jacket_button_callback(self):
-        open_jacket = QFileDialog.getOpenFileName(self,"Open jacket image", str(config.last_used_directory), config.allowed_file_types)[0]
-
-        if open_jacket == '':
-            print("Jacket image wasn't chosen")
-        else:
-            try:
-                result = SceneComposer.Jacket.update_sprite(open_jacket,False)
-
-                if result["Outcome"] == State.UPDATED:
-                    SceneComposer.Jacket.flipped_h = False
-                    SceneComposer.Jacket.flipped_v = False
-                    config.last_used_directory = Path(open_jacket).parent
-
-                    self.watcher.removePath(str(SceneComposer.Jacket.location))
-                    self.watcher.addPath(str(SceneComposer.Jacket.location))
-
-                    self.spinbox_editing_finished_trigger("off")
-
-                    for control in self.edit_control[SpriteType.JACKET]:
-                        self.edit_control[SpriteType.JACKET][control].reset_value()
-
-                    SceneComposer.Jacket.post_process(self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                                      self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].value,
-                                                      self.edit_control[SpriteType.JACKET][SpriteSetting.ROTATION].value,
-                                                      self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].value)
-                    if result["Jacket Force Fit"]:
-                        print(f"Image is {SceneComposer.Jacket.jacket_image.width}x{SceneComposer.Jacket.jacket_image.height}. Imported jacket is 1:1 aspect ratio.")
-                        self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].setValue(result["Zoom"])
-                        print(f"Set jacket's zoom to {result["Zoom"]}.")
-                    else:
-                        self.edit_control[SpriteType.JACKET][SpriteSetting.ZOOM].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.ZOOM))
-
-                    self.edit_control[SpriteType.JACKET][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-                    self.edit_control[SpriteType.JACKET][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Jacket.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-                    self.spinbox_editing_finished_trigger("on")
-
-                    self.draw_image_grid()
-
-                elif result["Outcome"] == State.IMAGE_TOO_SMALL:
-                    config.last_used_directory = Path(open_jacket).parent
-                    show_message_box(result["Window Title"], result["Description"])
-            except PIL.UnidentifiedImageError:
-                config.last_used_directory = Path(open_jacket).parent
-                print("Couldn't load image. Image might be corrupted")
-    def load_logo_button_callback(self):
-        open_logo = QFileDialog.getOpenFileName(self, "Open logo image", str(config.last_used_directory), config.allowed_file_types)[0]
-
-        if open_logo == '':
-            print("Logo image wasn't chosen")
-        else:
-            try:
-                result = SceneComposer.Logo.update_sprite(open_logo,False)
-
-                if result["Outcome"] == State.UPDATED:
-                    SceneComposer.Logo.flipped_h = False
-                    SceneComposer.Logo.flipped_v = False
-                    config.last_used_directory = Path(open_logo).parent
-
-                    self.watcher.removePath(str(SceneComposer.Logo.location))
-                    self.watcher.addPath(str(SceneComposer.Logo.location))
-
-                    for control in self.edit_control[SpriteType.LOGO]:
-                        self.edit_control[SpriteType.LOGO][control].reset_value()
-
-                    SceneComposer.Logo.post_process(self.main_box.has_logo_checkbox.checkState(),
-                                                    self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                                    self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].value,
-                                                    self.edit_control[SpriteType.LOGO][SpriteSetting.ROTATION].value,
-                                                    self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].value)
-
-                    self.edit_control[SpriteType.LOGO][SpriteSetting.ZOOM].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.ZOOM))
-                    self.edit_control[SpriteType.LOGO][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-                    self.edit_control[SpriteType.LOGO][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Logo.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-                    self.draw_image_grid()
-            except PIL.UnidentifiedImageError:
-                config.last_used_directory = Path(open_logo).parent
-                print("Couldn't load image. Image might be corrupted")
-    def load_thumbnail_button_callback(self):
-        open_thumbnail = QFileDialog.getOpenFileName(self, "Open thumbnail image", str(config.last_used_directory), config.allowed_file_types)[0]
-
-        if open_thumbnail == '':
-            print("Thumbnail image wasn't chosen")
-        else:
-            try:
-                result = SceneComposer.Thumbnail.update_sprite(open_thumbnail,False)
-
-                if result["Outcome"] == State.UPDATED:
-                    SceneComposer.Thumbnail.flipped_h = False
-                    SceneComposer.Thumbnail.flipped_v = False
-                    config.last_used_directory = Path(open_thumbnail).parent
-
-                    self.watcher.removePath(str(SceneComposer.Thumbnail.location))
-                    self.watcher.addPath(str(SceneComposer.Thumbnail.location))
-
-                    for control in self.edit_control[SpriteType.THUMBNAIL]:
-                        self.edit_control[SpriteType.THUMBNAIL][control].reset_value()
-
-                    SceneComposer.Thumbnail.post_process(self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].value,
-                                                         self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].value,
-                                                         self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ROTATION].value,
-                                                         self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].value)
-
-                    self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.ZOOM].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.ZOOM))
-                    self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.HORIZONTAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.HORIZONTAL_OFFSET))
-                    self.edit_control[SpriteType.THUMBNAIL][SpriteSetting.VERTICAL_OFFSET].set_range(SceneComposer.Thumbnail.calculate_range(SpriteSetting.VERTICAL_OFFSET))
-
-                    self.draw_image_grid()
-
-                elif result["Outcome"] == State.IMAGE_TOO_SMALL:
-                    config.last_used_directory = Path(open_thumbnail).parent
-                    show_message_box(result["Window Title"], result["Description"])
-            except PIL.UnidentifiedImageError:
-                config.last_used_directory = Path(open_thumbnail).parent
-                print("Couldn't load image. Image might be corrupted")
 
     def export_background_jacket_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
@@ -1325,36 +872,91 @@ class MainWindow(QMainWindow):
             config.last_used_directory = Path(save_location).parent
             background_jacket_texture = self.create_background_jacket_texture()
             background_jacket_texture.save(save_location,"png")
-
     def export_thumbnail_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
-
         if save_location == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture = self.create_thumbnail_texture()
-            thumbnail_texture.save(save_location, "png")
+            file = QFile(":icon/Images/Dummy/Thumbnail-Maskv3.png")
+            if not file.open(QIODevice.OpenModeFlag.ReadOnly):
+                raise FileNotFoundError(f"Resource not found")
 
+            data = file.readAll()
+            file.close()
+            mask = bytes(data)
+
+            self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
     def export_logo_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Logo Texture.png", "Images (*.png)")[0]
-
-        if save_location == "":
+        filename, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save Image",
+            str(config.last_used_directory) + "/Logo Texture.png",
+            "PNG Files (*.png)"
+        )
+        if filename == "":
             print("Directory wasn't chosen")
         else:
-            config.last_used_directory = Path(save_location).parent
+            config.last_used_directory = Path(filename).parent
             logo_texture = self.create_logo_texture()
-            logo_texture.save(save_location, "png")
+            logo_texture.save(filename, "png")
+    def export_background_jacket_logo_farc_button_callback(self):
+        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
-    def generate_spr_db_button_callback(self):
-        spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
-        #TODO add warning about using multiple new thumbnail files in single mod. Should prevent user from generating sprite database until this gets fixed
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(output_location)
+
+            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+            compression = self.main_box.farc_compression_dropdown.currentEnum()
+            print(compression)
+
+            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            else:
+                logo = None
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression)
+
+
+    def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+            temp_path = temp_file.name
+
+        try:
+            if not qimage.save(temp_path):
+                raise ValueError("Failed to save QImage to temporary file")
+
+            with WImage(filename=temp_path) as img:
+                with WImage(blob=mask) as mask_img:
+                    if img.size != mask_img.size:
+                        mask_img.resize(img.width, img.height)
+
+                    img.composite(mask_img, operator='copy_alpha')
+
+                    img.save(filename=output_path)
+
+        except Exception as e:
+            print(f"Error during image processing: {str(e)}")
+            raise
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def generate_spr_db_button_callback(self,path=None):
+        spr_path = path
+        if spr_path is False:
+            spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
 
         if spr_path == "":
             print("Folder wasn't chosen")
         else:
             spr_db = Manager()
             farc_list = []
+            new_thumb_farc_count = 0
             config.last_used_directory = Path(spr_path)
             for spr in Path(spr_path).iterdir():
                 _temp_file = Path(spr)
@@ -1367,16 +969,25 @@ class MainWindow(QMainWindow):
                     if farc_file.name == "spr_sel_pvtmb.farc":
                         has_old_tmb_farc = True
                     elif farc_file.name[:14] == "spr_sel_pvtmb_":
+                        new_thumb_farc_count = new_thumb_farc_count +1
                         has_new_tmb_farc = True
-                if has_new_tmb_farc == True:
-                    if has_old_tmb_farc == True:
+                if has_new_tmb_farc:
+                    if has_old_tmb_farc:
                         farc_list.remove(Path(spr_path + "/spr_sel_pvtmb.farc"))
-                        show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db for old combined thumbnail farc was skipped."
+                        show_message_box("Warning", "You have included both new and old thumbnail farcs in your mod! Generating spr_db was skipped."
                                                     "\n"
-                                                    "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to avoid issues.")
-                        print("Separate thumbnail farc files found , not including old combined thumbnail farc in generated database!")
+                                                    "\nPlease remove 'spr_sel_pvtmb.farc' from your mod to generate sprite database.")
+                        print("Found Both old and new thumbnail farc formats. Skipping database generation.")
+                        return
                     else:
                         print("Only separate thumbnail farc files found.")
+                    if new_thumb_farc_count > 1:
+                        show_message_box("Warning", "You have included multiple new thumbnail farcs in your mod! Generating spr_db was skipped."
+                                                    "\n"
+                                                    "\nPlease include only 1 thumbnail farc in your mod to generate sprite database.")
+                        print("Multiple new thumbnail farc's found. Skipping database generation.")
+                        return
+
                 for farc_file in farc_list:
                     farc_reader = read_farc(farc_file)
                     add_farc_to_Manager(farc_reader, spr_db)
@@ -1388,7 +999,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     config = Configurable()
-    SceneComposer = SceneComposer()
     FarcCreator = FarcCreator()
     app = QApplication(sys.argv)
     app.setStyle("Fusion")

@@ -1,15 +1,18 @@
-from decimal import Decimal, ROUND_HALF_UP
-from pathlib import Path, PurePath
-
-from PySide6.QtCore import Qt
+import io
+import math
 from enum import Enum, auto, StrEnum
-from PIL import Image, ImageOps, ImageQt, ImageStat, ImageShow
-from PIL.Image import Resampling
+from pathlib import Path
+from typing import Callable
 
-class ThumbnailCheck(Enum):
-    FULLY_OPAQUE = [15293.325646817684]
-    SPRITE_HELPER_EXPORTED = [15409.511583194137]
-    SPRITE_HELPER_EXPORTED_OLD = [15403.198932036757]
+import PySide6
+from PIL import Image
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
+
+from widgets import EditableDoubleLabel
+
 
 class State(Enum):
     FALLBACK = auto()
@@ -34,697 +37,779 @@ class Scene(Enum):
     FUTURE_TONE_SONG_SELECT = auto()
     FUTURE_TONE_RESULT = auto()
 
+####################################################
+def round_up(number, decimal_places):
+    factor = 10 ** decimal_places
+    return math.ceil(number * factor) / factor
 
-def texture_filtering_fix(image, opacity):
-    # Very edges of the sprite should have like 40% opacity. This makes jackets appear smooth in-game.
-    t_edge = Image.new(image.mode, (image.size[0], image.size[1]))
-    t_edge.alpha_composite(image)
-    t_edge = t_edge.resize((image.size[0] + 2, image.size[1] + 2))
-    r, g, b, a = t_edge.split()
-    a = a.point(lambda x: opacity if x > 0 else 0)  # Set 102 opacity, that is 40% from 256. For Background 100% is recommended
-    t_edge = Image.merge(image.mode, (r, g, b, a))
-    t_edge.alpha_composite(image, (1, 1))
-    return t_edge
+def get_transparent_edge_pixels(image):
 
-class Sprite:
-    def __init__(self,sprite_type,image_location):
-        self.script_directory = Path.cwd()
+    if not image.hasAlphaChannel():
+        edges = {
+            "Top": 0,
+            "Bottom": 0,
+            "Left": 0,
+            "Right": 0
+        }
+        return edges
+
+    width = image.width()
+    height = image.height()
+
+    top = 0
+    bottom = 0
+    left = 0
+    right = 0
+
+    for y in range(height):
+        row_has_opaque = False
+        for x in range(width):
+            if image.pixelColor(x, y).alpha() != 0:
+                row_has_opaque = True
+                break
+        if row_has_opaque:
+            break
+        top += 1
+
+    for y in range(height - 1, -1, -1):
+        row_has_opaque = False
+        for x in range(width):
+            if image.pixelColor(x, y).alpha() != 0:
+                row_has_opaque = True
+                break
+        if row_has_opaque:
+            break
+        bottom += 1
+
+    for x in range(width):
+        col_has_opaque = False
+        for y in range(height):
+            if image.pixelColor(x, y).alpha() != 0:
+                col_has_opaque = True
+                break
+        if col_has_opaque:
+            break
+        left += 1
+
+    for x in range(width - 1, -1, -1):
+        col_has_opaque = False
+        for y in range(height):
+            if image.pixelColor(x, y).alpha() != 0:
+                col_has_opaque = True
+                break
+        if col_has_opaque:
+            break
+        right += 1
+
+    edges = {
+    "Top": top,
+    "Bottom": bottom,
+    "Left": left,
+    "Right": right
+    }
+    return edges
+
+def get_real_image_area(image:QImage) -> QRect:
+    t_edges = get_transparent_edge_pixels(image)
+    image_rect = image.rect()
+    adjusted_rect = image_rect.adjusted(t_edges["Left"],t_edges["Top"],-t_edges["Right"],-t_edges["Bottom"])
+    return adjusted_rect
+
+######################################################
+class QScalingGraphicsScene(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.setViewport(QOpenGLWidget())
+    def resizeEvent(self,event):
+        self.fitInView(self.scene().sceneRect())
+
+
+def qresource_to_bytes(location):
+    file = QFile(location)
+    if not file.exists():
+        raise FileNotFoundError(f"Resource {location} not found")
+
+    if file.open(QIODevice.ReadOnly):
+        data = file.readAll()
+        file.close()
+
+        image_data = bytes(data)
+        return io.BytesIO(image_data)
+    else:
+        raise IOError(f"Cannot open resource {location}")
+
+
+class QSpriteBase(QGraphicsPixmapItem, QObject):
+    SpriteUpdated = Signal()
+    def __init__(self,
+                 sprite:str,
+                 sprite_type:SpriteType,
+                 size:PySide6.QtCore.QRectF,
+                 scale:float=None,
+                 offset:QPoint=QPoint(0,0)):
+        QObject.__init__(self)
+        QGraphicsPixmapItem.__init__(self)
+        #Set default image and fallback dummy.
+        self.dummy_location = sprite
+        self.location = sprite
+        self.sprite_size = size
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.offset=offset
+        if scale:
+            self.setScale(scale)
+
+        self.controls_enabled = True
+        self.sprite_image = QImage(self.location)
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
+        self.x = 0
+        self.y = 0
+
+
+        #Create a scene that will crop image to max size
+        self.sprite = QGraphicsPixmapItem()
+        self.sprite.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.sprite.setPixmap(QPixmap(self.sprite_image))
+        self.sprite_scene = QGraphicsScene()
+        self.sprite_scene.setSceneRect(self.sprite_size)
+        self.sprite_scene.addItem(self.sprite)
+
         self.type = sprite_type
-        self.location = image_location
-        self.dummy_location = image_location
+
+
         self.sprite_settings = [
-            (SpriteSetting.HORIZONTAL_OFFSET,{
-                'initial_value':0,
-                'decimals':0,
-                'rough_step':1,
-                'precise_step':1
+            (SpriteSetting.HORIZONTAL_OFFSET, {
+                'initial_value': 0,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
             }),
-            (SpriteSetting.VERTICAL_OFFSET,{
-                'initial_value':0,
-                'decimals':0,
-                'rough_step':1,
-                'precise_step':1
+            (SpriteSetting.VERTICAL_OFFSET, {
+                'initial_value': 0,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
             }),
-            (SpriteSetting.ROTATION,{
-                'initial_value':0,
-                'decimals':2,
-                'rough_step':1,
-                'precise_step':0.01
+            (SpriteSetting.ROTATION, {
+                'initial_value': 0,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
             }),
-            (SpriteSetting.ZOOM,{
-                'initial_value':1,
-                'decimals':3,
-                'rough_step':0.001,
-                'precise_step':0.001
+            (SpriteSetting.ZOOM, {
+                'initial_value': 1,
+                'decimals': 3,
+                'rough_step': 0.001,
+                'precise_step': 0.001
             })
         ]
         self.flipped_h = False
         self.flipped_v = False
-        with Image.open(self.location) as open_image:
-            left, upper, right, lower = open_image.getbbox()
-            self.edges = (left, upper, right, lower)
-            self.size = open_image.size
+        self.is_visible = True
+        self.initial_calc = True
+        self.last_value = {}
+        self.edit_controls = self.create_edit_controls()
 
-class BackgroundSprite(Sprite):
-    def __init__(self, sprite_type, image_location):
+        self.update_sprite()
 
-        super().__init__(sprite_type, image_location)
-        self.post_process(0,0,0,1)
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
 
-    def update_sprite(self,new_location,fallback = True):
-        with Image.open(new_location) as new_image:
-            new_left, new_upper, new_right, new_lower = new_image.getbbox()
-            new_real_width = new_right - new_left
-            new_real_height = new_lower - new_upper
+    def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
+        editable_values = {}
+        for setting in self.sprite_settings:
+            parameters = setting[1]
+            edit = EditableDoubleLabel(sprite=self,
+                                       setting=setting[0],
+                                       range=self.calculate_range(setting[0],self.rect),
+                                       **parameters)
+            edit.editingFinished.connect(self.update_sprite)
+            editable_values[setting[0].value] = edit
+        return editable_values
 
-            if new_real_width < 1280 or new_real_height < 720:
+    def add_edit_controls_to(self,layout:QLayout):
+        for control in self.edit_controls:
+            layout.addWidget(self.edit_controls[control])
 
-                if fallback:
-                    with Image.open(self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png') as dummy_image:
-                        new_left, new_upper, new_right, new_lower = dummy_image.getbbox()
-                        self.location = self.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png'
-                        self.edges = (new_left, new_upper, new_right, new_lower)
-                        self.size = dummy_image.size
-                        self.flipped_h = False
-                        self.flipped_v = False
 
-                        state = {
-                            "Outcome": State.FALLBACK
-                        }
-                        return state
-                else:
+    def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
+        pixmap = QPixmap(source_rect.size().toSize())
+        pixmap.fill("transparent")
 
-                    state = {
-                        "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{self.type} image is too small",
-                        "Description": f"{self.type} is too small. Image needs to be at least 1280x720.\nThis doesn't include fully transparent area"
-                    }
-                    return state
-            else:
-                self.location = new_location
-                self.edges = (new_left, new_upper, new_right, new_lower)
-                self.size = new_image.size
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        scene.render(painter, QRectF(pixmap.rect()), source_rect)
+        painter.end()
 
-                state = {
-                    "Outcome": State.UPDATED
-                }
-                return state
+        return pixmap
 
-    def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("background")
-        with Image.open(self.location).convert('RGBA') as background:
-            cropped_background = Image.Image.crop(background, Image.Image.getbbox(background))
-
-            if self.flipped_h:
-                cropped_background = cropped_background.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            if self.flipped_v:
-                cropped_background = cropped_background.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-            self.background_image = ImageOps.scale(cropped_background.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
-            self.background = Image.new('RGBA', (1280, 720))
-            self.background.alpha_composite(self.background_image, (horizontal_offset, vertical_offset))
-            self.scaled_background = ImageOps.scale(self.background, 1.5)
-
-    def calculate_range(self, SpriteSetting):
-        match SpriteSetting:
+    def calculate_range(self,sprite_setting,rect):
+        match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.background_image.width * -1) + 1280
+                area_over_req_size = rect.width() - self.required_size().width()
 
-                if offset > 0:
-                    return 0,offset
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.x+self.offset.x(), -self.x-self.offset.x()
+
                 else:
-                    return offset,0
+                    return -self.offset.x(),-self.offset.x()
 
             case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.background_image.height * -1) + 720
+                area_over_req_size = rect.height() - self.required_size().height()
 
-                if offset > 0:
-                    return 0, offset
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.y-self.offset.y(), -self.y-self.offset.y()
+
                 else:
-                    return offset, 0
+                    return -self.offset.y(),-self.offset.y()
 
             case SpriteSetting.ZOOM:
-                width_factor = Decimal(1280 / self.background_image.width)
-                height_factor = Decimal(720 / self.background_image.width)
-
-                if width_factor > height_factor:
-                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
-                elif height_factor > width_factor:
-                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
-                else:
-                    return 1.00, 1.00
-
-            case SpriteSetting.ROTATION:
-                return 0,360
-class JacketSprite(Sprite):
-    def __init__(self, sprite_type, image_location):
-
-        super().__init__(sprite_type, image_location)
-        self.post_process(0, 0, 0, 1)
-    def update_sprite(self,new_location,fallback = True):
-        with Image.open(new_location) as new_image:
-            new_left, new_upper, new_right, new_lower = new_image.getbbox()
-            new_real_width = new_right - new_left
-            new_real_height = new_lower - new_upper
-
-        if new_real_width < 500 or new_real_height < 500:
-
-            if fallback:
-                with Image.open(self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png') as dummy_image:
-                    new_left, new_upper, new_right, new_lower = dummy_image.getbbox()
-                    self.location = self.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png'
-                    self.edges = (new_left, new_upper, new_right, new_lower)
-                    self.size = dummy_image.size
-                    self.flipped_h = False
-                    self.flipped_v = False
-
-                    state = {
-                        "Outcome": State.FALLBACK
-                    }
-                    return state
-            else:
-
-                state = {
-                    "Outcome": State.IMAGE_TOO_SMALL,
-                    "Window Title": f"{self.type} image is too small",
-                    "Description": f"{self.type} is too small. Image needs to be at least 500x500.\nThis doesn't include fully transparent area"
-                }
-                return state
-        else:
-            self.location = new_location
-            self.edges = (new_left, new_upper, new_right, new_lower)
-            self.size = new_image.size
-
-            if new_real_width == new_real_height:
-                zoom = 500 / new_real_width
-
-                state = {
-                    "Outcome": State.UPDATED,
-                    "Jacket Force Fit": True,
-                    "Zoom": zoom
-                }
-                return state
-            else:
-
-                state = {
-                    "Outcome": State.UPDATED,
-                    "Jacket Force Fit": False
-                }
-                return state
-
-    def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("jacket")
-        with Image.open(self.location).convert('RGBA') as jacket:
-            cropped_jacket = Image.Image.crop(jacket, Image.Image.getbbox(jacket))
-
-            if self.flipped_h:
-                cropped_jacket = cropped_jacket.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            if self.flipped_v:
-                cropped_jacket = cropped_jacket.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-            self.jacket = Image.new('RGBA', (500, 500))
-            self.jacket_image = ImageOps.scale(cropped_jacket.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
-            self.jacket.alpha_composite(self.jacket_image, (horizontal_offset, vertical_offset))
-            self.jacket_test = self.jacket
-            self.jacket = texture_filtering_fix(self.jacket, 102)
-    def calculate_range(self, SpriteSetting):
-        match SpriteSetting:
-            case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.jacket_image.width * -1) + 500
-
-                if offset > 0:
-                    return 0,offset
-                else:
-                    return offset,0
-
-            case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.jacket_image.height * -1) + 500
-
-                if offset > 0:
-                    return 0,offset
-                else:
-                    return offset,0
-
-            case SpriteSetting.ZOOM:
-                width_factor = Decimal(500 / self.jacket_image.width)
-                height_factor = Decimal(500 / self.jacket_image.height)
-
-                if width_factor > height_factor:
-                    return float(width_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP)),1.00
-                elif height_factor > width_factor:
-                    return float(height_factor.quantize(Decimal('0.001'),rounding=ROUND_HALF_UP)),1.00
-                else:
+                if self.required_size() == QSize(0,0):
+                    return 0.10,1.00
+                if self.sprite_image.width() == 0:
                     return 1.00,1.00
-            case SpriteSetting.ROTATION:
-                return 0,360
+                if self.sprite_image.height() == 0:
+                    return 1.00,1.00
 
+                width_factor = self.required_size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
+                height_factor = self.required_size().height() / (self.sprite_image.height()-self.t_edges["Left"]-self.t_edges["Right"])
 
-class LogoSprite(Sprite):
-    def __init__(self, sprite_type, image_location):
+                image_w = (self.sprite_image.size() * width_factor)
+                image_h = (self.sprite_image.size() * height_factor)
 
-        super().__init__(sprite_type, image_location)
-        self.post_process(Qt.CheckState.Checked,0, 0, 0, 1)
-    def update_sprite(self,new_location,fallback = True):
-        with Image.open(new_location) as new_image:
-            new_left, new_upper, new_right, new_lower = new_image.getbbox()
+                image_w_pass = False
+                image_h_pass = False
 
-            self.location = new_location
-            self.edges = (new_left, new_upper, new_right, new_lower)
-            self.size = new_image.size
+                if image_w.width() >= self.required_size().width() and image_w.height() >= self.required_size().height():
+                    image_w_pass = True
+                if image_h.width() >= self.required_size().width() and image_h.height() >= self.required_size().height():
+                    image_h_pass = True
 
-            state = {
-                "Outcome": State.UPDATED
-            }
-            return state
+                if image_w_pass and image_h_pass:
+                    image_w_area = image_w.width() * image_w.height()
+                    image_h_area = image_h.width() * image_h.height()
 
-    def post_process(self,state,horizontal_offset,vertical_offset,rotation,zoom):
-        print("logo")
-        if state == Qt.CheckState.Checked:
-            with Image.open(self.location).convert('RGBA') as logo:
-                if self.flipped_h:
-                    logo = logo.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-                if self.flipped_v:
-                    logo = logo.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-                self.logo_image = ImageOps.scale(logo.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
-                self.logo = Image.new('RGBA', (870, 330))
-                self.logo.alpha_composite(self.logo_image, (horizontal_offset, vertical_offset))
-        else:
-            self.logo = Image.new('RGBA', (870, 330))
-
-    def calculate_range(self,SpriteSetting):
-        match SpriteSetting:
-            case SpriteSetting.HORIZONTAL_OFFSET:
-                with self.logo_image as logo:
-                    left, upper, right, lower = Image.Image.getbbox(logo)
-
-                    offset = 870 - right
-
-                    if offset > -left:
-                        return -left, offset
+                    if image_w_area >= image_h_area:
+                        return round_up(width_factor,3), 1.00
                     else:
-                        return offset, -left
-
-            case SpriteSetting.VERTICAL_OFFSET:
-                with self.logo_image as logo:
-                    left, upper, right, lower = Image.Image.getbbox(logo)
-
-                    offset = 330 - lower
-
-                    if offset > -upper:
-                        return -upper, offset
-                    else:
-                        return offset, -upper
-            case SpriteSetting.ZOOM:
-                with self.logo_image as logo:
-                    left, upper, right, lower = Image.Image.getbbox(logo)
-                    image_width = right - left
-                    image_height = lower - upper
-
-                    if image_height > 330 or image_width > 870:
-                        if (330 / image_height) <= (870 / image_width):
-                            max_scale = 330 / image_height
-                        else:
-                            max_scale = 870 / image_width
-                    else:
-                        max_scale = 1
-
-                return 0, max_scale
-            case SpriteSetting.ROTATION:
-                return 0,360
-
-class ThumbnailSprite(Sprite):
-    def __init__(self, sprite_type, image_location):
-
-        super().__init__(sprite_type, image_location)
-        self.post_process(0, 0, 0, 1)
-    def update_sprite(self,new_location,fallback = True):
-        with Image.open(new_location) as new_image:
-            new_left, new_upper, new_right, new_lower = new_image.getbbox()
-            new_real_width = new_right - new_left
-            new_real_height = new_lower - new_upper
-
-            if new_real_width < 100 or new_real_height < 61:
-
-                if fallback:
-                    with Image.open(self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png') as dummy_image:
-                        new_left, new_upper, new_right, new_lower = dummy_image.getbbox()
-                        self.location = self.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png'
-                        self.edges = (new_left, new_upper, new_right, new_lower)
-                        self.size = dummy_image.size
-                        self.flipped_h = False
-                        self.flipped_v = False
-
-                        state = {
-                            "Outcome": State.FALLBACK
-                        }
-                        return state
+                        return round_up(height_factor,3), 1.00
+                elif image_w_pass:
+                    return round_up(width_factor,3), 1.00
                 else:
+                    return round_up(height_factor,3),1.00
 
-                    state = {
-                        "Outcome": State.IMAGE_TOO_SMALL,
-                        "Window Title": f"{self.type} image is too small",
-                        "Description": f"{self.type} is too small. Image needs to be at least 100x61.\nThis doesn't include fully transparent area"
-                    }
-                    return state
+            case SpriteSetting.ROTATION:
+                return -360,0
+
+    def required_size(self) -> QSize:
+        return self.sprite_size.size().toSize()
+
+    def update_all_ranges(self,rect):
+        for setting in self.edit_controls:
+            self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
+    def load_new_image(self,image_location,fallback=False):
+        qimage =QImage(image_location)
+        required_size = self.required_size()
+
+        rw = required_size.width()
+        rh = required_size.height()
+        w = qimage.width()
+        h = qimage.height()
+        trans_edges = get_transparent_edge_pixels(qimage)
+
+        iw = w-trans_edges["Left"]-trans_edges["Right"]
+        ih = h-trans_edges["Top"]-trans_edges["Bottom"]
+
+        if (iw, ih ) < (rw, rh):
+            if fallback:
+                print(f"Image for {self.type.value} is no longer meeting minimum required size. Falling back to dummy image.")
+                print(f"Real Image size is {iw}x{ih}")
+                self.location = self.dummy_location
+                self.sprite_image = QImage(self.location)
+                return ["Fallback" , iw,ih,rw,rh]
             else:
-                self.location = new_location
-                self.edges = (new_left, new_upper, new_right, new_lower)
-                self.size = new_image.size
+                print(f"Chosen image for {self.type.value} is too small. It's size is {iw,ih}")
+                print(f"Required size for the sprite is {rw,rh}")
+                return ["Image too small",iw,ih,rw,rh]
+        else:
+            self.location = image_location
+            self.sprite_image = qimage
 
-                state = {
-                    "Outcome": State.UPDATED
-                }
-                return state
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
+        self.x = 0
+        self.y = 0
 
-    def post_process(self,horizontal_offset,vertical_offset,rotation,zoom):
-        print("thumbnail")
-        with Image.open(self.location).convert('RGBA') as thumbnail, Image.open(self.script_directory / 'Images/Dummy/Thumbnail-Maskv2.png').convert('L') as mask:
-            cropped_thumbnail = Image.Image.crop(thumbnail, Image.Image.getbbox(thumbnail))
 
-            if self.flipped_h:
-                cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            if self.flipped_v:
-                cropped_thumbnail = cropped_thumbnail.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        self.initial_calc = True
+        self.last_value = {}
+        self.update_all_ranges(self.rect)
 
-            self.thumbnail_image = ImageOps.scale(cropped_thumbnail.rotate(rotation, Resampling.BILINEAR, expand=True), zoom)
-            self.thumbnail = Image.new('RGBA', (128, 64))
-            self.thumbnail.alpha_composite(self.thumbnail_image, (horizontal_offset + 28, vertical_offset + 1))
-            self.thumbnail_test = Image.composite(self.thumbnail,Image.new('RGBA',(128,64)),mask) #This doesn't fill in transparent area with black. Used only to get info what pixels are filled in.
-            self.thumbnail.putalpha(mask) #Used for final image, forces exact same transparency as mask.
-    def calculate_range(self,SpriteSetting):
-        match SpriteSetting:
+        self.update_sprite()
+        self.set_initial_values()
+        return ["Updated"]
+
+    def update_sprite(self,hq_output=False):
+        zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
+        zoom_inverse = 1/zoom
+        horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+        image_size = self.sprite_image
+
+        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
+        result.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(result)
+        painter.setRenderHints(QPainter.RenderHint.LosslessImageRendering,)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        t_ns = QTransform()
+        t_ns.translate(horizontal_offset, vertical_offset)
+        t_ns.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_ns.rotate(rotation)
+        t_ns.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+
+        t_s = QTransform()
+        t_s.translate(horizontal_offset, vertical_offset)
+        t_s.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_s.rotate(rotation)
+        t_s.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+        t_s.scale(zoom, zoom)
+
+
+        if hq_output:
+            if isinstance(self.location, str):
+                if self.location.startswith(":"):
+                    self.location = qresource_to_bytes(self.location)
+            with Image.open(self.location) as image:
+                width = int(image_size.width() * zoom)
+                height = int(image_size.height() * zoom)
+                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqimage()
+
+            painter.setTransform(t_ns,combine=False)
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
+        else:
+            painter.setTransform(t_s, combine=False)
+            drawn_image = QPixmap(self.sprite_image)
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+
+
+        transformed_rect = t_s.mapRect(self.rect)
+
+        painter.end()
+
+        self.x = int(transformed_rect.x()) - horizontal_offset
+        self.y = int(transformed_rect.y()) - vertical_offset
+
+        self.sprite.setPixmap(QPixmap(self._apply_flips(result)))
+        self.update_pixmap()
+
+        recalculate_offsets = False
+
+        if self.initial_calc:
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
+
+            self.update_all_ranges(transformed_rect)
+            self.initial_calc = False
+        else:
+            for setting in self.last_value:
+                if self.edit_controls[setting].value != self.last_value[setting]:
+                    if setting in ["Horizontal Offset" , "Vertical Offset"]:
+                        continue
+                    else:
+                        recalculate_offsets = True
+                        break
+
+        if recalculate_offsets:
+            self.update_all_ranges(transformed_rect)
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
+
+        self.SpriteUpdated.emit()
+    def set_initial_values(self):
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
+        self.update_sprite()
+    def _apply_flips(self,image:QImage):
+        if self.flipped_h:
+            image.flip(Qt.Orientation.Horizontal)
+        if self.flipped_v:
+            image.flip(Qt.Orientation.Vertical)
+        return image
+    def toggle_flip(self,flip_type):
+        match flip_type:
+            case Qt.Orientation.Vertical:
+                self.flipped_v = not self.flipped_v
+            case Qt.Orientation.Horizontal:
+                self.flipped_h = not self.flipped_h
+
+        self.update_sprite()
+    def toggle_visibility(self,state):
+        self.is_visible = state
+        self.update_sprite()
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setEnabled(state)
+        self.controls_enabled = state
+        self.SpriteUpdated.emit()
+
+    def update_pixmap(self):
+        self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
+
+    def mousePressEvent(self, event, /):
+        self.save_image()
+
+        super().mousePressEvent(event)
+
+    def save_image(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save Image",
+            "image.png",
+            "PNG Files (*.png)"
+        )
+        if filename:
+            self.pixmap().save(filename, "PNG",100)
+            print(f"Image saved to: {filename}")
+class QThumbnail(QSpriteBase):
+    def __init__(self,
+                 sprite: str,
+                 size: PySide6.QtCore.QRectF,
+                 mask: str):
+
+        self.sprite_mask = QImage(mask)
+        super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
+
+    def required_size(self) -> QSize:
+        return QSize(100,61)
+
+    def apply_mask_to_pixmap(self, pixmap:QPixmap) -> QPixmap:
+        result_pixmap = QPixmap(self.sprite.pixmap().size())
+        result_pixmap.fill("transparent")  # This prevents ghost images from showing up
+
+        painter = QPainter(result_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        painter.drawPixmap(0, 0, pixmap)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
+
+        painter.drawImage(0, 0, self.sprite_mask)
+        painter.end()
+
+        return result_pixmap
+
+    def update_pixmap(self):
+        self.pixmap_no_mask = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
+        self.setPixmap(self.apply_mask_to_pixmap(self.pixmap_no_mask))
+class QJacket(QSpriteBase):
+    def __init__(self,sprite: str,
+                 size: PySide6.QtCore.QRectF):
+        super().__init__(sprite,SpriteType.JACKET,size)
+
+    def apply_fix(self,image:QImage) -> QImage:
+        w = image.width()
+        h = image.height()
+        image_s = image
+
+        image_fix = QImage(QSize(502,502), QImage.Format.Format_ARGB32)
+        image_fix.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(image_fix)
+        painter.setOpacity(50 / 255)
+        painter.drawImage(0,0,image_s.scaled(w+2, h+2))
+        painter.setOpacity(255)
+        painter.drawImage(1,1,image)
+        painter.end()
+
+        return image_fix
+
+    def required_size(self) -> QSize:
+        return QSize(500,500)
+
+    def set_initial_values(self):
+        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
+        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
+        self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
+
+        if self.sprite_image.size().width() / self.sprite_image.size().height() == 1:
+            self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[0])
+        else:
+            self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
+
+    def update_pixmap(self):
+        self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
+class QBackground(QSpriteBase):
+    def __init__(self,sprite,size):
+        super().__init__(sprite,SpriteType.BACKGROUND,size)
+
+    def required_size(self) -> QSize:
+        return QSize(1280,720)
+class QLogo(QSpriteBase):
+    def __init__(self,sprite,size):
+        super().__init__(sprite,SpriteType.LOGO,size)
+    def required_size(self) -> QSize:
+        return QSize(0,0)
+
+
+
+
+
+    def calculate_range(self,sprite_setting:SpriteSetting,rect):
+
+        match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                offset = (self.thumbnail_image.width * -1) + 100
+                space = self.sprite_size.size().width() - rect.width()
+                #need to split this value based on area available on different sides
 
-                if offset > 0:
-                    return 0, offset
+                if space > 0:
+                    return (-self.x-self.offset.x(),
+                            -self.x-self.offset.x()+space)
+
                 else:
-                    return offset, 0
+                    return (-self.offset.x()+(space/2),
+                            -self.offset.x()-(space/2))
 
             case SpriteSetting.VERTICAL_OFFSET:
-                offset = (self.thumbnail_image.height * -1) + 61
+                space =  self.sprite_size.size().height() - rect.height()
 
-                if offset > 0:
-                    return 0, offset
+                if space > 0:
+                    return (-self.y-self.offset.y(),
+                            -self.y-self.offset.y()+space)
+
                 else:
-                    return offset, 0
+                    return (-self.offset.y()+(space/2),
+                            -self.offset.y()-(space/2))
+
             case SpriteSetting.ZOOM:
-                width_factor = Decimal(100 / self.thumbnail_image.width)
-                height_factor = Decimal(61 / self.thumbnail_image.height)
+
+                width_factor = self.sprite_size.size().width() / self.sprite_image.width()
+                height_factor = self.sprite_size.size().height() / self.sprite_image.height()
+
+                #TODO Round it up to number of decimals specified in sprite settings
+                if width_factor > 1:
+                    width_factor = 1
+                if height_factor > 1:
+                    height_factor = 1
 
                 if width_factor > height_factor:
-                    return float(width_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                    return 0.10,round_up(width_factor,3)
                 elif width_factor < height_factor:
-                    return float(height_factor.quantize(Decimal('0.001'), rounding=ROUND_HALF_UP)), 1.00
+                    return 0.10,round_up(height_factor,3)
                 else:
-                    return 1.00, 1.00
+                    return 0.10,round_up(height_factor,3)
             case SpriteSetting.ROTATION:
-                return 0,360
-class SceneBase:
-    def __init__(self,*args):
-        self.layers = ()
-        self.sprites = []
-        for arg in args:
-            self.sprites.append(arg)
+                return -360,0
 
-    def draw_scene(self):
-        composite = Image.new('RGBA', (1920, 1080))
-        for layer in self.layers:
-            sprite, position = layer[0], layer[1]
-            composite.alpha_composite(sprite, position)
-        return composite
+    def set_initial_values(self):
+        hor_range = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range
+        hor_center = (hor_range[1] + hor_range[0]) / 2
 
-class MegamixSongSelect(SceneBase):
-    def __init__(self,background,logo,thumbnail,jacket):
-        super().__init__(background,logo,thumbnail,jacket)
-        self.shared_background = background
-        self.shared_logo = logo
-        self.shared_thumbnail = thumbnail
-        self.shared_jacket = jacket
+        ver_range = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].range
+        ver_center = (ver_range[1]+ver_range[0])/2
 
-        # Load images needed
-        self.backdrop = Image.open(Path.cwd() / 'Images/MM UI - Song Select/Backdrop.png').convert('RGBA')
-        self.song_selector = Image.open(Path.cwd() / 'Images/MM UI - Song Select/Song Selector.png').convert('RGBA')
-        self.middle_layer = Image.open(Path.cwd() / 'Images/MM UI - Song Select/Middle Layer.png').convert('RGBA')
+        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(hor_center)
+        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(ver_center)
+        self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
+        self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
 
-        self.top_layer_new_classics = Image.open(Path.cwd() / 'Images/MM UI - Song Select/Top Layer - New Classics.png').convert('RGBA')
-        self.top_layer = Image.open(Path.cwd() / 'Images/MM UI - Song Select/Top Layer.png').convert('RGBA')
+class QSpriteSlave(QGraphicsPixmapItem):
 
-        self.top_layer_used = self.top_layer_new_classics
+    def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None):
+        super().__init__()
+        self.tracked = tracked
+        tracked.SpriteUpdated.connect(self.update_sprite)
+        self.rotation = rotation
+        self.scale = scale
+        self.setPos(position)
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
 
-        self.jacket_anchor_point = (1284, 130)
-        self.jacket_angle = -7
-
-        self.logo_anchor_point = (825, 537)
-        self.logo_scale = 0.8
-
-        self.thumbnail_size =  (160, 76)
-        self.selected_thumbnail_size = (202, 98)
-
-        self.thumbnail_1_anchor_point = (-98, -24)
-        self.thumbnail_2_anchor_point = (-66, 90)
-        self.thumbnail_3_anchor_point = (-34, 204)
-        self.selected_thumbnail_anchor_point = (-8, 332)
-        self.thumbnail_4_anchor_point = (44, 476)
-        self.thumbnail_5_anchor_point = (108, 704)
-        self.thumbnail_6_anchor_point = (140, 818)
-        self.thumbnail_7_anchor_point = (168, 943)
-
-        self.prepare_sprites()
-        self.reload_layers()
-
-    def reload_layers(self):
-        self.layers = (
-            (self.backdrop, (0, 0)),
-            (self.shared_background.scaled_background, (0, 0)),
-            (self.rotated_jacket, self.jacket_anchor_point),
-            (self.middle_layer, (0, 0)),
-            (self.scaled_logo, self.logo_anchor_point),
-            (self.song_selector, (0, 0)),
-            (self.resized_thumbnail, self.thumbnail_1_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_2_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_3_anchor_point),
-            (self.resized_selected_thumbnail, self.selected_thumbnail_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_4_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_5_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_6_anchor_point),
-            (self.resized_thumbnail, self.thumbnail_7_anchor_point),
-            (self.top_layer_used, (0, 0))
-        )
-    def prepare_sprites(self):
-        self.rotated_jacket = self.shared_jacket.jacket.rotate(self.jacket_angle, Resampling.BILINEAR, expand=True)
-        self.scaled_logo = ImageOps.scale(self.shared_logo.logo, self.logo_scale)
-        self.resized_thumbnail = self.shared_thumbnail.thumbnail.resize(self.thumbnail_size, resample=Resampling.BILINEAR)
-        self.resized_selected_thumbnail = self.shared_thumbnail.thumbnail.resize(self.selected_thumbnail_size, resample=Resampling.BILINEAR)
-
-    def compose_scene(self,new_classics_state):
-        self.prepare_sprites()
-
-        if new_classics_state:
-            self.top_layer_used = self.top_layer_new_classics
+        self.update_sprite()
+    def update_sprite(self):
+        if self.scale:
+            self.setPixmap(self.tracked.pixmap())
+            self.setScale(self.scale)
         else:
-            self.top_layer_used = self.top_layer
+            self.setPixmap(self.tracked.pixmap())
 
-        self.reload_layers()
+        if self.rotation:
+            image = self.pixmap().toImage()
+            image = image.transformed(QTransform().rotate(self.rotation))
+            self.setPixmap(QPixmap(image))
+class QLayer(QGraphicsPixmapItem):
+    def __init__(self,
+                 sprite: str,
+                 size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080),
+                 scale:float=1):
+        super().__init__()
+        self.sprite_size = size
+        self.setPixmap(QPixmap(sprite))
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.setScale(scale)
 
-        drawn_scene = self.draw_scene()
-        return drawn_scene
-class MegamixResult(SceneBase):
-    def __init__(self,background,logo,jacket):
-        super().__init__(background,logo,jacket)
-        self.shared_background = background
-        self.shared_logo = logo
-        self.shared_jacket = jacket
-
-        # Load images needed
-        self.backdrop = ImageOps.scale(Image.open((Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png')), 1.5)
-        self.middle_layer = Image.open((Path.cwd() / 'Images/MM UI - Results Screen/Middle Layer.png'))
-        self.top_layer_new_classics = Image.open((Path.cwd() / 'Images/MM UI - Results Screen/Top Layer - New Classics.png'))
-        self.top_layer = Image.open((Path.cwd() / 'Images/MM UI - Results Screen/Top Layer.png'))
-
-        self.top_layer_used = self.top_layer_new_classics
-
-        self.mm_result_jacket_angle = -7
-        self.mm_result_jacket_scale = 0.9
-        self.mm_result_logo_scale = 0.7
-
-        self.mm_result_jacket_anchor_point = (108, 387)
-        self.mm_result_logo_anchor_point = (67, 784)
-
-        self.prepare_sprites()
-        self.reload_layers()
-
-    def reload_layers(self):
-        self.layers = (
-                    (self.backdrop,(0,0)),
-                    (self.shared_background.scaled_background,(0,0)),
-                    (self.middle_layer,(0,0)),
-                    (self.rotated_jacket,self.mm_result_jacket_anchor_point),
-                    (self.scaled_logo,self.mm_result_logo_anchor_point),
-                    (self.top_layer_used,(0,0))
-                )
-    def prepare_sprites(self):
-        scaled_jacket = ImageOps.scale(self.shared_jacket.jacket, self.mm_result_jacket_scale)
-        self.rotated_jacket = scaled_jacket.rotate(self.mm_result_jacket_angle, Resampling.BILINEAR, expand=True)
-        self.scaled_logo = ImageOps.scale(self.shared_logo.logo, self.mm_result_logo_scale)
-
-    def compose_scene(self,new_classics_state):
-        self.prepare_sprites()
-
-        if new_classics_state:
-            self.top_layer_used = self.top_layer_new_classics
-        else:
-            self.top_layer_used = self.top_layer
-
-        self.reload_layers()
-
-        drawn_scene = self.draw_scene()
-        return drawn_scene
-class FutureToneSongSelect(SceneBase):
-    def __init__(self,background,logo,jacket):
-        super().__init__(background,logo,jacket)
-        self.shared_background = background
-        self.shared_logo = logo
-        self.shared_jacket = jacket
-
-        # Load images needed
-        self.backdrop = Image.open((Path.cwd() / 'Images/FT UI - Song Select/Base.png'))
-        self.middle_layer = Image.open((Path.cwd() / 'Images/FT UI - Song Select/Middle Layer.png'))
-        self.top_layer_new_classics = Image.open((Path.cwd() / 'Images/FT UI - Song Select/Top Layer - New Classics.png'))
-        self.top_layer = Image.open((Path.cwd() / 'Images/FT UI - Song Select/Top Layer.png'))
-        self.top_layer_used = self.top_layer_new_classics
-
-        self.ft_song_selector_jacket_scale = 0.97
-        self.ft_song_selector_jacket_angle = 5
-        self.ft_song_selector_logo_scale = 0.9
-
-        self.ft_song_selector_jacket_anchor_point = (1331, 205)
-        self.ft_song_selector_logo_anchor_point = (803, 515)
-
-        self.prepare_sprites()
-        self.reload_layers()
-
-    def reload_layers(self):
-        self.layers = (
-                    (self.backdrop,(0,0)),
-                    (self.shared_background.scaled_background,(0,0)),
-                    (self.middle_layer,(0,0)),
-                    (self.rotated_jacket,self.ft_song_selector_jacket_anchor_point),
-                    (self.scaled_logo,self.ft_song_selector_logo_anchor_point),
-                    (self.top_layer_used,(0,0))
-                )
-    def prepare_sprites(self):
-        scaled_jacket = ImageOps.scale(self.shared_jacket.jacket, self.ft_song_selector_jacket_scale)
-        self.rotated_jacket = scaled_jacket.rotate(self.ft_song_selector_jacket_angle, Resampling.BILINEAR, expand=True)
-        self.scaled_logo = ImageOps.scale(self.shared_logo.logo, self.ft_song_selector_logo_scale)
-    def compose_scene(self,new_classics_state):
-        self.prepare_sprites()
-
-        if new_classics_state:
-            self.top_layer_used = self.top_layer_new_classics
-        else:
-            self.top_layer_used = self.top_layer
-
-        self.reload_layers()
-
-        drawn_scene = self.draw_scene()
-        return drawn_scene
-class FutureToneResult(SceneBase):
-    def __init__(self,logo,jacket):
-        super().__init__(logo,jacket)
-        self.shared_logo = logo
-        self.shared_jacket = jacket
-
-        #Load images needed
-        self.backdrop = Image.open((Path.cwd() / 'Images/FT UI - Results Screen/Base.png'))
-        self.middle_layer = Image.open((Path.cwd() / 'Images/FT UI - Results Screen/Middle Layer.png'))
-        self.top_layer_new_classics = Image.open((Path.cwd() / 'Images/FT UI - Results Screen/Top Layer - New Classics.png'))
-        self.top_layer = Image.open((Path.cwd() / 'Images/FT UI - Results Screen/Top Layer.png'))
-        self.top_layer_used = self.top_layer_new_classics
-
-        self.ft_result_jacket_anchor_point = (164, 303)
-        self.ft_result_jacket_angle = 5
-        self.ft_result_logo_anchor_point = (134, 663)
-        self.ft_result_logo_scale = 0.75
-
-        self.prepare_sprites()
-        self.reload_layers()
-
-    def reload_layers(self):
-        self.layers = (
-                    (self.backdrop,(0,0)),
-                    (self.middle_layer,(0,0)),
-                    (self.rotated_jacket,self.ft_result_jacket_anchor_point),
-                    (self.scaled_logo,self.ft_result_logo_anchor_point),
-                    (self.top_layer_used,(0,0))
-                )
-
-    def prepare_sprites(self):
-        self.rotated_jacket = self.shared_jacket.jacket.rotate(self.ft_result_jacket_angle, Resampling.BILINEAR, expand=True)
-        self.scaled_logo = ImageOps.scale(self.shared_logo.logo, self.ft_result_logo_scale)
-
-    def compose_scene(self,new_classics_state):
-        self.prepare_sprites()
-
-        if new_classics_state:
-            self.top_layer_used = self.top_layer_new_classics
-        else:
-            self.top_layer_used = self.top_layer
-
-        self.reload_layers()
-
-        drawn_scene = self.draw_scene()
-        return drawn_scene
-
-class SceneComposer:
-
+class QControllableSprites:
     def __init__(self):
-        self.loaded_scenes = []
-        #Create objects storing information about images
-        self.Background = BackgroundSprite(SpriteType.BACKGROUND,Path.cwd() / 'Images/Dummy/SONG_BG_DUMMY.png')
-        self.Jacket = JacketSprite(SpriteType.JACKET, Path.cwd() / 'Images/Dummy/SONG_JK_DUMMY.png')
-        self.Logo = LogoSprite(SpriteType.LOGO, Path.cwd() / 'Images/Dummy/SONG_LOGO_DUMMY.png')
-        self.Thumbnail = ThumbnailSprite(SpriteType.THUMBNAIL, Path.cwd() / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png')
+        self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
+                                      QRectF(0, 0, 128, 64),
+                                      u":icon/Images/Dummy/Thumbnail-Maskv3.png")
 
-        self.Megamix_Song_Select = MegamixSongSelect(self.Background,self.Logo,self.Thumbnail,self.Jacket)
-        self.Megamix_Result = MegamixResult(self.Background,self.Logo,self.Jacket)
-        self.FutureTone_Song_Select = FutureToneSongSelect(self.Background,self.Logo,self.Jacket)
-        self.FutureTone_Result = FutureToneResult(self.Logo,self.Jacket)
+        self.logo = QLogo(u":icon/Images/Dummy/SONG_LOGO_DUMMY.png",
+                            QRectF(0, 0, 870, 330))
+        self.jacket = QJacket(u":icon/Images/Dummy/SONG_JK_DUMMY.png",
+                                QRectF(0, 0, 502, 502))
+        self.background = QSpriteBase(u":icon/Images/Dummy/SONG_BG_DUMMY.png",
+                                        SpriteType.BACKGROUND,
+                                        QRectF(0, 0, 1280, 720))
 
-        self.loaded_scenes.append(self.Megamix_Song_Select)
-        self.loaded_scenes.append(self.Megamix_Result)
-        self.loaded_scenes.append(self.FutureTone_Song_Select)
-        self.loaded_scenes.append(self.FutureTone_Result)
+        self.list = [self.thumbnail,self.logo,self.jacket,self.background]
 
-    def get_required_sprites(self):
-        sprite_list = []
-        for loaded_scene in self.loaded_scenes:
-            for sprite in loaded_scene.sprites:
-                if sprite in sprite_list:
-                    pass
-                else:
-                    sprite_list.append(sprite)
+class QMMSongSelectScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
+        super().__init__()
 
-        return sprite_list
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(1284, 130), rotation=7)
+        self.logo = QSpriteSlave(logo, QPoint(825, 537), scale=0.8)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+        self.thumbnail_1 = QSpriteSlave(thumbnail, QPoint(-98, -24), scale=1.25)
+        self.thumbnail_2 = QSpriteSlave(thumbnail, QPoint(-66, 90), scale=1.25)
+        self.thumbnail_3 = QSpriteSlave(thumbnail, QPoint(-34, 204), scale=1.25)
+        self.thumbnail_selected = QSpriteSlave(thumbnail, QPoint(-8, 332), scale=1.578125)
+        self.thumbnail_4 = QSpriteSlave(thumbnail, QPoint(44, 476), scale=1.25)
+        self.thumbnail_5 = QSpriteSlave(thumbnail, QPoint(108, 704), scale=1.25)
+        self.thumbnail_6 = QSpriteSlave(thumbnail, QPoint(140, 818), scale=1.25)
+        self.thumbnail_7 = QSpriteSlave(thumbnail, QPoint(168, 948), scale=1.25)
+        ######
+        self.backdrop = QLayer(u":icon/Images/MM UI - Song Select/Backdrop.png")
+        self.song_selector = QLayer(u":icon/Images/MM UI - Song Select/Song Selector.png")
+        self.middle_layer = QLayer(u":icon/Images/MM UI - Song Select/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png")
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
 
-    def check_sprite(self,sprite):
-        match sprite:
-            case SpriteType.JACKET:
-                if ImageStat.Stat(self.Jacket.jacket_test).extrema[3] == (255,255):
-                    return True
-                else:
-                    return False
-            case SpriteType.BACKGROUND:
-                if ImageStat.Stat(self.Background.scaled_background).extrema[3] == (255,255):
-                    return True
-                else:
-                    return False
-            case SpriteType.THUMBNAIL:
-                thumbnail_area_covered = ImageStat.Stat(self.Thumbnail.thumbnail_test.getchannel("A")).var
-                if thumbnail_area_covered in ThumbnailCheck:
-                    return True
-                else:
-                    return False
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.jacket)
+        self.addItem(self.middle_layer)
+        self.addItem(self.logo)
+        self.addItem(self.song_selector)
+        self.addItem(self.thumbnail_1)
+        self.addItem(self.thumbnail_2)
+        self.addItem(self.thumbnail_3)
+        self.addItem(self.thumbnail_selected)
+        self.addItem(self.thumbnail_4)
+        self.addItem(self.thumbnail_5)
+        self.addItem(self.thumbnail_6)
+        self.addItem(self.thumbnail_7)
+        self.addItem(self.top_layer)
 
+    def toggle_new_classics(self,state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
+        else:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer.png"))
+class QFTSongSelectScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(1331, 205), rotation=-5 ,scale=0.97)
+        self.logo = QSpriteSlave(logo, QPoint(803, 515), scale=0.9)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
 
+        ######
+        self.backdrop = QLayer(u":icon/Images/FT UI - Song Select/Base.png")
+        self.middle_layer = QLayer(u":icon/Images/FT UI - Song Select/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
+        else:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
+class QMMResultScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(108, 387), rotation=7, scale=0.9)
+        self.logo = QSpriteSlave(logo, QPoint(67, 784), scale=0.7)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+        ######
+        self.backdrop = QLayer(u":icon/Images/Dummy/SONG_BG_DUMMY.png",scale=1.5)
+        self.middle_layer = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
+        else:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer.png"))
+class QFTResultScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo):
+        super().__init__()
+
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(164, 303), rotation=-5)
+        self.logo = QSpriteSlave(logo, QPoint(134, 663), scale=0.75)
+        ######
+        self.backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png")
+        self.middle_layer = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png")
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        self.addItem(self.backdrop)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png"))
+        else:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer.png"))
+
+class QPreviewScenes:
+    def __init__(self,C_Sprites:QControllableSprites):
+        self.MM_SongSelect = QMMSongSelectScene(C_Sprites.jacket,
+                                                C_Sprites.logo,
+                                                C_Sprites.background,
+                                                C_Sprites.thumbnail)
+
+        self.FT_SongSelect = QFTSongSelectScene(C_Sprites.jacket,
+                                                C_Sprites.logo,
+                                                C_Sprites.background)
+
+        self.MM_Result = QMMResultScene(C_Sprites.jacket,
+                                        C_Sprites.logo,
+                                        C_Sprites.background)
+
+        self.FT_Result = QFTResultScene(C_Sprites.jacket,
+                                        C_Sprites.logo)

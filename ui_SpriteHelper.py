@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'SpriteHelper_noFarcInehoc.ui'
-##
-## Created by: Qt User Interface Compiler version 6.9.3
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
@@ -16,12 +6,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QComboBox,
-    QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-    QLabel, QLayout, QMainWindow, QPushButton,
-    QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
-    QTabWidget, QVBoxLayout, QWidget)
+                               QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
+                               QLabel, QLayout, QMainWindow, QPushButton,
+                               QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
+                               QTabWidget, QVBoxLayout, QWidget, QGraphicsView)
+from superqt import QEnumComboBox
+from FarcCreator import Compression
 
-from widgets import QLabel_clickable
+from SceneComposer import QScalingGraphicsScene
 import resources
 
 class Ui_MainWindow(object):
@@ -74,56 +66,64 @@ class Ui_MainWindow(object):
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
-        self.mm_result_preview = QLabel_clickable(self.grid)
-        self.mm_result_preview.setObjectName(u"mm_result_preview")
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy2.setHorizontalStretch(1)
         sizePolicy2.setVerticalStretch(1)
-        sizePolicy2.setHeightForWidth(self.mm_result_preview.sizePolicy().hasHeightForWidth())
-        self.mm_result_preview.setSizePolicy(sizePolicy2)
-        self.mm_result_preview.setMinimumSize(QSize(256, 144))
-        self.mm_result_preview.setMaximumSize(QSize(1920, 1080))
-        self.mm_result_preview.setSizeIncrement(QSize(0, 0))
-        self.mm_result_preview.setBaseSize(QSize(640, 360))
-        self.mm_result_preview.setScaledContents(True)
 
-        self.image_grid.addWidget(self.mm_result_preview, 1, 0, 1, 1)
+        self.graphics_scene_view = QScalingGraphicsScene()
+        self.graphics_scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view.setSizePolicy(sizePolicy2)
+        self.graphics_scene_view.setMinimumSize(QSize(256, 144))
+        self.graphics_scene_view.setMaximumSize(QSize(1920, 1080))
+        self.graphics_scene_view.setSizeIncrement(QSize(0, 0))
+        self.graphics_scene_view.setBaseSize(QSize(640, 360))
+        self.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
+        self.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.graphics_scene_view.setBackgroundBrush(Qt.black)
+        self.image_grid.addWidget(self.graphics_scene_view,1,0,1,1)
 
-        self.mm_song_selector_preview = QLabel_clickable(self.grid)
-        self.mm_song_selector_preview.setObjectName(u"mm_song_selector_preview")
-        sizePolicy2.setHeightForWidth(self.mm_song_selector_preview.sizePolicy().hasHeightForWidth())
-        self.mm_song_selector_preview.setSizePolicy(sizePolicy2)
-        self.mm_song_selector_preview.setMinimumSize(QSize(256, 144))
-        self.mm_song_selector_preview.setMaximumSize(QSize(1920, 1080))
-        self.mm_song_selector_preview.setSizeIncrement(QSize(0, 0))
-        self.mm_song_selector_preview.setBaseSize(QSize(640, 360))
-        self.mm_song_selector_preview.setScaledContents(True)
+        self.graphics_scene_view1 = QScalingGraphicsScene()
+        self.graphics_scene_view1.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view1.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view1.setSizePolicy(sizePolicy2)
+        self.graphics_scene_view1.setMinimumSize(QSize(256, 144))
+        self.graphics_scene_view1.setMaximumSize(QSize(1920, 1080))
+        self.graphics_scene_view1.setSizeIncrement(QSize(0, 0))
+        self.graphics_scene_view1.setBaseSize(QSize(640, 360))
+        self.graphics_scene_view1.setRenderHint(QPainter.Antialiasing, True)
+        self.graphics_scene_view1.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.graphics_scene_view1.setBackgroundBrush(Qt.black)
 
-        self.image_grid.addWidget(self.mm_song_selector_preview, 0, 0, 1, 1)
+        self.image_grid.addWidget(self.graphics_scene_view1, 0, 0, 1, 1)
 
-        self.ft_result_preview = QLabel_clickable(self.grid)
-        self.ft_result_preview.setObjectName(u"ft_result_preview")
-        sizePolicy2.setHeightForWidth(self.ft_result_preview.sizePolicy().hasHeightForWidth())
-        self.ft_result_preview.setSizePolicy(sizePolicy2)
-        self.ft_result_preview.setMinimumSize(QSize(256, 144))
-        self.ft_result_preview.setMaximumSize(QSize(1920, 1080))
-        self.ft_result_preview.setSizeIncrement(QSize(0, 0))
-        self.ft_result_preview.setBaseSize(QSize(640, 360))
-        self.ft_result_preview.setScaledContents(True)
+        self.graphics_scene_view2 = QScalingGraphicsScene()
+        self.graphics_scene_view2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view2.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view2.setSizePolicy(sizePolicy2)
+        self.graphics_scene_view2.setMinimumSize(QSize(256, 144))
+        self.graphics_scene_view2.setMaximumSize(QSize(1920, 1080))
+        self.graphics_scene_view2.setSizeIncrement(QSize(0, 0))
+        self.graphics_scene_view2.setBaseSize(QSize(640, 360))
+        self.graphics_scene_view2.setRenderHint(QPainter.Antialiasing, True)
+        self.graphics_scene_view2.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.graphics_scene_view2.setBackgroundBrush(Qt.black)
 
-        self.image_grid.addWidget(self.ft_result_preview, 1, 1, 1, 1)
+        self.image_grid.addWidget(self.graphics_scene_view2, 1, 1, 1, 1)
 
-        self.ft_song_selector_preview = QLabel_clickable(self.grid)
-        self.ft_song_selector_preview.setObjectName(u"ft_song_selector_preview")
-        sizePolicy2.setHeightForWidth(self.ft_song_selector_preview.sizePolicy().hasHeightForWidth())
-        self.ft_song_selector_preview.setSizePolicy(sizePolicy2)
-        self.ft_song_selector_preview.setMinimumSize(QSize(256, 144))
-        self.ft_song_selector_preview.setMaximumSize(QSize(1920, 1080))
-        self.ft_song_selector_preview.setSizeIncrement(QSize(0, 0))
-        self.ft_song_selector_preview.setBaseSize(QSize(640, 360))
-        self.ft_song_selector_preview.setScaledContents(True)
+        self.graphics_scene_view3 = QScalingGraphicsScene()
+        self.graphics_scene_view3.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view3.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.graphics_scene_view3.setSizePolicy(sizePolicy2)
+        self.graphics_scene_view3.setMinimumSize(QSize(256, 144))
+        self.graphics_scene_view3.setMaximumSize(QSize(1920, 1080))
+        self.graphics_scene_view3.setSizeIncrement(QSize(0, 0))
+        self.graphics_scene_view3.setBaseSize(QSize(640, 360))
+        self.graphics_scene_view3.setRenderHint(QPainter.Antialiasing, True)
+        self.graphics_scene_view3.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        self.graphics_scene_view3.setBackgroundBrush(Qt.black)
 
-        self.image_grid.addWidget(self.ft_song_selector_preview, 0, 1, 1, 1)
+        self.image_grid.addWidget(self.graphics_scene_view3, 0, 1, 1, 1)
 
 
         self.horizontalLayout_5.addLayout(self.image_grid)
@@ -134,34 +134,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.load_background_button = QPushButton(self.grid)
-        self.load_background_button.setObjectName(u"load_background_button")
 
-        self.horizontalLayout.addWidget(self.load_background_button)
-
-        self.load_logo_button = QPushButton(self.grid)
-        self.load_logo_button.setObjectName(u"load_logo_button")
-
-        self.horizontalLayout.addWidget(self.load_logo_button)
-
-
-        self.load_buttons_box.addLayout(self.horizontalLayout)
-
-        self.load_buttons_box_row2 = QHBoxLayout()
-        self.load_buttons_box_row2.setSpacing(5)
-        self.load_buttons_box_row2.setObjectName(u"load_buttons_box_row2")
-        self.load_jacket_button = QPushButton(self.grid)
-        self.load_jacket_button.setObjectName(u"load_jacket_button")
-
-        self.load_buttons_box_row2.addWidget(self.load_jacket_button)
-
-        self.load_thumbnail_button = QPushButton(self.grid)
-        self.load_thumbnail_button.setObjectName(u"load_thumbnail_button")
-
-        self.load_buttons_box_row2.addWidget(self.load_thumbnail_button)
-
-
-        self.load_buttons_box.addLayout(self.load_buttons_box_row2)
 
         self.load_buttons_box_row3 = QHBoxLayout()
         self.load_buttons_box_row3.setSpacing(5)
@@ -182,7 +155,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box_row3.addWidget(self.new_classics_checkbox)
 
 
-        self.load_buttons_box.addLayout(self.load_buttons_box_row3)
+
 
         self.current_sprite_combobox = QComboBox(self.grid)
         self.current_sprite_combobox.addItem("")
@@ -192,6 +165,13 @@ class Ui_MainWindow(object):
         self.current_sprite_combobox.setObjectName(u"current_sprite_combobox")
 
         self.load_buttons_box.addWidget(self.current_sprite_combobox)
+
+        self.sprite_options_v_layout = QVBoxLayout()
+        self.sprite_options_v_layout.setContentsMargins(-1, 0, -1, -1)
+        self.load_image_button = QPushButton(self.grid)
+        self.load_image_button.setText("Load Image")
+        self.sprite_options_v_layout.addWidget(self.load_image_button)
+        self.load_buttons_box.addLayout(self.sprite_options_v_layout)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -205,6 +185,7 @@ class Ui_MainWindow(object):
         self.flip_vertical_button.setObjectName(u"flip_vertical_button")
 
         self.horizontalLayout_2.addWidget(self.flip_vertical_button)
+        #self.sprite_options_v_layout.addLayout(self.horizontalLayout_2)
 
 
         self.load_buttons_box.addLayout(self.horizontalLayout_2)
@@ -340,6 +321,7 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setWidget(self.image_edit_area_widget_properties)
 
         self.load_buttons_box.addWidget(self.image_edit_scroll_area)
+        self.load_buttons_box.addLayout(self.load_buttons_box_row3)
 
         self.image_tab_vertical_layout = QVBoxLayout()
         self.image_tab_vertical_layout.setSpacing(5)
@@ -363,6 +345,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
         self.song_id_label = QLabel(self.to_farc_tab)
         self.song_id_label.setObjectName(u"song_id_label")
+        self.song_id_label.setMaximumSize(QSize(195, 16777215))
         sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         sizePolicy6.setHorizontalStretch(0)
         sizePolicy6.setVerticalStretch(0)
@@ -372,6 +355,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addWidget(self.song_id_label)
 
         self.farc_song_id_spinbox = QDoubleSpinBox(self.to_farc_tab)
+        self.farc_song_id_spinbox.setMaximumSize(QSize(195, 16777215))
         self.farc_song_id_spinbox.setObjectName(u"farc_song_id_spinbox")
         self.farc_song_id_spinbox.setDecimals(0)
         self.farc_song_id_spinbox.setMinimum(1.000000000000000)
@@ -380,12 +364,28 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.farc_song_id_spinbox)
 
+
+        self.farc_compression_label = QLabel(self.to_farc_tab)
+        self.farc_compression_label.setMaximumSize(QSize(195, 16777215))
+        self.farc_compression_label.setText("Compression:")
+
+        self.verticalLayout_3.addWidget(self.farc_compression_label)
+
+        self.farc_compression_dropdown = QEnumComboBox()
+        self.farc_compression_dropdown.setMaximumSize(QSize(195, 16777215))
+        self.farc_compression_dropdown.setEnumClass(Compression)
+
+        self.verticalLayout_3.addWidget(self.farc_compression_dropdown)
+
+
         self.farc_export_button = QPushButton(self.to_farc_tab)
+        self.farc_export_button.setMaximumSize(QSize(195, 16777215))
         self.farc_export_button.setObjectName(u"farc_export_button")
 
         self.verticalLayout_3.addWidget(self.farc_export_button)
 
         self.farc_create_thumbnail_button = QPushButton(self.to_farc_tab)
+        self.farc_create_thumbnail_button.setMaximumSize(QSize(195, 16777215))
         self.farc_create_thumbnail_button.setObjectName(u"farc_create_thumbnail_button")
 
         self.verticalLayout_3.addWidget(self.farc_create_thumbnail_button)
@@ -409,6 +409,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_4.setContentsMargins(4, 4, 4, 4)
         self.open_preview_button = QPushButton(self.to_image_tab)
+        self.open_preview_button.setSizePolicy(sizePolicy)
+        self.open_preview_button.setMaximumSize(QSize(195, 16777215))
         self.open_preview_button.setObjectName(u"open_preview_button")
 
         self.verticalLayout_4.addWidget(self.open_preview_button)
@@ -476,14 +478,6 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        self.mm_result_preview.setText("")
-        self.mm_song_selector_preview.setText("")
-        self.ft_result_preview.setText("")
-        self.ft_song_selector_preview.setText("")
-        self.load_background_button.setText(QCoreApplication.translate("MainWindow", u"Load Background", None))
-        self.load_logo_button.setText(QCoreApplication.translate("MainWindow", u"Load Logo", None))
-        self.load_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Load Jacket", None))
-        self.load_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Load Thumbnail", None))
         self.has_logo_checkbox.setText(QCoreApplication.translate("MainWindow", u"Has logo?", None))
         self.new_classics_checkbox.setText(QCoreApplication.translate("MainWindow", u"New Classics?", None))
         self.current_sprite_combobox.setItemText(0, QCoreApplication.translate("MainWindow", u"Jacket", None))

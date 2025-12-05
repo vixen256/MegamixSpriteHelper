@@ -1,38 +1,23 @@
 import re
-import string
-import time
 from enum import Enum
-from threading import Lock
 
-from pyqt_advanced_slider import Slider
-
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt, Signal, QTimer)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-                           QFont, QFontDatabase, QGradient, QIcon,
-                           QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform, QMouseEvent)
-from PySide6.QtWidgets import (QAbstractScrollArea, QAbstractSpinBox, QApplication, QCheckBox,
-                               QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-                               QLabel, QLayout, QMainWindow, QPushButton,
-                               QScrollArea, QSizePolicy, QSpacerItem, QSpinBox,
-                               QVBoxLayout, QWidget, QScrollBar, QSlider, QComboBox, QCompleter)
+from PySide6.QtCore import (QSize, Qt, Signal, QTimer)
+from PySide6.QtGui import (QBrush, QColor, QFont, QPalette, QMouseEvent, QPixmap)
+from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
+                               QLabel, QPushButton,
+                               QSpinBox,
+                               QVBoxLayout, QWidget, QSlider)
 from superqt import QDoubleSlider, QSearchableComboBox
-from superqt.utils import qdebounced, qthrottled
+from superqt.utils import qthrottled
 
-
-class QLabel_clickable(QLabel):
-    clicked=Signal()
-
-    def mousePressEvent(self, ev):
-        self.clicked.emit()
 
 class Stylesheet(Enum):
     SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
-    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(171,237,253);border-radius: 2px;}"
+    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(123,104,238);border-radius: 2px;}"
     ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
+    SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
+    LABEL_PLACEHOLDER = ".QLabel {color: rgb(155,155,155);}"
 
 class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, *args, **kwargs):
@@ -97,7 +82,7 @@ class EditableDoubleLabel(QWidget):
         font1.setKerning(True)
 
         self.info_label = QLabel()
-        self.info_label.setText(f"{sprite.type.value + " " + setting.value}")
+        self.info_label.setText(f"{sprite.type.value} {setting.value}")
         self.info_label.setFont(font1)
 
         self.label = QLabel()
@@ -114,13 +99,21 @@ class EditableDoubleLabel(QWidget):
         #self.spinbox.editingFinished.connect(self.finish_editing)
         self.spinbox.valueChanged.connect(self.sync_slider)
 
-        self.slider = QDoubleSlider(Qt.Horizontal)
-        self.slider.setPageStep(rough_step)
-        self.slider.setSingleStep(rough_step)
-        #self.slider.sliderReleased.connect(self.slider_editing_finish)
-        self.slider.valueChanged.connect(self.slider_value_changed)
+        if decimals == 0:
+            self.slider = QSlider(Qt.Horizontal)
+            self.slider.setPageStep(rough_step)
+            self.slider.setSingleStep(rough_step)
+            # self.slider.sliderReleased.connect(self.slider_editing_finish)
+            self.slider.valueChanged.connect(self.slider_value_changed)
+        else:
+            self.slider = QDoubleSlider(Qt.Horizontal)
+            self.slider.setPageStep(rough_step)
+            self.slider.setSingleStep(rough_step)
+            #self.slider.sliderReleased.connect(self.slider_editing_finish)
+            self.slider.valueChanged.connect(self.slider_value_changed)
 
-        self.set_range(range)
+        self.range = range
+        self.set_range(self.range)
 
         self.layout.addWidget(self.info_label)
         self.layout.addWidget(self.label)
@@ -183,7 +176,11 @@ class EditableDoubleLabel(QWidget):
 
     def slider_value_changed(self):
         if not self.block_editing:
-            self.value = self.slider.value()
+            if self.decimals == 0:
+                self.value = int(self.slider.value())
+            else:
+                self.value = self.slider.value()
+
             self.label.setText(f"{self.value:.{self.decimals}f}")
             self.spinbox.setValue(self.value)
             qthrottled(self.slider_editing_finish(),timeout=20)
@@ -192,8 +189,20 @@ class EditableDoubleLabel(QWidget):
         self.slider.setValue(self.spinbox.value())
 
     def set_range(self,range):
-        minimum = range[0]
-        maximum = range[1]
+        if self.decimals == 0:
+            minimum = int(range[0])
+            maximum = int(range[1])
+        else:
+            minimum = range[0]
+            maximum = range[1]
+
+        if minimum > maximum: #This catches issues where float error causes min > max at values ~1
+            minimum = 1       #prevents crashes
+            maximum = 1
+            range = 0
+
+        else:
+            range = round(maximum - minimum,3)
 
         self.spinbox.setMinimum(minimum)
         self.spinbox.setMaximum(maximum)
@@ -201,9 +210,9 @@ class EditableDoubleLabel(QWidget):
         self.slider.setMinimum(minimum)
         self.slider.setMaximum(maximum)
 
-        range = maximum - minimum
+        self.range = (minimum,maximum)
 
-        if int(range == 0) and int(range == 0):
+        if int(range == 0):
             self.block_editing = True
             self.label.setCursor(Qt.CursorShape.ArrowCursor)
         else:
@@ -216,7 +225,11 @@ class EditableDoubleLabel(QWidget):
         return super().eventFilter(obj, event)
 
     def setValue(self, value):
-        self.value = value
+        if self.decimals == 0:
+            self.value = int(value)
+        else:
+            self.value = value
+
         self.label.setText(f"{value:.{self.decimals}f}")
         self.spinbox.setValue(self.value)
         self.slider.setValue(self.value)
@@ -233,6 +246,8 @@ class SongpackNameInput(QWidget):
         self.label = QLabel()
         self.label.mousePressEvent = self.on_label_clicked
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setText("Enter your mod name here")
+        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
 
         self.combo_box = QSearchableComboBox()
         self.combo_box.setEditable(True)
@@ -246,7 +261,7 @@ class SongpackNameInput(QWidget):
 
         self.delete_button = QPushButton()
         self.delete_button.setPalette(palette)
-        self.delete_button.setText("-")
+        self.delete_button.setIcon(QPixmap(":icon/Images/Minus.png"))
         self.delete_button.setFixedSize(30,27)
 
         self.combo_box.installEventFilter(self)
@@ -270,16 +285,24 @@ class SongpackNameInput(QWidget):
         self.combo_box.setVisible(True)
         self.combo_box.setFocus()
 
+    def label_set_placeholder_text(self):
+        self.label.setText("Enter your mod name here")
+        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
+
     def finish_editing(self):
-        self.label.setText(self.get_filtered_text())
+        if self.get_filtered_text():
+            self.label.setText(self.get_filtered_text())
+            self.label.setStyleSheet("")
+        else:
+            self.label_set_placeholder_text()
+
 
         self.combo_box.setVisible(False)
         self.label.setVisible(True)
 
     def get_filtered_text(self):
         mod_string = self.combo_box.currentText()
-        mod_string = mod_string.translate(str.maketrans('', '', string.punctuation)).lower()
-        mod_string = re.sub(r'[^A-Za-z0-9 ]+', '', mod_string)
+        mod_string = re.sub(r'[^A-Za-z0-9_ ]+', '', mod_string)
 
         return "_".join(mod_string.split())
 
