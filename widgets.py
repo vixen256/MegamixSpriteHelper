@@ -13,7 +13,7 @@ from superqt.utils import qthrottled
 
 class Stylesheet(Enum):
     SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
-    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(171,237,253);border-radius: 2px;}"
+    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(123,104,238);border-radius: 2px;}"
     ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
     SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
